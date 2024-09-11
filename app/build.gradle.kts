@@ -67,8 +67,16 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.viewModelCompose)
     implementation(libs.androidx.compose.material.core)
-    implementation(libs.accompanist.swiperefresh)
     implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.accompanist.swiperefresh)
+    implementation(libs.accompanist.permission)
+
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.camera.extensions)
+
+    implementation(libs.text.recognition)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

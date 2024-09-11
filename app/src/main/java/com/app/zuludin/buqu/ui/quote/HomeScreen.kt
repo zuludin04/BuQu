@@ -165,7 +165,7 @@ private fun FabContainer(modifier: Modifier = Modifier, onClick: () -> Unit) {
     ) { state ->
         when (state) {
             ContainerState.Fab -> {
-                Fab(modifier = Modifier, onClick = { onClick() })
+                Fab(modifier = Modifier, onClick = { containerState = ContainerState.Fullscreen })
             }
 
             ContainerState.Fullscreen -> AddQuoteScreen(

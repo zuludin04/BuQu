@@ -12,6 +12,8 @@ composeBom = "2023.08.00"
 roomVersion = "2.6.1"
 hiltVersion = "2.51.1"
 androidxLifecycle = "2.6.0-alpha03"
+cameraX = "1.3.0-beta02"
+mlkit = "16.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,8 +37,14 @@ hilt-dagger = { group = "com.google.dagger", name = "hilt-android", version.ref 
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltVersion" }
 androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
 androidx-compose-material-core = { group = "androidx.compose.material", name = "material" }
-accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanist" }
 androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanist" }
+accompanist-permission = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraX" }
+camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
+camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "cameraX" }
+text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkit" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
