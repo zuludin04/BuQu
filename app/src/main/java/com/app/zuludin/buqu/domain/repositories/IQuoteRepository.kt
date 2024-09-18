@@ -8,7 +8,7 @@ interface IQuoteRepository {
 
     fun getQuoteById(quoteId: String): Flow<Quote>
 
-    suspend fun upsertQuote(quote: String, author: String)
+    suspend fun upsertQuote(quote: String, author: String, book: String, page: Int)
 
     suspend fun deleteQuote(quoteId: String)
 }

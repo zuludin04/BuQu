@@ -32,11 +32,12 @@ class QuoteRepository @Inject constructor(
         return localSource.getQuoteById(quoteId).map { it.toExternal() }
     }
 
-    override suspend fun upsertQuote(quote: String, author: String) {
+    override suspend fun upsertQuote(quote: String, author: String, book: String, page: Int) {
         val quoteId = withContext(dispatcher) {
             UUID.randomUUID().toString()
         }
-        val savedQuote = Quote(quoteId = quoteId, quote = quote, author = author)
+        val savedQuote =
+            Quote(quoteId = quoteId, quote = quote, author = author, book = book, page = page)
         localSource.upsertQuote(savedQuote.toLocal())
     }
 

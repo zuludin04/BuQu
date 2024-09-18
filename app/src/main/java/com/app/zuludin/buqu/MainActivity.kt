@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.app.zuludin.buqu.ui.quote.HomeScreen
 import com.app.zuludin.buqu.ui.theme.BuQuTheme
 import com.app.zuludin.buqu.util.VoiceToTextParser
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -46,10 +47,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val cameraPermissionState: PermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
-            MainContent(
-                hasPermission = cameraPermissionState.status.isGranted,
-                onRequestPermission = cameraPermissionState::launchPermissionRequest
-            )
+//            MainContent(
+//                hasPermission = cameraPermissionState.status.isGranted,
+//                onRequestPermission = cameraPermissionState::launchPermissionRequest
+//            )
 //            var canRecord by remember {
 //                mutableStateOf(false)
 //            }
@@ -67,9 +68,9 @@ class MainActivity : ComponentActivity() {
 //
 //            val state by voiceToTextParser.state.collectAsState()
 //
-//            BuQuTheme {
-//                Scaffold(
-//                    modifier = Modifier.fillMaxSize(),
+            BuQuTheme {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
 //                    floatingActionButton = {
 //                        FloatingActionButton(onClick = {
 //                            if (state.isSpeaking) {
@@ -93,11 +94,11 @@ class MainActivity : ComponentActivity() {
 //                            }
 //                        }
 //                    }
-//                ) { innerPadding ->
-////                    HomeScreen(
-////                        modifier = Modifier
-////                            .padding(innerPadding)
-////                    )
+                ) { innerPadding ->
+                    HomeScreen(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                    )
 //                    Column(
 //                        modifier = Modifier
 //                            .fillMaxSize()
@@ -114,8 +115,8 @@ class MainActivity : ComponentActivity() {
 //                            }
 //                        }
 //                    }
-//                }
-//            }
+                }
+            }
         }
     }
 }

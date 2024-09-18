@@ -52,8 +52,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.app.zuludin.buqu.AddQuoteScreen
 import com.app.zuludin.buqu.domain.models.Quote
+import com.app.zuludin.buqu.ui.addquote.AddQuoteScreen
 import com.app.zuludin.buqu.util.LoadingContent
 
 @Composable
@@ -65,17 +65,19 @@ fun HomeScreen(
     Scaffold(scaffoldState = scaffoldState, modifier = modifier.fillMaxSize()) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
             HotContent(
                 loading = uiState.isLoading,
                 quotes = uiState.quotes,
-                onQuoteClick = { quoteId ->
-                    viewModel.deleteQuote(quoteId)
-                })
+                onQuoteClick = { })
             FabContainer(
                 modifier = Modifier
                     .align(Alignment.BottomEnd),
-                onClick = { viewModel.insertQuote("Hallo", "Keigo") }
+                onClick = { /*viewModel.insertQuote("Hallo", "Keigo")*/ }
             )
         }
 
