@@ -57,15 +57,15 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
 
 @Composable
 fun AddQuoteScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
-    viewModel: AddQuoteViewModel = viewModel()
+    viewModel: AddQuoteViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

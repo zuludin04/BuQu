@@ -14,6 +14,8 @@ hiltVersion = "2.51.1"
 androidxLifecycle = "2.6.0-alpha03"
 cameraX = "1.3.0-beta02"
 mlkit = "16.0.0"
+navigation = "2.8.1"
+androidxHiltNavigationCompose= "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +47,8 @@ camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", versi
 camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
 camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "cameraX" }
 text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkit" }
+android-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -30,14 +30,11 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,8 +51,8 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.ui.addquote.AddQuoteScreen
 import com.app.zuludin.buqu.util.LoadingContent
@@ -64,7 +61,7 @@ import kotlin.random.Random
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: QuoteViewModel = viewModel(),
+    viewModel: QuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     Scaffold(scaffoldState = scaffoldState, modifier = modifier.fillMaxSize()) { paddingValues ->
@@ -78,7 +75,8 @@ fun HomeScreen(
             HotContent(
                 loading = uiState.isLoading,
                 quotes = uiState.quotes,
-                onQuoteClick = { })
+                onQuoteClick = { }
+            )
             FabContainer(
                 modifier = Modifier.align(Alignment.BottomEnd)
             )
@@ -189,11 +187,6 @@ private fun HotContent(
     modifier: Modifier = Modifier
 ) {
     Column {
-        SearchBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        )
         LoadingContent(loading = loading, empty = quotes.isEmpty() && !loading, emptyContent = {}) {
             Column(
                 modifier = modifier.fillMaxSize()
@@ -215,38 +208,6 @@ private fun HotContent(
         }
     }
 }
-
-@Composable
-private fun SearchBar(modifier: Modifier = Modifier) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = "",
-        onValueChange = {},
-        leadingIcon = {
-            Icon(imageVector = Icons.Default.Menu, contentDescription = null)
-        },
-        placeholder = { Text(text = "Search Your Hot Takes") },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent,
-            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-        ),
-        shape = RoundedCornerShape(50)
-    )
-}
-
-//@Composable
-//private fun HotTakes() {
-//    LazyColumn(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(top = 12.dp),
-//        verticalArrangement = Arrangement.spacedBy(12.dp)
-//    ) {
-//        items(hotTakes) { HotTake(hotTake = it) }
-//    }
-//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
