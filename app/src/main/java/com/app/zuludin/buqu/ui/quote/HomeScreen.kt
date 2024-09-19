@@ -62,7 +62,9 @@ import kotlin.random.Random
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: QuoteViewModel = hiltViewModel(),
-    scaffoldState: ScaffoldState = rememberScaffoldState()
+    scaffoldState: ScaffoldState = rememberScaffoldState(),
+    onOpenDetail: () -> Unit,
+    onCloseDetail: () -> Unit,
 ) {
     Scaffold(scaffoldState = scaffoldState, modifier = modifier.fillMaxSize()) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,7 +80,9 @@ fun HomeScreen(
                 onQuoteClick = { }
             )
             FabContainer(
-                modifier = Modifier.align(Alignment.BottomEnd)
+                modifier = Modifier.align(Alignment.BottomEnd),
+                onOpenDetail = onOpenDetail,
+                onCloseDetail = onCloseDetail
             )
         }
 
@@ -92,7 +96,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun FabContainer(modifier: Modifier = Modifier) {
+private fun FabContainer(
+    modifier: Modifier = Modifier,
+    onOpenDetail: () -> Unit,
+    onCloseDetail: () -> Unit
+) {
     var containerState by remember {
         mutableStateOf(ContainerState.Fab)
     }
@@ -168,12 +176,18 @@ private fun FabContainer(modifier: Modifier = Modifier) {
     ) { state ->
         when (state) {
             ContainerState.Fab -> {
-                Fab(modifier = Modifier, onClick = { containerState = ContainerState.Fullscreen })
+                Fab(modifier = Modifier, onClick = {
+                    containerState = ContainerState.Fullscreen
+                    onOpenDetail()
+                })
             }
 
             ContainerState.Fullscreen -> AddQuoteScreen(
                 modifier = Modifier,
-                onBack = { containerState = ContainerState.Fab }
+                onBack = {
+                    containerState = ContainerState.Fab
+                    onCloseDetail()
+                }
             )
         }
     }

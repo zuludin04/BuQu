@@ -19,6 +19,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -73,35 +76,44 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
+                var buttonsVisible by remember { mutableStateOf(true) }
+
+                Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+                    if (buttonsVisible) {
                         NavigationBar {
-                            NavigationBarItem(
-                                selected = currentRoute == BuquNavigation.QUOTE_NAVIGATION,
+                            NavigationBarItem(selected = currentRoute == BuquNavigation.QUOTE_NAVIGATION,
                                 onClick = {
                                     navController.navigate(BuquNavigation.QUOTE_NAVIGATION)
+                                    buttonsVisible = true
                                 },
                                 icon = {
-                                    Icon(imageVector = Icons.Filled.Home, contentDescription = null)
+                                    Icon(
+                                        imageVector = Icons.Filled.Home,
+                                        contentDescription = null
+                                    )
                                 },
                                 label = {
                                     Text("Quote")
-                                }
-                            )
-                            NavigationBarItem(
-                                selected = currentRoute == BuquNavigation.BOOK_NAVIGATION,
-                                onClick = { navController.navigate(BuquNavigation.BOOK_NAVIGATION) },
+                                })
+                            NavigationBarItem(selected = currentRoute == BuquNavigation.BOOK_NAVIGATION,
+                                onClick = {
+                                    navController.navigate(BuquNavigation.BOOK_NAVIGATION)
+                                    buttonsVisible = true
+                                },
                                 icon = {
-                                    Icon(imageVector = Icons.Filled.Menu, contentDescription = null)
+                                    Icon(
+                                        imageVector = Icons.Filled.Menu,
+                                        contentDescription = null
+                                    )
                                 },
                                 label = {
                                     Text("Book")
-                                }
-                            )
-                            NavigationBarItem(
-                                selected = currentRoute == BuquNavigation.CATEGORY_NAVIGATION,
-                                onClick = { navController.navigate(BuquNavigation.CATEGORY_NAVIGATION) },
+                                })
+                            NavigationBarItem(selected = currentRoute == BuquNavigation.CATEGORY_NAVIGATION,
+                                onClick = {
+                                    navController.navigate(BuquNavigation.CATEGORY_NAVIGATION)
+                                    buttonsVisible = true
+                                },
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Filled.AddCircle,
@@ -110,11 +122,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 label = {
                                     Text("Category")
-                                }
-                            )
-                            NavigationBarItem(
-                                selected = currentRoute == BuquNavigation.SETTING_NAVIGATION,
-                                onClick = { navController.navigate(BuquNavigation.SETTING_NAVIGATION) },
+                                })
+                            NavigationBarItem(selected = currentRoute == BuquNavigation.SETTING_NAVIGATION,
+                                onClick = {
+                                    navController.navigate(BuquNavigation.SETTING_NAVIGATION)
+                                    buttonsVisible = true
+                                },
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Filled.Settings,
@@ -123,10 +136,10 @@ class MainActivity : ComponentActivity() {
                                 },
                                 label = {
                                     Text("Settings")
-                                }
-                            )
+                                })
                         }
                     }
+                }
 //                    floatingActionButton = {
 //                        FloatingActionButton(onClick = {
 //                            if (state.isSpeaking) {
@@ -152,7 +165,15 @@ class MainActivity : ComponentActivity() {
 //                    }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        BuquNavGraph(navController)
+                        BuquNavGraph(
+                            navController,
+                            onOpenDetail = {
+                                buttonsVisible = false
+                            },
+                            onCloseDetail = {
+                                buttonsVisible = true
+                            },
+                        )
                     }
 //                    Column(
 //                        modifier = Modifier
@@ -178,8 +199,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun MainContent(
-    hasPermission: Boolean,
-    onRequestPermission: () -> Unit
+    hasPermission: Boolean, onRequestPermission: () -> Unit
 ) {
 
     if (hasPermission) {

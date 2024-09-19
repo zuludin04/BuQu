@@ -9,10 +9,17 @@ import androidx.navigation.compose.composable
 import com.app.zuludin.buqu.ui.quote.HomeScreen
 
 @Composable
-fun BuquNavGraph(navController: NavHostController) {
+fun BuquNavGraph(
+    navController: NavHostController,
+    onOpenDetail: () -> Unit,
+    onCloseDetail: () -> Unit
+) {
     NavHost(navController, startDestination = BuquNavigation.QUOTE_NAVIGATION) {
         composable(BuquNavigation.QUOTE_NAVIGATION) {
-            HomeScreen()
+            HomeScreen(
+                onOpenDetail = onOpenDetail,
+                onCloseDetail = onCloseDetail
+            )
         }
         composable(BuquNavigation.BOOK_NAVIGATION) {
             Box { Text("Book") }
