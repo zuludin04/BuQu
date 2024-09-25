@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.ui.upsertquote
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.domain.usecases.DeleteQuoteUseCase
 import com.app.zuludin.buqu.domain.usecases.GetQuoteDetailUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
@@ -26,6 +27,7 @@ data class UpsertQuoteUiState(
 class UpsertQuoteViewModel @Inject constructor(
     private val upsertQuoteUseCase: UpsertQuoteUseCase,
     private val getQuoteDetailUseCase: GetQuoteDetailUseCase,
+    private val deleteQuoteUseCase: DeleteQuoteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
@@ -59,6 +61,15 @@ class UpsertQuoteViewModel @Inject constructor(
         } else {
             _uiState.update {
                 it.copy(isError = true)
+            }
+        }
+    }
+
+    fun deleteQuote() = viewModelScope.launch {
+        if (quoteId != null) {
+            deleteQuoteUseCase.invoke(quoteId)
+            _uiState.update {
+                it.copy(isQuoteSaved = true)
             }
         }
     }

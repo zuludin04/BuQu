@@ -67,7 +67,7 @@ fun UpsertQuoteScreen(
             BottomAppBar(
                 actions = {
                     if (topAppBarTitle == "Update Quote") {
-                        IconButton(onClick = { /* do something */ }) {
+                        IconButton(onClick = viewModel::deleteQuote) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete),
                                 contentDescription = "Localized description"
