@@ -32,13 +32,29 @@ class QuoteRepository @Inject constructor(
         return localSource.getById(quoteId)?.toExternal()
     }
 
-    override suspend fun upsertQuote(quote: String, author: String, book: String, page: Int) {
-        val quoteId = withContext(dispatcher) {
-            UUID.randomUUID().toString()
+    override suspend fun upsertQuote(
+        quoteId: String?,
+        quote: String,
+        author: String,
+        book: String,
+        page: Int
+    ) {
+        if (quoteId != null) {
+            val q = getQuoteById(quoteId)!!.copy(
+                quote = quote,
+                author = author,
+                book = book,
+                page = page
+            )
+            localSource.upsertQuote(q.toLocal())
+        } else {
+            val id = withContext(dispatcher) {
+                UUID.randomUUID().toString()
+            }
+            val savedQuote =
+                Quote(quoteId = id, quote = quote, author = author, book = book, page = page)
+            localSource.upsertQuote(savedQuote.toLocal())
         }
-        val savedQuote =
-            Quote(quoteId = quoteId, quote = quote, author = author, book = book, page = page)
-        localSource.upsertQuote(savedQuote.toLocal())
     }
 
     override suspend fun deleteQuote(quoteId: String) {

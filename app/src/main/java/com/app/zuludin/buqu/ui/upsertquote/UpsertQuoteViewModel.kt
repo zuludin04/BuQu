@@ -47,6 +47,7 @@ class UpsertQuoteViewModel @Inject constructor(
             state.page.isNotEmpty()
         ) {
             upsertQuoteUseCase.invoke(
+                quoteId = quoteId,
                 quote = state.quote,
                 book = state.book,
                 author = state.author,

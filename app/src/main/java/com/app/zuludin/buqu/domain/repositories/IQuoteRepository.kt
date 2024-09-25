@@ -8,7 +8,13 @@ interface IQuoteRepository {
 
     suspend fun getQuoteById(quoteId: String): Quote?
 
-    suspend fun upsertQuote(quote: String, author: String, book: String, page: Int)
+    suspend fun upsertQuote(
+        quoteId: String?,
+        quote: String,
+        author: String,
+        book: String,
+        page: Int
+    )
 
     suspend fun deleteQuote(quoteId: String)
 }
