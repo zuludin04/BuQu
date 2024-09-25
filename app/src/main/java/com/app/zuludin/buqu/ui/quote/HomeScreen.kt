@@ -119,6 +119,7 @@ private fun HotTake(hotTake: Quote, onClick: () -> Unit) {
     ) {
         Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(color)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
