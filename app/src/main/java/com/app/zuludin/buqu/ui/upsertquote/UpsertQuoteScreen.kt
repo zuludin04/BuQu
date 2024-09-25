@@ -1,6 +1,5 @@
-package com.app.zuludin.buqu.ui.addquote
+package com.app.zuludin.buqu.ui.upsertquote
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,31 +43,38 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 
 @Composable
-fun AddQuoteScreen(
-    modifier: Modifier = Modifier,
+fun UpsertQuoteScreen(
+    topAppBarTitle: String,
     onBack: () -> Unit,
-    viewModel: AddQuoteViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
+    viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    BackHandler {
-        onBack()
-        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-        viewModel.onPopScreen()
-    }
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            Toolbar(onBack = {
-                onBack()
-                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-                viewModel.onPopScreen()
-            })
+            Toolbar(
+                title = topAppBarTitle,
+                onBack = {
+                    onBack()
+                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                    viewModel.onPopScreen()
+                }
+            )
         },
         bottomBar = {
             BottomAppBar(
                 actions = {
+                    if (topAppBarTitle == "Update Quote") {
+                        IconButton(onClick = { /* do something */ }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                contentDescription = "Localized description"
+                            )
+                        }
+                    }
                     IconButton(onClick = { /* do something */ }) {
                         Icon(
                             painter = painterResource(R.drawable.ic_mic),
@@ -179,11 +185,11 @@ fun AddQuoteScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun Toolbar(onBack: () -> Unit) {
+private fun Toolbar(title: String, onBack: () -> Unit) {
     TopAppBar(
         windowInsets = WindowInsets(0, 0, 0, 0),
         title = {
-            Text("Add Quote")
+            Text(title)
         },
         navigationIcon = {
             FilledTonalIconButton(

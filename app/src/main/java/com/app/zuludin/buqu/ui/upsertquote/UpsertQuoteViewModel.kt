@@ -1,8 +1,11 @@
-package com.app.zuludin.buqu.ui.addquote
+package com.app.zuludin.buqu.ui.upsertquote
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,7 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AddQuoteUiState(
+data class UpsertQuoteUiState(
     val quote: String = "",
     val book: String = "",
     val page: String = "",
@@ -20,10 +23,19 @@ data class AddQuoteUiState(
 )
 
 @HiltViewModel
-class AddQuoteViewModel @Inject constructor(private val upsertQuoteUseCase: UpsertQuoteUseCase) :
+class UpsertQuoteViewModel @Inject constructor(
+    private val upsertQuoteUseCase: UpsertQuoteUseCase,
+    savedStateHandle: SavedStateHandle
+) :
     ViewModel() {
-    private val _uiState = MutableStateFlow(AddQuoteUiState())
-    val uiState: StateFlow<AddQuoteUiState> = _uiState
+    private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
+
+    private val _uiState = MutableStateFlow(UpsertQuoteUiState())
+    val uiState: StateFlow<UpsertQuoteUiState> = _uiState
+
+    init {
+        Log.d("QUOTE_ID", quoteId ?: "empty")
+    }
 
     fun saveQuote() = viewModelScope.launch {
         val state = uiState.value
