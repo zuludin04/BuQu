@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.theme
+package com.app.zuludin.buqu.util.theme
 
 import androidx.compose.ui.graphics.Color
 

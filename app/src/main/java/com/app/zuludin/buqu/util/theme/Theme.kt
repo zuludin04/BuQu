@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.theme
+package com.app.zuludin.buqu.util.theme
 
 import android.app.Activity
 import android.os.Build
