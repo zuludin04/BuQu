@@ -12,6 +12,8 @@ class QuoteLocalDataSource @Inject constructor(private val quoteDao: QuoteDao) {
 
     fun getQuoteById(quoteId: String): Flow<QuoteEntity> = quoteDao.observeById(quoteId)
 
+    suspend fun getById(quoteId: String): QuoteEntity? = quoteDao.getById(quoteId)
+
     suspend fun upsertQuote(quote: QuoteEntity) = quoteDao.upsert(quote)
 
     suspend fun deleteQuote(quoteId: String) = quoteDao.deleteById(

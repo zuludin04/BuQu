@@ -60,7 +60,6 @@ fun UpsertQuoteScreen(
                 onBack = {
                     onBack()
                     scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-                    viewModel.onPopScreen()
                 }
             )
         },
@@ -173,7 +172,6 @@ fun UpsertQuoteScreen(
         if (uiState.isQuoteSaved) {
             onBack()
             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-            viewModel.onPopScreen()
         }
 
         if (uiState.isError) {

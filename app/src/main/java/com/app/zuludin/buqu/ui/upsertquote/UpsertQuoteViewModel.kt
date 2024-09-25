@@ -1,9 +1,9 @@
 package com.app.zuludin.buqu.ui.upsertquote
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.domain.usecases.GetQuoteDetailUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,16 +25,18 @@ data class UpsertQuoteUiState(
 @HiltViewModel
 class UpsertQuoteViewModel @Inject constructor(
     private val upsertQuoteUseCase: UpsertQuoteUseCase,
+    private val getQuoteDetailUseCase: GetQuoteDetailUseCase,
     savedStateHandle: SavedStateHandle
-) :
-    ViewModel() {
+) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
 
     private val _uiState = MutableStateFlow(UpsertQuoteUiState())
     val uiState: StateFlow<UpsertQuoteUiState> = _uiState
 
     init {
-        Log.d("QUOTE_ID", quoteId ?: "empty")
+        if (quoteId != null) {
+            loadQuote(quoteId)
+        }
     }
 
     fun saveQuote() = viewModelScope.launch {
@@ -90,16 +92,21 @@ class UpsertQuoteViewModel @Inject constructor(
         }
     }
 
-    fun onPopScreen() {
-        _uiState.update {
-            it.copy(
-                quote = "",
-                book = "",
-                page = "",
-                author = "",
-                isQuoteSaved = false,
-                isError = false,
-            )
+    private fun loadQuote(quoteId: String) {
+        viewModelScope.launch {
+            getQuoteDetailUseCase.invoke(quoteId).let { quote ->
+                if (quote != null) {
+                    _uiState.update {
+                        it.copy(
+                            quote = quote.quote,
+                            book = quote.book,
+                            page = quote.page.toString(),
+                            author = quote.author,
+                        )
+                    }
+                }
+            }
+
         }
     }
 }

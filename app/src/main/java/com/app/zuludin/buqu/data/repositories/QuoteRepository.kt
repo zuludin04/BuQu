@@ -28,8 +28,8 @@ class QuoteRepository @Inject constructor(
         }
     }
 
-    override fun getQuoteById(quoteId: String): Flow<Quote> {
-        return localSource.getQuoteById(quoteId).map { it.toExternal() }
+    override suspend fun getQuoteById(quoteId: String): Quote? {
+        return localSource.getById(quoteId)?.toExternal()
     }
 
     override suspend fun upsertQuote(quote: String, author: String, book: String, page: Int) {

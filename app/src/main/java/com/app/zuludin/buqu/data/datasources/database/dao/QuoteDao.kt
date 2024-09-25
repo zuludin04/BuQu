@@ -14,6 +14,9 @@ interface QuoteDao {
     @Query("SELECT * FROM quote WHERE quoteId = :quoteId")
     fun observeById(quoteId: String): Flow<QuoteEntity>
 
+    @Query("SELECT * FROM quote WHERE quoteId = :quoteId")
+    suspend fun getById(quoteId: String): QuoteEntity?
+
     @Upsert
     suspend fun upsert(quote: QuoteEntity)
 
