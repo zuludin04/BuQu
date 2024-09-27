@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.upsertquote
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.util.SpeechRecognizerContract
 
 @Composable
 fun UpsertQuoteScreen(
@@ -50,58 +52,57 @@ fun UpsertQuoteScreen(
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = SpeechRecognizerContract(),
+        onResult = {
+            val result = it.toString()
+            viewModel.updateQuote(result.substring(1, result.length - 1))
+        }
+    )
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
-            Toolbar(
-                title = topAppBarTitle,
-                onBack = {
-                    onBack()
-                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+    Scaffold(scaffoldState = scaffoldState, topBar = {
+        Toolbar(title = topAppBarTitle, onBack = {
+            onBack()
+            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+        })
+    }, bottomBar = {
+        BottomAppBar(actions = {
+            if (topAppBarTitle == "Update Quote") {
+                IconButton(onClick = viewModel::deleteQuote) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete),
+                        contentDescription = "Localized description"
+                    )
                 }
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
-                actions = {
-                    if (topAppBarTitle == "Update Quote") {
-                        IconButton(onClick = viewModel::deleteQuote) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_delete),
-                                contentDescription = "Localized description"
-                            )
-                        }
-                    }
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_mic),
-                            contentDescription = "Localized description"
-                        )
-                    }
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_camera),
-                            contentDescription = "Localized description",
-                        )
-                    }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = viewModel::saveQuote,
-                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_check),
-                            "Localized description"
-                        )
-                    }
-                }
-            )
-        }
-    ) { contentPadding ->
+            }
+            IconButton(onClick = {
+                speechRecognizerLauncher.launch(Unit)
+            }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_mic),
+                    contentDescription = "Localized description"
+                )
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_camera),
+                    contentDescription = "Localized description",
+                )
+            }
+        }, floatingActionButton = {
+            FloatingActionButton(
+                onClick = viewModel::saveQuote,
+                containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_check), "Localized description"
+                )
+            }
+        })
+    }) { contentPadding ->
         Column(
             modifier = modifier
                 .padding(contentPadding)
@@ -117,11 +118,9 @@ fun UpsertQuoteScreen(
                 value = uiState.quote,
                 onChanged = viewModel::updateQuote,
                 imeAction = ImeAction.Next,
-                keyboardAction = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
-                )
+                keyboardAction = KeyboardActions(onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                })
             )
             Row {
                 TitleInputField(
@@ -131,11 +130,9 @@ fun UpsertQuoteScreen(
                     value = uiState.book,
                     onChanged = viewModel::updateBook,
                     imeAction = ImeAction.Next,
-                    keyboardAction = KeyboardActions(
-                        onNext = {
-                            focusManager.moveFocus(FocusDirection.Right)
-                        }
-                    )
+                    keyboardAction = KeyboardActions(onNext = {
+                        focusManager.moveFocus(FocusDirection.Right)
+                    })
                 )
                 Box(modifier = Modifier.padding(horizontal = 8.dp))
                 TitleInputField(
@@ -145,11 +142,9 @@ fun UpsertQuoteScreen(
                     value = uiState.page,
                     onChanged = viewModel::updatePage,
                     imeAction = ImeAction.Next,
-                    keyboardAction = KeyboardActions(
-                        onNext = {
-                            focusManager.moveFocus(FocusDirection.Down)
-                        }
-                    )
+                    keyboardAction = KeyboardActions(onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    })
                 )
             }
             TitleInputField(
@@ -159,11 +154,9 @@ fun UpsertQuoteScreen(
                 value = uiState.author,
                 onChanged = viewModel::updateAuthor,
                 imeAction = ImeAction.Done,
-                keyboardAction = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                    }
-                )
+                keyboardAction = KeyboardActions(onDone = {
+                    focusManager.clearFocus()
+                })
             )
         }
     }
@@ -184,25 +177,21 @@ fun UpsertQuoteScreen(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun Toolbar(title: String, onBack: () -> Unit) {
-    TopAppBar(
-        windowInsets = WindowInsets(0, 0, 0, 0),
-        title = {
-            Text(title)
-        },
-        navigationIcon = {
-            FilledTonalIconButton(
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                onClick = onBack,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = null,
-                )
-            }
+    TopAppBar(windowInsets = WindowInsets(0, 0, 0, 0), title = {
+        Text(title)
+    }, navigationIcon = {
+        FilledTonalIconButton(
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.background
+            ),
+            onClick = onBack,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = null,
+            )
         }
-    )
+    })
 }
 
 @Composable
