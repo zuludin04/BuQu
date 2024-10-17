@@ -85,12 +85,6 @@ fun UpsertQuoteScreen(
                     contentDescription = "Localized description"
                 )
             }
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_camera),
-                    contentDescription = "Localized description",
-                )
-            }
         }, floatingActionButton = {
             FloatingActionButton(
                 onClick = viewModel::saveQuote,
