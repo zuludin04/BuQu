@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.accompanist.swiperefresh)
     implementation(libs.accompanist.permission)
+    implementation(libs.accompanist.systemuicontroller)
 
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
