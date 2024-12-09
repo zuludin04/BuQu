@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.domain.models.Quote
+import com.app.zuludin.buqu.util.BuQuToolbar
 import com.app.zuludin.buqu.util.LoadingContent
 import kotlin.random.Random
 
@@ -49,7 +50,7 @@ fun HomeScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = modifier.fillMaxSize(),
-        topBar = { TopAppBar(title = { Text("BuQu") }) },
+        topBar = { BuQuToolbar("BuQu") },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddQuote) {
                 Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)

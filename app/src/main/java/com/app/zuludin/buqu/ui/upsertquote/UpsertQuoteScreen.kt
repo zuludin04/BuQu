@@ -4,7 +4,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
@@ -16,17 +15,12 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.util.BuQuToolbar
 import com.app.zuludin.buqu.util.SpeechRecognizerContract
 
 @Composable
@@ -62,41 +57,55 @@ fun UpsertQuoteScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(scaffoldState = scaffoldState, topBar = {
-        Toolbar(title = topAppBarTitle, onBack = {
-            onBack()
-            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-        })
-    }, bottomBar = {
-        BottomAppBar(actions = {
-            if (topAppBarTitle == "Update Quote") {
-                IconButton(onClick = viewModel::deleteQuote) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_delete),
-                        contentDescription = "Localized description"
-                    )
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            BuQuToolbar(
+                title = topAppBarTitle,
+                backButton = {
+                    IconButton(onClick = {
+                        onBack()
+                        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                    }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                actions = {
+                    if (topAppBarTitle == "Update Quote") {
+                        IconButton(onClick = viewModel::deleteQuote) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                contentDescription = "Localized description"
+                            )
+                        }
+                    }
+                    IconButton(onClick = {
+                        speechRecognizerLauncher.launch(Unit)
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mic),
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = viewModel::saveQuote,
+                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_check), "Localized description"
+                        )
+                    }
                 }
-            }
-            IconButton(onClick = {
-                speechRecognizerLauncher.launch(Unit)
-            }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_mic),
-                    contentDescription = "Localized description"
-                )
-            }
-        }, floatingActionButton = {
-            FloatingActionButton(
-                onClick = viewModel::saveQuote,
-                containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_check), "Localized description"
-                )
-            }
-        })
-    }) { contentPadding ->
+            )
+        }
+    ) { contentPadding ->
         Column(
             modifier = modifier
                 .padding(contentPadding)
@@ -166,26 +175,6 @@ fun UpsertQuoteScreen(
             viewModel.errorMessageShown()
         }
     }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun Toolbar(title: String, onBack: () -> Unit) {
-    TopAppBar(windowInsets = WindowInsets(0, 0, 0, 0), title = {
-        Text(title)
-    }, navigationIcon = {
-        FilledTonalIconButton(
-            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.background
-            ),
-            onClick = onBack,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = null,
-            )
-        }
-    })
 }
 
 @Composable
