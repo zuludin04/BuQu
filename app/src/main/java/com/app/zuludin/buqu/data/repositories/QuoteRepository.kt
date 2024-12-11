@@ -37,14 +37,16 @@ class QuoteRepository @Inject constructor(
         quote: String,
         author: String,
         book: String,
-        page: Int
+        page: Int,
+        image: String?
     ) {
         if (quoteId != null) {
             val q = getQuoteById(quoteId)!!.copy(
                 quote = quote,
                 author = author,
                 book = book,
-                page = page
+                page = page,
+                image = image ?: ""
             )
             localSource.upsertQuote(q.toLocal())
         } else {
@@ -52,7 +54,14 @@ class QuoteRepository @Inject constructor(
                 UUID.randomUUID().toString()
             }
             val savedQuote =
-                Quote(quoteId = id, quote = quote, author = author, book = book, page = page)
+                Quote(
+                    quoteId = id,
+                    quote = quote,
+                    author = author,
+                    book = book,
+                    page = page,
+                    image = image ?: ""
+                )
             localSource.upsertQuote(savedQuote.toLocal())
         }
     }

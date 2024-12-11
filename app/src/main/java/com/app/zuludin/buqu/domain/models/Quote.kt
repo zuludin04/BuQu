@@ -5,5 +5,6 @@ data class Quote(
     val quote: String,
     val author: String,
     val book: String,
-    val page: Int
+    val page: Int,
+    val image: String = ""
 )

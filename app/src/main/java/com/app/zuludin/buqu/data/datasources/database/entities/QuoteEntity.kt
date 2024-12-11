@@ -20,5 +20,8 @@ data class QuoteEntity(
     var book: String,
 
     @ColumnInfo(name = "page")
-    var page: Int
+    var page: Int,
+
+    @ColumnInfo(name = "image")
+    var image: String
 )

@@ -9,8 +9,9 @@ class UpsertQuoteUseCase @Inject constructor(private val quoteRepository: IQuote
         quote: String,
         author: String,
         book: String,
-        page: String
+        page: String,
+        image: String?
     ) {
-        quoteRepository.upsertQuote(quoteId, quote, author, book, page.toInt())
+        quoteRepository.upsertQuote(quoteId, quote, author, book, page.toInt(), image)
     }
 }

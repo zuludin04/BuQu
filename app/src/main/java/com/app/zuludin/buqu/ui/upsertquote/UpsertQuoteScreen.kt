@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -55,9 +57,9 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
 import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.util.BitmapConverter
 import com.app.zuludin.buqu.util.BuQuToolbar
 import com.app.zuludin.buqu.util.SpeechRecognizerContract
 import java.io.File
@@ -99,6 +101,12 @@ fun UpsertQuoteScreen(
     val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
             capturedImageUri = uri
+            val bitmap = MediaStore.Images.Media.getBitmap(
+                context.contentResolver,
+                capturedImageUri
+            )
+            val base64 = BitmapConverter.converterBitmapToString(bitmap)
+            viewModel.updateImage(base64)
         }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -187,10 +195,11 @@ fun UpsertQuoteScreen(
         ) {
             val focusManager = LocalFocusManager.current
 
-            if (capturedImageUri.path?.isNotEmpty() == true) {
+            if (uiState.image != null && uiState.image != "") {
                 Image(
                     modifier = Modifier.padding(top = 16.dp),
-                    painter = rememberImagePainter(capturedImageUri),
+                    bitmap = BitmapConverter.converterStringToBitmap(uiState.image!!)!!
+                        .asImageBitmap(),
                     contentDescription = null
                 )
             }
