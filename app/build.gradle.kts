@@ -53,6 +53,10 @@ android {
     room {
         schemaDirectory("$projectDir/schemas")
     }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -88,6 +92,8 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.android.navigation)
+
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
