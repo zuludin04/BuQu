@@ -62,6 +62,10 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.util.BitmapConverter
 import com.app.zuludin.buqu.util.BuQuToolbar
 import com.app.zuludin.buqu.util.SpeechRecognizerContract
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -77,37 +81,41 @@ fun UpsertQuoteScreen(
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
-    val speechRecognizerLauncher = rememberLauncherForActivityResult(
-        contract = SpeechRecognizerContract(),
-        onResult = {
+    val speechRecognizerLauncher =
+        rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
             val result = it.toString()
             viewModel.updateQuote(result.substring(1, result.length - 1))
-        }
-    )
+        })
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val file = context.createImageFile()
     val uri = FileProvider.getUriForFile(
-        Objects.requireNonNull(context),
-        BuildConfig.APPLICATION_ID + ".provider", file
+        Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
     )
+
+    val recognizer: TextRecognizer =
+        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
     var capturedImageUri by remember {
         mutableStateOf<Uri>(Uri.EMPTY)
     }
 
-    val cameraLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
-            capturedImageUri = uri
-            val bitmap = MediaStore.Images.Media.getBitmap(
-                context.contentResolver,
-                capturedImageUri
-            )
-            val base64 = BitmapConverter.converterBitmapToString(bitmap)
-            viewModel.updateImage(base64)
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
+        capturedImageUri = uri
+        val bitmap = MediaStore.Images.Media.getBitmap(
+            context.contentResolver, capturedImageUri
+        )
+        val base64 = BitmapConverter.converterBitmapToString(bitmap)
+
+        val image = InputImage.fromBitmap(bitmap, 0)
+        recognizer.process(image).addOnSuccessListener { visionText ->
+            viewModel.updateQuote(visionText.text)
         }
+
+        viewModel.updateImage(base64)
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -124,70 +132,62 @@ fun UpsertQuoteScreen(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
-            BuQuToolbar(
-                title = topAppBarTitle,
-                backButton = {
-                    IconButton(onClick = {
-                        onBack()
-                        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-                    }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = null)
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
-                actions = {
-                    if (topAppBarTitle == "Update Quote") {
-                        IconButton(onClick = viewModel::deleteQuote) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_delete),
-                                contentDescription = "Localized description"
-                            )
-                        }
-                    }
-                    IconButton(onClick = {
-                        speechRecognizerLauncher.launch(Unit)
-                    }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_mic),
-                            contentDescription = "Localized description"
-                        )
-                    }
-                    IconButton(onClick = {
-                        val permissionCheckResult =
-                            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                        if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                            cameraLauncher.launch(uri)
-                        } else {
-                            // Request a permission
-                            permissionLauncher.launch(Manifest.permission.CAMERA)
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_image),
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = viewModel::saveQuote,
-                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_check), "Localized description"
-                        )
-                    }
+    Scaffold(scaffoldState = scaffoldState, topBar = {
+        BuQuToolbar(
+            title = topAppBarTitle,
+            backButton = {
+                IconButton(onClick = {
+                    onBack()
+                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = null)
                 }
-            )
-        }
-    ) { contentPadding ->
+            },
+        )
+    }, bottomBar = {
+        BottomAppBar(actions = {
+            if (topAppBarTitle == "Update Quote") {
+                IconButton(onClick = viewModel::deleteQuote) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete),
+                        contentDescription = "Localized description"
+                    )
+                }
+            }
+            IconButton(onClick = {
+                speechRecognizerLauncher.launch(Unit)
+            }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_mic),
+                    contentDescription = "Localized description"
+                )
+            }
+            IconButton(onClick = {
+                val permissionCheckResult =
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                    cameraLauncher.launch(uri)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+            }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_image),
+                    contentDescription = "Localized description"
+                )
+            }
+        }, floatingActionButton = {
+            FloatingActionButton(
+                onClick = viewModel::saveQuote,
+                containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_check), "Localized description"
+                )
+            }
+        })
+    }) { contentPadding ->
         Column(
             modifier = modifier
                 .padding(contentPadding)
@@ -271,12 +271,10 @@ fun UpsertQuoteScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 showBottomSheet = false
-            },
-            sheetState = sheetState
+            }, sheetState = sheetState
         ) {
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
+                horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()
             ) {
                 IconButton(onClick = {}) {
                     Icon(
@@ -336,13 +334,10 @@ private fun TitleInputField(
 }
 
 fun Context.createImageFile(): File {
-    // Create an image file name
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val imageFileName = "JPEG_" + timeStamp + "_"
     val image = File.createTempFile(
-        imageFileName, /* prefix */
-        ".jpg", /* suffix */
-        externalCacheDir      /* directory */
+        imageFileName, ".jpg", externalCacheDir
     )
     return image
 }
