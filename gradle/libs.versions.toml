@@ -17,6 +17,7 @@ mlkit = "16.0.1"
 navigation = "2.8.1"
 androidxHiltNavigationCompose = "1.0.0"
 coil = "1.3.2"
+fonts = "1.7.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ text-recognition = { group = "com.google.mlkit", name = "text-recognition", vers
 android-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "fonts" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

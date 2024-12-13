@@ -94,6 +94,7 @@ dependencies {
     implementation(libs.android.navigation)
 
     implementation(libs.coil.compose)
+    implementation(libs.google.fonts)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -314,9 +314,7 @@ private fun TitleInputField(
             )
         },
         onValueChange = { v ->
-            if (v.isNotEmpty()) {
-                onChanged(v)
-            }
+            onChanged(v)
         },
         placeholder = {
             Text(
