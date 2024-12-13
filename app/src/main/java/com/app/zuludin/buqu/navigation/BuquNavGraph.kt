@@ -2,6 +2,7 @@ package com.app.zuludin.buqu.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,10 +11,12 @@ import androidx.navigation.navArgument
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.quote.HomeScreen
+import com.app.zuludin.buqu.ui.settings.SettingsScreen
 import com.app.zuludin.buqu.ui.upsertquote.UpsertQuoteScreen
 
 @Composable
 fun BuquNavGraph(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
     navActions: BuquNavigationActions = remember(navController) {
         BuquNavigationActions(navController)
@@ -23,9 +26,12 @@ fun BuquNavGraph(
         composable(BuquDestinations.QUOTES_ROUTE) {
             HomeScreen(
                 onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
-                onAddQuote = { navActions.navigateToUpsertQuote("Add Quote", null) }
             )
         }
+        composable(BuquDestinations.SETTING_ROUTE) {
+            SettingsScreen()
+        }
+
         composable(BuquDestinations.UPSERT_QUOTE_ROUTE, arguments = listOf(
             navArgument(TITLE_ARG) { type = NavType.StringType },
             navArgument(QUOTE_ID_ARG) { type = NavType.StringType; nullable = true }
@@ -36,8 +42,7 @@ fun BuquNavGraph(
                 topAppBarTitle = title ?: ""
             )
         }
-        composable(BuquDestinations.SETTING_ROUTE) {
-
-        }
     }
 }
+
+val bottomBarRoutes = setOf(BuquDestinations.QUOTES_ROUTE, BuquDestinations.SETTING_ROUTE)

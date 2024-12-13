@@ -38,17 +38,11 @@ fun HomeScreen(
     viewModel: QuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
     onQuoteClick: (String) -> Unit,
-    onAddQuote: () -> Unit
 ) {
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = modifier.fillMaxSize(),
         topBar = { BuQuToolbar("BuQu") },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAddQuote) {
-                Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)
-            }
-        }
     ) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
