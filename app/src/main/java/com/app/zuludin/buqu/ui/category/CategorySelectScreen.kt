@@ -28,7 +28,7 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.util.BuQuToolbar
 
 @Composable
-fun CategorySelectScreen(onBack: () -> Unit) {
+fun CategorySelectScreen(onBack: () -> Unit, onUpsertCategory: () -> Unit) {
     Scaffold(
         topBar = {
             BuQuToolbar(
@@ -42,7 +42,7 @@ fun CategorySelectScreen(onBack: () -> Unit) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {},
+                onClick = onUpsertCategory,
             ) {
                 Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)
             }
@@ -98,5 +98,5 @@ private fun CategoryItemPreview() {
 @Preview
 @Composable
 private fun CategorySelectScreenPreview() {
-    CategorySelectScreen {  }
+    CategorySelectScreen(onBack = {}, onUpsertCategory = {})
 }
