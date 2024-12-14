@@ -33,4 +33,7 @@ object DatabaseModule {
 
     @Provides
     fun provideQuoteDao(database: BuQuDatabase) = database.quoteDao()
+
+    @Provides
+    fun provideCategoryDao(database: BuQuDatabase) = database.categoryDao()
 }
