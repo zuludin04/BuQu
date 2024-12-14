@@ -22,7 +22,7 @@ import com.app.zuludin.buqu.util.BuQuToolbar
  * */
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onOpenCategorySelectScreen: () -> Unit) {
     Scaffold(
         topBar = { BuQuToolbar("Settings") },
     ) { paddingValues ->
@@ -37,7 +37,7 @@ fun SettingsScreen() {
                     name = "Category",
                     icon = R.drawable.ic_category,
                     iconDesc = "",
-                    onClick = { },
+                    onClick = onOpenCategorySelectScreen,
                 )
                 SettingsSwitchComp(
                     name = "Theme",

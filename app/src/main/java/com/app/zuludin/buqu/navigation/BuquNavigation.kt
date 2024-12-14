@@ -11,6 +11,7 @@ private object BuquScreens {
     const val QUOTES_SCREEN = "quotes"
     const val UPSERT_QUOTE_SCREEN = "upsertQuote"
     const val SETTING_SCREEN = "setting"
+    const val CATEGORY_SELECT_SCREEN = "categorySelect"
 }
 
 object BuquDestinationArgs {
@@ -23,7 +24,7 @@ object BuquDestinations {
     const val UPSERT_QUOTE_ROUTE =
         "${UPSERT_QUOTE_SCREEN}/{${TITLE_ARG}}?${QUOTE_ID_ARG}={${QUOTE_ID_ARG}}"
     const val SETTING_ROUTE = SETTING_SCREEN
-
+    const val CATEGORY_SELECT_SCREEN = BuquScreens.CATEGORY_SELECT_SCREEN
 }
 
 class BuquNavigationActions(private val navController: NavController) {
@@ -35,5 +36,9 @@ class BuquNavigationActions(private val navController: NavController) {
 
     fun navigateToSetting() {
         navController.navigate(BuquDestinations.SETTING_ROUTE)
+    }
+
+    fun navigateToCategorySelect() {
+        navController.navigate(BuquDestinations.CATEGORY_SELECT_SCREEN)
     }
 }
