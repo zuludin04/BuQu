@@ -14,7 +14,7 @@ data class CategoryEntity(
     var name: String,
 
     @ColumnInfo(name = "color")
-    var color: Int,
+    var color: String,
 
     @ColumnInfo(name = "type")
     var type: String

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ab005fd79285bf4312975fdae5edc893",
+    "identityHash": "a528b8afb8f36c46b73fe16f6fc048b7",
     "entities": [
       {
         "tableName": "quote",
@@ -56,7 +56,7 @@
       },
       {
         "tableName": "Category",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`categoryId` TEXT NOT NULL, `name` TEXT NOT NULL, `color` INTEGER NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`categoryId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`categoryId` TEXT NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`categoryId`))",
         "fields": [
           {
             "fieldPath": "categoryId",
@@ -73,7 +73,7 @@
           {
             "fieldPath": "color",
             "columnName": "color",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -96,7 +96,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ab005fd79285bf4312975fdae5edc893')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a528b8afb8f36c46b73fe16f6fc048b7')"
     ]
   }
 }

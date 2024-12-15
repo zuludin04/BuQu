@@ -12,7 +12,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.CATEGORY_TITLE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
-import com.app.zuludin.buqu.ui.category.CategoryUpsertScreen
+import com.app.zuludin.buqu.ui.category.upsert.CategoryUpsertScreen
 import com.app.zuludin.buqu.ui.quote.HomeScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
 import com.app.zuludin.buqu.ui.upsertquote.UpsertQuoteScreen

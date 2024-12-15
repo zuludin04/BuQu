@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.data.repositories
 
+import android.util.Log
 import com.app.zuludin.buqu.data.datasources.source.QuoteLocalDataSource
 import com.app.zuludin.buqu.data.toExternal
 import com.app.zuludin.buqu.data.toLocal
@@ -31,7 +32,7 @@ class CategoryRepository @Inject constructor(
         return localSource.getCategoryById(categoryId)?.toExternal()
     }
 
-    override suspend fun upsertCategory(categoryId: String?, name: String, color: Int, type: String) {
+    override suspend fun upsertCategory(categoryId: String?, name: String, color: String, type: String) {
         if (categoryId != null) {
             val q = getCategoryById(categoryId)!!.copy(
                 name = name,

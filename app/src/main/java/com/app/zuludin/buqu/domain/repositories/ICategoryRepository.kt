@@ -11,7 +11,7 @@ interface ICategoryRepository {
     suspend fun upsertCategory(
         categoryId: String?,
         name: String,
-        color: Int,
+        color: String,
         type: String
     )
 

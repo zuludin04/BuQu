@@ -3,8 +3,11 @@ package com.app.zuludin.buqu.di
 import android.content.Context
 import androidx.room.Room
 import com.app.zuludin.buqu.data.datasources.database.BuQuDatabase
+import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
+import com.app.zuludin.buqu.domain.repositories.ICategoryRepository
 import com.app.zuludin.buqu.domain.repositories.IQuoteRepository
+import com.app.zuludin.buqu.util.PrePopulateCategoryCallback
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -19,6 +22,10 @@ abstract class QuoteRepositoryModule {
     @Singleton
     @Binds
     abstract fun bindQuoteRepository(repository: QuoteRepository): IQuoteRepository
+
+    @Singleton
+    @Binds
+    abstract fun bindCategoryRepository(repository: CategoryRepository): ICategoryRepository
 }
 
 @Module
@@ -27,7 +34,9 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideDatabase(@ApplicationContext context: Context): BuQuDatabase {
-        return Room.databaseBuilder(context.applicationContext, BuQuDatabase::class.java, "Buqu.db")
+        return Room
+            .databaseBuilder(context.applicationContext, BuQuDatabase::class.java, "Buqu.db")
+            .addCallback(PrePopulateCategoryCallback())
             .build()
     }
 

@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.category
+package com.app.zuludin.buqu.ui.category.upsert
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

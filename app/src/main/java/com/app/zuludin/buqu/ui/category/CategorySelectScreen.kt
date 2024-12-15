@@ -7,16 +7,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,12 +28,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
 import com.app.zuludin.buqu.util.BuQuToolbar
 
 @Composable
-fun CategorySelectScreen(onBack: () -> Unit, onUpsertCategory: () -> Unit) {
+fun CategorySelectScreen(
+    viewModel: CategorySelectViewModel = hiltViewModel(),
+    scaffoldState: ScaffoldState = rememberScaffoldState(),
+    onBack: () -> Unit, onUpsertCategory: () -> Unit
+) {
     Scaffold(
+        scaffoldState = scaffoldState,
         topBar = {
             BuQuToolbar(
                 "Category",
@@ -48,22 +60,16 @@ fun CategorySelectScreen(onBack: () -> Unit, onUpsertCategory: () -> Unit) {
             }
         }
     ) { paddingValues ->
-        LazyColumn(modifier = Modifier.padding(paddingValues)) {
-            item {
-                CategoryItem(Color(0xFF9C27B0), "Character")
-                Divider()
-            }
-            item {
-                CategoryItem(Color(0xFF3F51B5), "Quote")
-                Divider()
-            }
-            item {
-                CategoryItem(Color(0xFF03A9F4), "Motivation")
-                Divider()
-            }
-            item {
-                CategoryItem(Color(0xFFFFC107), "Funny")
-                Divider()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        if (uiState.categories.isEmpty()) {
+            TasksEmptyContent()
+        } else {
+            LazyColumn(modifier = Modifier.padding(paddingValues)) {
+                items(uiState.categories) {
+                    CategoryItem(Color(android.graphics.Color.parseColor("#${it.color}")), it.name)
+                    Divider()
+                }
             }
         }
     }
@@ -92,7 +98,7 @@ private fun CategoryItem(color: Color, category: String) {
 @Preview
 @Composable
 private fun CategoryItemPreview() {
-    CategoryItem(Color(0xFFE91E63), "Character")
+//    CategoryItem(Color(0xFFE91E63), "Character")
 }
 
 @Preview

@@ -7,7 +7,7 @@ class UpsertCategoryUseCase @Inject constructor(private val repository: ICategor
     suspend operator fun invoke(
         categoryId: String?,
         name: String,
-        color: Int,
+        color: String,
         type: String
     ) {
         repository.upsertCategory(categoryId, name, color, type)
