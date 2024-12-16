@@ -19,7 +19,7 @@ data class UpsertQuoteUiState(
     val book: String = "",
     val page: String = "",
     val author: String = "",
-    val image: String? = "",
+    val categoryId: String = "",
     val isQuoteSaved: Boolean = false,
     val isError: Boolean = false,
 )
@@ -55,7 +55,7 @@ class UpsertQuoteViewModel @Inject constructor(
                 book = state.book,
                 author = state.author,
                 page = state.page,
-                image = state.image
+                categoryId = state.categoryId
             )
             _uiState.update {
                 it.copy(isQuoteSaved = true, isError = false)
@@ -102,7 +102,7 @@ class UpsertQuoteViewModel @Inject constructor(
 
     fun updateImage(newImage: String) {
         _uiState.update {
-            it.copy(image = newImage)
+            it.copy(categoryId = newImage)
         }
     }
 
@@ -122,7 +122,7 @@ class UpsertQuoteViewModel @Inject constructor(
                             book = quote.book,
                             page = quote.page.toString(),
                             author = quote.author,
-                            image = quote.image
+                            categoryId = quote.categoryId
                         )
                     }
                 }

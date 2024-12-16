@@ -29,7 +29,7 @@ class QuoteRepository @Inject constructor(
     }
 
     override suspend fun getQuoteById(quoteId: String): Quote? {
-        return localSource.getById(quoteId)?.toExternal()
+        return localSource.getQuoteDetail(quoteId)?.toExternal()
     }
 
     override suspend fun upsertQuote(
@@ -38,7 +38,7 @@ class QuoteRepository @Inject constructor(
         author: String,
         book: String,
         page: Int,
-        image: String?
+        categoryId: String
     ) {
         if (quoteId != null) {
             val q = getQuoteById(quoteId)!!.copy(
@@ -46,7 +46,7 @@ class QuoteRepository @Inject constructor(
                 author = author,
                 book = book,
                 page = page,
-                image = image ?: ""
+                categoryId = categoryId
             )
             localSource.upsertQuote(q.toLocal())
         } else {
@@ -60,7 +60,7 @@ class QuoteRepository @Inject constructor(
                     author = author,
                     book = book,
                     page = page,
-                    image = image ?: ""
+                    categoryId = categoryId
                 )
             localSource.upsertQuote(savedQuote.toLocal())
         }
@@ -68,6 +68,5 @@ class QuoteRepository @Inject constructor(
 
     override suspend fun deleteQuote(quoteId: String) {
         localSource.deleteQuote(quoteId)
-
     }
 }

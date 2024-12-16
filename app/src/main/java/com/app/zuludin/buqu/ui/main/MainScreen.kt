@@ -39,7 +39,7 @@ fun MainScreen(
             if (currentRoute in bottomBarRoutes) {
                 FloatingActionButton(
                     onClick = {
-                        navActions.navigateToUpsertQuote("Update Quote", null)
+                        navActions.navigateToUpsertQuote("Insert Quote", null)
                     },
                 ) {
                     Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)

@@ -22,6 +22,6 @@ data class QuoteEntity(
     @ColumnInfo(name = "page")
     var page: Int,
 
-    @ColumnInfo(name = "image")
-    var image: String
+    @ColumnInfo(name = "categoryId")
+    var categoryId: String,
 )

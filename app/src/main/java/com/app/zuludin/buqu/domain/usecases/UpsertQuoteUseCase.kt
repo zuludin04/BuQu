@@ -10,8 +10,8 @@ class UpsertQuoteUseCase @Inject constructor(private val quoteRepository: IQuote
         author: String,
         book: String,
         page: String,
-        image: String?
+        categoryId: String
     ) {
-        quoteRepository.upsertQuote(quoteId, quote, author, book, page.toInt(), image)
+        quoteRepository.upsertQuote(quoteId, quote, author, book, page.toInt(), categoryId)
     }
 }

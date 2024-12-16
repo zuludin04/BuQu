@@ -195,14 +195,14 @@ fun UpsertQuoteScreen(
         ) {
             val focusManager = LocalFocusManager.current
 
-            if (uiState.image != null && uiState.image != "") {
-                Image(
-                    modifier = Modifier.padding(top = 16.dp),
-                    bitmap = BitmapConverter.converterStringToBitmap(uiState.image!!)!!
-                        .asImageBitmap(),
-                    contentDescription = null
-                )
-            }
+//            if (uiState.image != null && uiState.image != "") {
+//                Image(
+//                    modifier = Modifier.padding(top = 16.dp),
+//                    bitmap = BitmapConverter.converterStringToBitmap(uiState.image!!)!!
+//                        .asImageBitmap(),
+//                    contentDescription = null
+//                )
+//            }
 
             TitleInputField(
                 modifier = Modifier.fillMaxWidth(),

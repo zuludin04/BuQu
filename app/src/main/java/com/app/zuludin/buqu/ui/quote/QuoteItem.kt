@@ -63,7 +63,8 @@ private fun QuoteItemPreview() {
             quote = "Hallo",
             author = "123",
             book = "BCD",
-            page = 0
+            page = 0,
+            categoryId = ""
         ),
         onClick = {}
     )

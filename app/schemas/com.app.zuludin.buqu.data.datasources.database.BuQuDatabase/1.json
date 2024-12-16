@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a528b8afb8f36c46b73fe16f6fc048b7",
+    "identityHash": "63bdeb6d9d40dcbd8bb42640a6c8d23e",
     "entities": [
       {
         "tableName": "quote",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`quoteId` TEXT NOT NULL, `quote` TEXT NOT NULL, `author` TEXT NOT NULL, `book` TEXT NOT NULL, `page` INTEGER NOT NULL, `image` TEXT NOT NULL, PRIMARY KEY(`quoteId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`quoteId` TEXT NOT NULL, `quote` TEXT NOT NULL, `author` TEXT NOT NULL, `book` TEXT NOT NULL, `page` INTEGER NOT NULL, `categoryId` TEXT NOT NULL, PRIMARY KEY(`quoteId`))",
         "fields": [
           {
             "fieldPath": "quoteId",
@@ -39,8 +39,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "image",
-            "columnName": "image",
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -55,7 +55,7 @@
         "foreignKeys": []
       },
       {
-        "tableName": "Category",
+        "tableName": "category",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`categoryId` TEXT NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY(`categoryId`))",
         "fields": [
           {
@@ -96,7 +96,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a528b8afb8f36c46b73fe16f6fc048b7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '63bdeb6d9d40dcbd8bb42640a6c8d23e')"
     ]
   }
 }
