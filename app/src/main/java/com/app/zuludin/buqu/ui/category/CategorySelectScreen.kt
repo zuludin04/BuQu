@@ -1,6 +1,7 @@
 package com.app.zuludin.buqu.ui.category
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,14 +32,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
 import com.app.zuludin.buqu.util.BuQuToolbar
 
 @Composable
 fun CategorySelectScreen(
+    onBack: () -> Unit,
+    onUpsertCategory: () -> Unit,
+    onDetailCategory: (String) -> Unit,
     viewModel: CategorySelectViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
-    onBack: () -> Unit, onUpsertCategory: () -> Unit
 ) {
     Scaffold(
         scaffoldState = scaffoldState,
@@ -67,7 +71,11 @@ fun CategorySelectScreen(
         } else {
             LazyColumn(modifier = Modifier.padding(paddingValues)) {
                 items(uiState.categories) {
-                    CategoryItem(Color(android.graphics.Color.parseColor("#${it.color}")), it.name)
+                    CategoryItem(
+                        color = Color(android.graphics.Color.parseColor("#${it.color}")),
+                        category = it,
+                        onClick = onDetailCategory,
+                    )
                     Divider()
                 }
             }
@@ -76,11 +84,12 @@ fun CategorySelectScreen(
 }
 
 @Composable
-private fun CategoryItem(color: Color, category: String) {
+private fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable { onClick(category.categoryId) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -90,7 +99,7 @@ private fun CategoryItem(color: Color, category: String) {
                 .background(color)
         )
         Text(
-            category, modifier = Modifier.padding(horizontal = 8.dp)
+            category.name, modifier = Modifier.padding(horizontal = 8.dp)
         )
     }
 }
@@ -104,5 +113,5 @@ private fun CategoryItemPreview() {
 @Preview
 @Composable
 private fun CategorySelectScreenPreview() {
-    CategorySelectScreen(onBack = {}, onUpsertCategory = {})
+    CategorySelectScreen(onBack = {}, onUpsertCategory = {}, onDetailCategory = {})
 }

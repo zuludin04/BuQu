@@ -292,7 +292,7 @@ fun UpsertQuoteScreen(
 }
 
 @Composable
-private fun TitleInputField(
+fun TitleInputField(
     label: String,
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,

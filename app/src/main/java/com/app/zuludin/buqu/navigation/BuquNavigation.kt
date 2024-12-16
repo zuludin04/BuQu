@@ -1,6 +1,7 @@
 package com.app.zuludin.buqu.navigation
 
 import androidx.navigation.NavController
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.CATEGORY_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.CATEGORY_TITLE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
@@ -22,6 +23,7 @@ object BuquDestinationArgs {
     const val QUOTE_ID_ARG = "quoteId"
     const val TITLE_ARG = "title"
     const val CATEGORY_TITLE_ARG = "categoryTitle"
+    const val CATEGORY_ID_ARG = "categoryId"
 }
 
 object BuquDestinations {
@@ -30,7 +32,8 @@ object BuquDestinations {
         "${UPSERT_QUOTE_SCREEN}/{${TITLE_ARG}}?${QUOTE_ID_ARG}={${QUOTE_ID_ARG}}"
     const val SETTING_ROUTE = SETTING_SCREEN
     const val CATEGORY_SELECT_ROUTE = CATEGORY_SELECT_SCREEN
-    const val CATEGORY_UPSERT_ROUTE = "${CATEGORY_UPSERT_SCREEN}/{${CATEGORY_TITLE_ARG}}"
+    const val CATEGORY_UPSERT_ROUTE =
+        "${CATEGORY_UPSERT_SCREEN}/{${CATEGORY_TITLE_ARG}}?${CATEGORY_ID_ARG}={${CATEGORY_ID_ARG}}"
 }
 
 class BuquNavigationActions(private val navController: NavController) {
@@ -48,7 +51,9 @@ class BuquNavigationActions(private val navController: NavController) {
         navController.navigate(BuquDestinations.CATEGORY_SELECT_ROUTE)
     }
 
-    fun navigateToUpsertCategory(title: String) {
-        navController.navigate("$CATEGORY_UPSERT_SCREEN/$title")
+    fun navigateToUpsertCategory(title: String, categoryId: String?) {
+        navController.navigate("$CATEGORY_UPSERT_SCREEN/$title".let {
+            if (categoryId != null) "${it}?$CATEGORY_ID_ARG=$categoryId" else it
+        })
     }
 }

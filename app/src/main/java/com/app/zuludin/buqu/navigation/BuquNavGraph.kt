@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.CATEGORY_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.CATEGORY_TITLE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
@@ -50,7 +51,10 @@ fun BuquNavGraph(
             CategorySelectScreen(
                 onBack = { navController.popBackStack() },
                 onUpsertCategory = {
-                    navActions.navigateToUpsertCategory("Insert Category")
+                    navActions.navigateToUpsertCategory("Insert Category", null)
+                },
+                onDetailCategory = { id ->
+                    navActions.navigateToUpsertCategory("Update Category", id)
                 }
             )
         }
@@ -58,7 +62,8 @@ fun BuquNavGraph(
         composable(
             BuquDestinations.CATEGORY_UPSERT_ROUTE,
             arguments = listOf(
-                navArgument(CATEGORY_TITLE_ARG) { type = NavType.StringType }
+                navArgument(CATEGORY_TITLE_ARG) { type = NavType.StringType },
+                navArgument(CATEGORY_ID_ARG) { type = NavType.StringType; nullable = true }
             )
         ) { entry ->
             val title = entry.arguments?.getString(CATEGORY_TITLE_ARG)
