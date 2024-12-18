@@ -8,7 +8,6 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -59,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.annotation.ExperimentalCoilApi
 import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.core.compose.ColorSpinner
 import com.app.zuludin.buqu.util.BitmapConverter
 import com.app.zuludin.buqu.util.BuQuToolbar
 import com.app.zuludin.buqu.util.SpeechRecognizerContract
@@ -114,7 +113,7 @@ fun UpsertQuoteScreen(
             viewModel.updateQuote(visionText.text)
         }
 
-        viewModel.updateImage(base64)
+//        viewModel.updateImage(base64)
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -252,6 +251,13 @@ fun UpsertQuoteScreen(
                     focusManager.clearFocus()
                 })
             )
+            if (uiState.categories.isNotEmpty()) {
+                ColorSpinner(
+                    currentCategory = if (uiState.category == null) uiState.categories[0] else uiState.category!!,
+                    categories = uiState.categories,
+                    onSelectCategory = viewModel::updateCategory
+                )
+            }
         }
     }
 

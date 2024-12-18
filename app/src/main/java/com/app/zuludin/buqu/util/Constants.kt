@@ -21,3 +21,25 @@ val colors = mutableListOf(
     "9E9E9E", // grey
     "607D8B", // blue grey
 )
+
+val colorNames = mutableListOf(
+    "Red",
+    "Pink",
+    "Purple",
+    "Deep Purple",
+    "Indigo",
+    "Blue",
+    "Light Blue",
+    "Cyan",
+    "Teal",
+    "Green",
+    "Light Green",
+    "Lime",
+    "Yellow",
+    "Amber",
+    "Orange",
+    "Deep Orange",
+    "Brown",
+    "Grey",
+    "Blue Grey"
+)

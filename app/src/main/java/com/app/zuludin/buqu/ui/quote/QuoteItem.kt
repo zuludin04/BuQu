@@ -21,7 +21,6 @@ import com.app.zuludin.buqu.domain.models.Quote
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuoteItem(quote: Quote, onClick: () -> Unit) {
-//    val color = Color(Random.nextLong(0xffffffff)).copy(alpha = 0.1f)
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
@@ -29,7 +28,7 @@ fun QuoteItem(quote: Quote, onClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Cyan.copy(alpha = 0.1f))
+                .background(Color(android.graphics.Color.parseColor("#${quote.color}")).copy(alpha = 0.2f))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

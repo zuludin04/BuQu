@@ -3,13 +3,17 @@ package com.app.zuludin.buqu.ui.upsertquote
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.usecases.DeleteQuoteUseCase
+import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
 import com.app.zuludin.buqu.domain.usecases.GetQuoteDetailUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
+import com.app.zuludin.buqu.util.Async
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,7 +23,8 @@ data class UpsertQuoteUiState(
     val book: String = "",
     val page: String = "",
     val author: String = "",
-    val categoryId: String = "",
+    val category: Category? = null,
+    val categories: List<Category> = emptyList(),
     val isQuoteSaved: Boolean = false,
     val isError: Boolean = false,
 )
@@ -29,6 +34,7 @@ class UpsertQuoteViewModel @Inject constructor(
     private val upsertQuoteUseCase: UpsertQuoteUseCase,
     private val getQuoteDetailUseCase: GetQuoteDetailUseCase,
     private val deleteQuoteUseCase: DeleteQuoteUseCase,
+    private val getCategoryUseCase: GetCategoriesUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
@@ -37,6 +43,7 @@ class UpsertQuoteViewModel @Inject constructor(
     val uiState: StateFlow<UpsertQuoteUiState> = _uiState
 
     init {
+        loadCategories()
         if (quoteId != null) {
             loadQuote(quoteId)
         }
@@ -55,7 +62,7 @@ class UpsertQuoteViewModel @Inject constructor(
                 book = state.book,
                 author = state.author,
                 page = state.page,
-                categoryId = state.categoryId
+                categoryId = state.category?.categoryId ?: ""
             )
             _uiState.update {
                 it.copy(isQuoteSaved = true, isError = false)
@@ -100,9 +107,11 @@ class UpsertQuoteViewModel @Inject constructor(
         }
     }
 
-    fun updateImage(newImage: String) {
+    fun updateCategory(category: Category) {
         _uiState.update {
-            it.copy(categoryId = newImage)
+            it.copy(
+                category = category
+            )
         }
     }
 
@@ -122,12 +131,31 @@ class UpsertQuoteViewModel @Inject constructor(
                             book = quote.book,
                             page = quote.page.toString(),
                             author = quote.author,
-                            categoryId = quote.categoryId
+                            category = Category(
+                                categoryId = quote.categoryId,
+                                name = quote.category,
+                                color = quote.color,
+                                type = "Quote"
+                            )
                         )
                     }
                 }
             }
 
+        }
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            when (val categories = getCategoryUseCase.invoke().first()) {
+                is Async.Error -> {}
+                Async.Loading -> {}
+                is Async.Success -> {
+                    _uiState.update {
+                        it.copy(categories = categories.data)
+                    }
+                }
+            }
         }
     }
 }

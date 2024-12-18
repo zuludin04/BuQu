@@ -1,7 +1,7 @@
 package com.app.zuludin.buqu.data
 
+import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
-import com.app.zuludin.buqu.data.datasources.database.entities.QuoteAndCategoryEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
@@ -16,20 +16,20 @@ fun Quote.toLocal() =
         categoryId = categoryId
     )
 
-fun QuoteAndCategoryEntity.toExternal() =
+fun CategoryAndQuoteEntity.toExternal() =
     Quote(
-        quote.quoteId,
-        quote.quote,
-        quote.author,
-        quote.book,
-        quote.page,
-        category.categoryId,
-        category.color,
-        category.name
+        quoteId,
+        quote,
+        author,
+        book,
+        page,
+        categoryId,
+        color,
+        name
     )
 
 @JvmName("localToExternalQuote")
-fun List<QuoteAndCategoryEntity>.toExternal() = map(QuoteAndCategoryEntity::toExternal)
+fun List<CategoryAndQuoteEntity>.toExternal() = map(CategoryAndQuoteEntity::toExternal)
 
 fun Category.toLocal() = CategoryEntity(categoryId, name, color, type)
 

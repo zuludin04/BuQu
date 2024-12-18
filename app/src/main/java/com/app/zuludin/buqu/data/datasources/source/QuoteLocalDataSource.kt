@@ -2,8 +2,8 @@ package com.app.zuludin.buqu.data.datasources.source
 
 import com.app.zuludin.buqu.data.datasources.database.dao.CategoryDao
 import com.app.zuludin.buqu.data.datasources.database.dao.QuoteDao
+import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
-import com.app.zuludin.buqu.data.datasources.database.entities.QuoteAndCategoryEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -14,13 +14,13 @@ class QuoteLocalDataSource @Inject constructor(
     private val quoteDao: QuoteDao,
     private val categoryDao: CategoryDao
 ) {
-    fun getQuotes(): Flow<List<QuoteAndCategoryEntity>> = quoteDao.observeAllQuotes()
+    fun getQuotes(): Flow<List<CategoryAndQuoteEntity>> = quoteDao.observeAllQuotes()
 
-    fun getQuoteById(quoteId: String): Flow<QuoteEntity> = quoteDao.observeById(quoteId)
+//    fun getQuoteById(quoteId: String): Flow<QuoteEntity> = quoteDao.observeById(quoteId)
+//
+//    suspend fun getById(quoteId: String): QuoteEntity? = quoteDao.getById(quoteId)
 
-    suspend fun getById(quoteId: String): QuoteEntity? = quoteDao.getById(quoteId)
-
-    suspend fun getQuoteDetail(quoteId: String): QuoteAndCategoryEntity? =
+    suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity? =
         quoteDao.getQuoteDetail(quoteId)
 
     suspend fun upsertQuote(quote: QuoteEntity) = quoteDao.upsert(quote)
