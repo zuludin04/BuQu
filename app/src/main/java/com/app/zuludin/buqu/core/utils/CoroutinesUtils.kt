@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.util
+package com.app.zuludin.buqu.core.utils
 
 import kotlinx.coroutines.flow.SharingStarted
 

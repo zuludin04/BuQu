@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.util.theme
+package com.app.zuludin.buqu.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.font.FontFamily

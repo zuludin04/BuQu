@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.usecases.GetQuotesUseCase
-import com.app.zuludin.buqu.util.Async
-import com.app.zuludin.buqu.util.WhileUiSubscribed
+import com.app.zuludin.buqu.core.utils.Async
+import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

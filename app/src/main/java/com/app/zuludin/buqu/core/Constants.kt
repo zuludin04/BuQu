@@ -1,6 +1,4 @@
-package com.app.zuludin.buqu.util
-
-import com.app.zuludin.buqu.domain.models.Category
+package com.app.zuludin.buqu.core
 
 val colors = mutableListOf(
     "F44336", // red
@@ -45,20 +43,3 @@ val colorNames = mutableListOf(
     "Grey",
     "Blue Grey"
 )
-
-fun categoryColors(): List<Category> {
-    val categories = mutableListOf<Category>()
-
-    colors.forEachIndexed { index, s ->
-        categories.add(
-            Category(
-                categoryId = "$index",
-                name = colorNames[index],
-                color = s,
-                type = ""
-            )
-        )
-    }
-
-    return categories
-}

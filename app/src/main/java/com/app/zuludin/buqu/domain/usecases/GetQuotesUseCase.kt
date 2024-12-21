@@ -2,7 +2,7 @@ package com.app.zuludin.buqu.domain.usecases
 
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.repositories.IQuoteRepository
-import com.app.zuludin.buqu.util.Async
+import com.app.zuludin.buqu.core.utils.Async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map

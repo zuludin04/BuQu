@@ -35,8 +35,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.app.zuludin.buqu.ui.upsertquote.TitleInputField
-import com.app.zuludin.buqu.util.colorNames
-import com.app.zuludin.buqu.util.colors
+import com.app.zuludin.buqu.core.colorNames
+import com.app.zuludin.buqu.core.colors
 
 @Composable
 fun CategoryUpsertSheet(

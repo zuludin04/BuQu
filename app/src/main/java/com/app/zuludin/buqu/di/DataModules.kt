@@ -7,7 +7,7 @@ import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.repositories.ICategoryRepository
 import com.app.zuludin.buqu.domain.repositories.IQuoteRepository
-import com.app.zuludin.buqu.util.PrePopulateCategoryCallback
+import com.app.zuludin.buqu.core.utils.PrePopulateCategoryCallback
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

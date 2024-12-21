@@ -58,9 +58,9 @@ import coil.annotation.ExperimentalCoilApi
 import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.ColorSpinner
-import com.app.zuludin.buqu.util.BitmapConverter
-import com.app.zuludin.buqu.util.BuQuToolbar
-import com.app.zuludin.buqu.util.SpeechRecognizerContract
+import com.app.zuludin.buqu.core.utils.BitmapConverter
+import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer

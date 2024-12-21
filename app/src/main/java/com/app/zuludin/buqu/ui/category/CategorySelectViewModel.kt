@@ -6,8 +6,8 @@ import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.usecases.DeleteCategoryUseCase
 import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertCategoryUseCase
-import com.app.zuludin.buqu.util.Async
-import com.app.zuludin.buqu.util.WhileUiSubscribed
+import com.app.zuludin.buqu.core.utils.Async
+import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

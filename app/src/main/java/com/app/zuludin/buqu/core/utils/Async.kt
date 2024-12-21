@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.util
+package com.app.zuludin.buqu.core.utils
 
 sealed class Async<out T> {
     object Loading : Async<Nothing>()

@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.util
+package com.app.zuludin.buqu.core.compose
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.app.zuludin.buqu.util.theme.BuQuTheme
+import com.app.zuludin.buqu.core.theme.BuQuTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

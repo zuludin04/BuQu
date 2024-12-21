@@ -9,7 +9,7 @@ import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
 import com.app.zuludin.buqu.domain.usecases.GetQuoteDetailUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
-import com.app.zuludin.buqu.util.Async
+import com.app.zuludin.buqu.core.utils.Async
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

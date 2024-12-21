@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.app.zuludin.buqu.ui.main.MainScreen
-import com.app.zuludin.buqu.util.theme.BuQuTheme
+import com.app.zuludin.buqu.core.theme.BuQuTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

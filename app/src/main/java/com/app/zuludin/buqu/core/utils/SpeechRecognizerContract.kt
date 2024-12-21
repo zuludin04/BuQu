@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.util
+package com.app.zuludin.buqu.core.utils
 
 import android.app.Activity
 import android.content.Context

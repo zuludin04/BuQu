@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.domain.models.Quote
-import com.app.zuludin.buqu.util.BuQuToolbar
+import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
