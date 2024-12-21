@@ -1,22 +1,18 @@
 package com.app.zuludin.buqu.ui.upsertquote
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
@@ -24,25 +20,18 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -54,24 +43,20 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.annotation.ExperimentalCoilApi
 import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
-import com.app.zuludin.buqu.core.compose.ColorSpinner
-import com.app.zuludin.buqu.core.utils.BitmapConverter
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.compose.ColorSpinner
+import com.app.zuludin.buqu.core.compose.TitleInputField
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
+import com.app.zuludin.buqu.core.utils.createImageFile
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.Objects
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
+@Suppress("DEPRECATION")
 @Composable
 fun UpsertQuoteScreen(
     topAppBarTitle: String,
@@ -80,15 +65,14 @@ fun UpsertQuoteScreen(
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
+    val context = LocalContext.current
+
     val speechRecognizerLauncher =
         rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
             val result = it.toString()
             viewModel.updateQuote(result.substring(1, result.length - 1))
         })
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
     val file = context.createImageFile()
     val uri = FileProvider.getUriForFile(
         Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
@@ -106,14 +90,11 @@ fun UpsertQuoteScreen(
         val bitmap = MediaStore.Images.Media.getBitmap(
             context.contentResolver, capturedImageUri
         )
-        val base64 = BitmapConverter.converterBitmapToString(bitmap)
 
         val image = InputImage.fromBitmap(bitmap, 0)
         recognizer.process(image).addOnSuccessListener { visionText ->
             viewModel.updateQuote(visionText.text)
         }
-
-//        viewModel.updateImage(base64)
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -127,9 +108,7 @@ fun UpsertQuoteScreen(
         }
     }
 
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(scaffoldState = scaffoldState, topBar = {
         BuQuToolbar(
@@ -193,15 +172,6 @@ fun UpsertQuoteScreen(
                 .padding(horizontal = 16.dp)
         ) {
             val focusManager = LocalFocusManager.current
-
-//            if (uiState.image != null && uiState.image != "") {
-//                Image(
-//                    modifier = Modifier.padding(top = 16.dp),
-//                    bitmap = BitmapConverter.converterStringToBitmap(uiState.image!!)!!
-//                        .asImageBitmap(),
-//                    contentDescription = null
-//                )
-//            }
 
             TitleInputField(
                 modifier = Modifier.fillMaxWidth(),
@@ -272,76 +242,4 @@ fun UpsertQuoteScreen(
             viewModel.errorMessageShown()
         }
     }
-
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                showBottomSheet = false
-            }, sheetState = sheetState
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(onClick = {}) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_camera),
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-                IconButton(onClick = {}) {
-                    Icon(painter = painterResource(R.drawable.ic_image), contentDescription = null)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TitleInputField(
-    label: String,
-    modifier: Modifier = Modifier,
-    singleLine: Boolean = true,
-    value: String,
-    onChanged: (String) -> Unit,
-    capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    imeAction: ImeAction = ImeAction.Default,
-    keyboardAction: KeyboardActions = KeyboardActions.Default
-) {
-    OutlinedTextField(
-        modifier = modifier.padding(vertical = 4.dp),
-        value = value,
-        singleLine = singleLine,
-        label = {
-            Text(
-                text = label,
-                color = Color.Gray,
-            )
-        },
-        onValueChange = { v ->
-            onChanged(v)
-        },
-        placeholder = {
-            Text(
-                text = label,
-                color = Color.Gray,
-            )
-        },
-        keyboardOptions = KeyboardOptions(
-            capitalization = capitalization,
-            keyboardType = keyboardType,
-            imeAction = imeAction,
-        ),
-        keyboardActions = keyboardAction,
-    )
-}
-
-fun Context.createImageFile(): File {
-    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-    val imageFileName = "JPEG_" + timeStamp + "_"
-    val image = File.createTempFile(
-        imageFileName, ".jpg", externalCacheDir
-    )
-    return image
 }
