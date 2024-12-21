@@ -17,11 +17,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,15 +41,31 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
 import com.app.zuludin.buqu.util.BuQuToolbar
+import com.app.zuludin.buqu.util.colors
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategorySelectScreen(
     onBack: () -> Unit,
-    onUpsertCategory: () -> Unit,
-    onDetailCategory: (String) -> Unit,
     viewModel: CategorySelectViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    var selectedCategory by remember {
+        mutableStateOf(
+            Category(
+                categoryId = "",
+                name = "",
+                color = "",
+                type = ""
+            )
+        )
+    }
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
@@ -58,27 +80,56 @@ fun CategorySelectScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onUpsertCategory,
+                onClick = {
+                    showBottomSheet = true
+                    selectedCategory = Category("", "", colors[0], "")
+                },
             ) {
                 Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)
             }
         }
     ) { paddingValues ->
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
         if (uiState.categories.isEmpty()) {
             TasksEmptyContent()
         } else {
             LazyColumn(modifier = Modifier.padding(paddingValues)) {
-                items(uiState.categories) {
+                items(uiState.categories) { cat ->
                     CategoryItem(
-                        color = Color(android.graphics.Color.parseColor("#${it.color}")),
-                        category = it,
-                        onClick = onDetailCategory,
+                        color = Color(android.graphics.Color.parseColor("#${cat.color}")),
+                        category = cat,
+                        onClick = {
+                            showBottomSheet = true
+                            selectedCategory = cat
+                        },
                     )
                     Divider()
                 }
             }
+        }
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            CategoryUpsertSheet(
+                color = selectedCategory.color,
+                name = selectedCategory.name,
+                showDeleteButton = selectedCategory.categoryId != "",
+                onUpsertCategory = { color, name ->
+                    viewModel.upsertCategory(
+                        color = color,
+                        name = name,
+                        id = selectedCategory.categoryId
+                    )
+                    showBottomSheet = false
+                },
+                onDeleteCategory = {
+                    viewModel.deleteCategory(selectedCategory.categoryId)
+                    showBottomSheet = false
+                }
+            )
         }
     }
 }
@@ -107,11 +158,20 @@ private fun CategoryItem(color: Color, category: Category, onClick: (String) -> 
 @Preview
 @Composable
 private fun CategoryItemPreview() {
-//    CategoryItem(Color(0xFFE91E63), "Character")
+    CategoryItem(
+        color = Color(0xFFE91E63),
+        category = Category(
+            categoryId = "",
+            name = "",
+            color = "",
+            type = ""
+        ),
+        onClick = {}
+    )
 }
 
 @Preview
 @Composable
 private fun CategorySelectScreenPreview() {
-    CategorySelectScreen(onBack = {}, onUpsertCategory = {}, onDetailCategory = {})
+    CategorySelectScreen(onBack = {})
 }
