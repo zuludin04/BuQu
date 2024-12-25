@@ -9,10 +9,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_AUTHOR_ARG
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_BOOK_ARG
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.HomeScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
+import com.app.zuludin.buqu.ui.share.ShareScreen
 import com.app.zuludin.buqu.ui.upsertquote.UpsertQuoteScreen
 
 @Composable
@@ -33,19 +37,42 @@ fun BuquNavGraph(
             SettingsScreen(onOpenCategorySelectScreen = { navActions.navigateToCategorySelect() })
         }
 
-        composable(BuquDestinations.UPSERT_QUOTE_ROUTE, arguments = listOf(
-            navArgument(TITLE_ARG) { type = NavType.StringType },
-            navArgument(QUOTE_ID_ARG) { type = NavType.StringType; nullable = true }
-        )) { entry ->
+        composable(
+            BuquDestinations.UPSERT_QUOTE_ROUTE,
+            arguments = listOf(navArgument(TITLE_ARG) { type = NavType.StringType },
+                navArgument(QUOTE_ID_ARG) {
+                    type = NavType.StringType; nullable = true
+                })
+        ) { entry ->
             val title = entry.arguments?.getString(TITLE_ARG)
-            UpsertQuoteScreen(
-                onBack = { navController.popBackStack() },
-                topAppBarTitle = title ?: ""
-            )
+            UpsertQuoteScreen(onBack = { navController.popBackStack() },
+                topAppBarTitle = title ?: "",
+                onShareQuote = {
+                    navActions.navigateToShareQuote(
+                        quote = it.quote, author = it.author, book = it.book
+                    )
+                })
         }
 
         composable(BuquDestinations.CATEGORY_SELECT_ROUTE) {
-            CategorySelectScreen(
+            CategorySelectScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(
+            BuquDestinations.SHARE_ROUTE, arguments = listOf(
+                navArgument(SHARE_QUOTE_ARG) { type = NavType.StringType },
+                navArgument(SHARE_AUTHOR_ARG) { type = NavType.StringType },
+                navArgument(SHARE_BOOK_ARG) { type = NavType.StringType },
+            )
+        ) {
+            val quote = it.arguments?.getString(SHARE_QUOTE_ARG)
+            val book = it.arguments?.getString(SHARE_BOOK_ARG)
+            val author = it.arguments?.getString(SHARE_AUTHOR_ARG)
+
+            ShareScreen(
+                book = book ?: "",
+                quote = quote ?: "",
+                author = author ?: "",
                 onBack = { navController.popBackStack() }
             )
         }

@@ -50,6 +50,7 @@ import com.app.zuludin.buqu.core.compose.ColorSpinner
 import com.app.zuludin.buqu.core.compose.TitleInputField
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.core.utils.createImageFile
+import com.app.zuludin.buqu.domain.models.Quote
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
@@ -61,6 +62,7 @@ import java.util.Objects
 fun UpsertQuoteScreen(
     topAppBarTitle: String,
     onBack: () -> Unit,
+    onShareQuote: (Quote) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
@@ -131,7 +133,27 @@ fun UpsertQuoteScreen(
                         contentDescription = "Localized description"
                     )
                 }
+
+                IconButton(onClick = {
+                    val quote = Quote(
+                        quoteId = "",
+                        quote = uiState.quote,
+                        author = uiState.author,
+                        book = uiState.book,
+                        page = 0,
+                        category = "",
+                        categoryId = "",
+                        color = ""
+                    )
+                    onShareQuote(quote)
+                }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_share),
+                        contentDescription = "Localized description"
+                    )
+                }
             }
+
             IconButton(onClick = {
                 speechRecognizerLauncher.launch(Unit)
             }) {
@@ -140,6 +162,7 @@ fun UpsertQuoteScreen(
                     contentDescription = "Localized description"
                 )
             }
+
             IconButton(onClick = {
                 val permissionCheckResult =
                     ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
