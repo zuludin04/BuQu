@@ -5,10 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.createChooser
 import android.graphics.Bitmap
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,17 +38,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
+import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.coroutines.resume
+
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -158,36 +155,9 @@ private fun QuoteShareContainer(
     }
 }
 
-private suspend fun Bitmap.saveToDisk(context: Context): Uri {
-    val file = File(
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-        "screenshot-${System.currentTimeMillis()}.png"
-    )
-
-    file.writeBitmap(this, Bitmap.CompressFormat.PNG, 100)
-
-    return scanFilePath(context, file.path) ?: throw Exception("File could not be saved")
-}
-
-private suspend fun scanFilePath(context: Context, filePath: String): Uri? {
-    return suspendCancellableCoroutine { continuation ->
-        MediaScannerConnection.scanFile(
-            context,
-            arrayOf(filePath),
-            arrayOf("image/png")
-        ) { _, scannedUri ->
-            if (scannedUri == null) {
-                continuation.cancel(Exception("File $filePath could not be scanned"))
-            } else {
-                continuation.resume(scannedUri)
-            }
-        }
-    }
-}
-
 fun Context.shareImage(title: String, image: Bitmap, filename: String) {
     val file = try {
-        val outputFile = File(cacheDir, filename)
+        val outputFile = File.createTempFile(filename, ".png", externalCacheDir)
         val outPutStream = FileOutputStream(outputFile)
         image.compress(Bitmap.CompressFormat.PNG, 100, outPutStream)
         outPutStream.flush()
@@ -198,15 +168,20 @@ fun Context.shareImage(title: String, image: Bitmap, filename: String) {
     }
     val uri = file.toUriCompat(this)
     val shareIntent = Intent().apply {
+        setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         action = Intent.ACTION_SEND
         type = "image/png"
         putExtra(Intent.EXTRA_STREAM, uri)
     }
-    startActivity(Intent.createChooser(shareIntent, title))
+
+    val chooser = createChooser(shareIntent, title)
+    chooser.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+
+    startActivity(chooser)
 }
 
 fun File.toUriCompat(context: Context): Uri {
-    return FileProvider.getUriForFile(context, context.packageName + ".provider", this)
+    return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", this)
 }
 
 fun Context.toast(throwable: Throwable) =
@@ -216,23 +191,6 @@ fun Context.toast(throwable: Throwable) =
 fun Context.toast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
-
-private fun File.writeBitmap(bitmap: Bitmap, format: Bitmap.CompressFormat, quality: Int) {
-    outputStream().use { out ->
-        bitmap.compress(format, quality, out)
-        out.flush()
-    }
-}
-
-private fun shareBitmap(context: Context, uri: Uri) {
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "image/png"
-        putExtra(Intent.EXTRA_STREAM, uri)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-    startActivity(context, createChooser(intent, "Share your image"), null)
-}
-
 
 @Preview
 @Composable
