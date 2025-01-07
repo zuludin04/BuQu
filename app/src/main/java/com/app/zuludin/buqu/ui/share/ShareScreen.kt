@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
@@ -47,7 +48,6 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -74,7 +74,6 @@ fun ShareScreen(
         if (writeStorageAccessState.allPermissionsGranted) {
             coroutineScope.launch {
                 val bitmap = graphicsLayer.toImageBitmap()
-//                val uri = bitmap.asAndroidBitmap().saveToDisk(context)
                 context.shareImage(
                     "Share Image",
                     bitmap.asAndroidBitmap(),
@@ -131,6 +130,7 @@ fun ShareScreen(
             ) {
                 QuoteShareContainer(book, quote, author)
             }
+            QuoteFontSelector()
         }
     }
 }
@@ -149,7 +149,7 @@ private fun QuoteShareContainer(
             .height(250.dp)
             .background(Brush.linearGradient(colors = listOf(Color.Blue, Color.Gray)))
     ) {
-        Text(text = book)
+        Text(text = book, fontSize = 18.sp)
         Text(text = quote)
         Text(text = "— $author —")
     }
