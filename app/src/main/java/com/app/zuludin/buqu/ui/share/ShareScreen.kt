@@ -1,19 +1,16 @@
 package com.app.zuludin.buqu.ui.share
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.Intent.createChooser
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
-import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
@@ -23,9 +20,13 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -36,18 +37,19 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
-import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.gradientBackgrounds
+import com.app.zuludin.buqu.core.theme.BuQuTheme
+import com.app.zuludin.buqu.core.theme.bodyFontFamily
+import com.app.zuludin.buqu.core.utils.shareImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -96,6 +98,14 @@ fun ShareScreen(
         }
     }
 
+    var quoteShareBackground by remember { mutableStateOf(gradientBackgrounds[0]) }
+    var quoteBookVisibility by remember { mutableStateOf(true) }
+    var quoteAuthorVisibility by remember { mutableStateOf(true) }
+    var quotePosition by remember { mutableStateOf(Alignment.CenterHorizontally) }
+    var bookPosition by remember { mutableStateOf(Alignment.CenterHorizontally) }
+    var authorPosition by remember { mutableStateOf(Alignment.CenterHorizontally) }
+    var fontFamily by remember { mutableStateOf(bodyFontFamily) }
+
     Scaffold(
         topBar = {
             BuQuToolbar(
@@ -128,9 +138,28 @@ fun ShareScreen(
                         }
                     }
             ) {
-                QuoteShareContainer(book, quote, author)
+                QuoteShareContainer(
+                    book,
+                    quote,
+                    author,
+                    backgroundColors = quoteShareBackground,
+                    visibleAuthor = quoteAuthorVisibility,
+                    visibleBook = quoteBookVisibility,
+                    quotePosition = quotePosition,
+                    bookPosition = bookPosition,
+                    authorPosition = authorPosition,
+                    fontFamily = fontFamily
+                )
             }
-            QuoteFontSelector()
+            QuoteShareEditor(
+                onChangeGradient = { quoteShareBackground = it },
+                onAuthorVisibility = { quoteAuthorVisibility = it },
+                onBookVisibility = { quoteBookVisibility = it },
+                onQuotePosition = { quotePosition = it },
+                onBookPosition = { bookPosition = it },
+                onAuthorPosition = { authorPosition = it },
+                onChangeFont = { fontFamily = it }
+            )
         }
     }
 }
@@ -139,7 +168,14 @@ fun ShareScreen(
 private fun QuoteShareContainer(
     book: String,
     quote: String,
-    author: String
+    author: String,
+    backgroundColors: List<Color> = listOf(),
+    visibleBook: Boolean = true,
+    visibleAuthor: Boolean = true,
+    quotePosition: Alignment.Horizontal = Alignment.CenterHorizontally,
+    bookPosition: Alignment.Horizontal = Alignment.CenterHorizontally,
+    authorPosition: Alignment.Horizontal = Alignment.CenterHorizontally,
+    fontFamily: FontFamily = bodyFontFamily
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -147,57 +183,76 @@ private fun QuoteShareContainer(
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
-            .background(Brush.linearGradient(colors = listOf(Color.Blue, Color.Gray)))
+            .background(Brush.linearGradient(colors = backgroundColors))
     ) {
-        Text(text = book, fontSize = 18.sp)
-        Text(text = quote)
-        Text(text = "— $author —")
+        AnimatedVisibility(visible = visibleBook, modifier = Modifier.align(bookPosition)) {
+            Text(text = book, fontSize = 18.sp, fontFamily = fontFamily)
+        }
+        Text(text = quote, modifier = Modifier.align(quotePosition), fontFamily = fontFamily)
+        AnimatedVisibility(visible = visibleAuthor, modifier = Modifier.align(authorPosition)) {
+            Text(text = "— $author —", fontFamily = fontFamily)
+        }
     }
 }
 
-fun Context.shareImage(title: String, image: Bitmap, filename: String) {
-    val file = try {
-        val outputFile = File.createTempFile(filename, ".png", externalCacheDir)
-        val outPutStream = FileOutputStream(outputFile)
-        image.compress(Bitmap.CompressFormat.PNG, 100, outPutStream)
-        outPutStream.flush()
-        outPutStream.close()
-        outputFile
-    } catch (e: Throwable) {
-        return toast(e)
+@Composable
+private fun QuoteShareEditor(
+    onChangeGradient: (List<Color>) -> Unit,
+    onAuthorVisibility: (Boolean) -> Unit,
+    onBookVisibility: (Boolean) -> Unit,
+    onQuotePosition: (Alignment.Horizontal) -> Unit,
+    onAuthorPosition: (Alignment.Horizontal) -> Unit,
+    onBookPosition: (Alignment.Horizontal) -> Unit,
+    onChangeFont: (FontFamily) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+    ) {
+        QuoteBackgroundSelector(onChangeGradient = onChangeGradient)
+        QuoteInfoVisibility(
+            modifier = Modifier.padding(vertical = 16.dp),
+            onAuthorVisibility = onAuthorVisibility,
+            onBookVisibility = onBookVisibility
+        )
+        QuoteFontSelector(
+            modifier = Modifier.padding(vertical = 16.dp),
+            onChangeFont = onChangeFont
+        )
+        QuoteTextPosition(
+            modifier = Modifier.padding(vertical = 16.dp),
+            onQuotePosition = onQuotePosition,
+            onAuthorPosition = onAuthorPosition,
+            onBookPosition = onBookPosition
+        )
     }
-    val uri = file.toUriCompat(this)
-    val shareIntent = Intent().apply {
-        setFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        action = Intent.ACTION_SEND
-        type = "image/png"
-        putExtra(Intent.EXTRA_STREAM, uri)
-    }
-
-    val chooser = createChooser(shareIntent, title)
-    chooser.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-
-    startActivity(chooser)
-}
-
-fun File.toUriCompat(context: Context): Uri {
-    return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", this)
-}
-
-fun Context.toast(throwable: Throwable) =
-    throwable.message?.let { toast(it) }
-        ?: toast("R.string.unknown_error")
-
-fun Context.toast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
 
 @Preview
 @Composable
 private fun QuoteShareContainerPreview() {
-//    QuoteShareContainer(
-//        author = "ASA",
-//        quote = "Asa saasa saa sa a",
-//        book = "Asa Asa",
-//    )
+    QuoteShareContainer(
+        author = "ASA",
+        quote = "Asa saasa saa sa a",
+        book = "Asa Asa",
+    )
+}
+
+@Preview
+@Composable
+private fun QuoteShareEditorPreview() {
+    BuQuTheme {
+        Surface {
+            QuoteShareEditor(
+                onChangeGradient = {},
+                onBookVisibility = {},
+                onAuthorVisibility = {},
+                onBookPosition = {},
+                onAuthorPosition = {},
+                onQuotePosition = {},
+                onChangeFont = {}
+            )
+        }
+    }
 }

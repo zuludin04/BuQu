@@ -26,7 +26,10 @@ import com.app.zuludin.buqu.core.gradientBackgrounds
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun QuoteBackgroundSelector(modifier: Modifier = Modifier) {
+fun QuoteBackgroundSelector(
+    modifier: Modifier = Modifier,
+    onChangeGradient: (List<Color>) -> Unit
+) {
     var selectedIndexBackground by remember { mutableIntStateOf(0) }
 
     Column(modifier = modifier) {
@@ -37,7 +40,10 @@ fun QuoteBackgroundSelector(modifier: Modifier = Modifier) {
                     colors = gradientBackgrounds[it],
                     selectedIndex = selectedIndexBackground,
                     index = it,
-                    onSelected = { selectedIndexBackground = it },
+                    onSelected = {
+                        selectedIndexBackground = it
+                        onChangeGradient(gradientBackgrounds[it])
+                    },
                 )
             }
         }
@@ -52,7 +58,7 @@ private fun BackgroundGradientItem(
     onSelected: () -> Unit
 ) {
     val selectedBorder =
-        if (index == selectedIndex) MaterialTheme.colors.background else Color.Transparent
+        if (index == selectedIndex) MaterialTheme.colors.onBackground else Color.Transparent
     Box(
         modifier = Modifier
             .padding(1.dp)
@@ -75,5 +81,5 @@ private fun BackgroundGradientItemPreview() {
 @Preview
 @Composable
 private fun QuoteBackgroundSelectorPreview() {
-    QuoteBackgroundSelector()
+    QuoteBackgroundSelector {}
 }

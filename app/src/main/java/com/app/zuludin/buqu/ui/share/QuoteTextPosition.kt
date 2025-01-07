@@ -24,18 +24,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun QuoteTextPosition(modifier: Modifier = Modifier) {
+fun QuoteTextPosition(
+    modifier: Modifier = Modifier,
+    onQuotePosition: (Alignment.Horizontal) -> Unit,
+    onBookPosition: (Alignment.Horizontal) -> Unit,
+    onAuthorPosition: (Alignment.Horizontal) -> Unit,
+) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(text = "Position", style = MaterialTheme.typography.caption)
-        TextPositionContainer(title = "Quote")
-        TextPositionContainer(title = "Book")
-        TextPositionContainer(title = "Author")
+        TextPositionContainer(title = "Quote", onSelect = onQuotePosition)
+        TextPositionContainer(title = "Book", onSelect = onBookPosition)
+        TextPositionContainer(title = "Author", onSelect = onAuthorPosition)
     }
 }
 
 @Composable
-private fun TextPositionContainer(title: String) {
-    var selectedItem by remember { mutableIntStateOf(0) }
+private fun TextPositionContainer(title: String, onSelect: (Alignment.Horizontal) -> Unit) {
+    var selectedItem by remember { mutableIntStateOf(1) }
+
+    fun generatePositionAlignment(index: Int): Alignment.Horizontal {
+        return when (index) {
+            0 -> Alignment.Start
+            1 -> Alignment.CenterHorizontally
+            2 -> Alignment.End
+            else -> Alignment.CenterHorizontally
+        }
+    }
 
     Column {
         Text(text = title, modifier = Modifier.padding(top = 8.dp))
@@ -44,17 +58,26 @@ private fun TextPositionContainer(title: String) {
                 modifier = Modifier.weight(1f),
                 label = "Start",
                 isSelected = selectedItem == 0,
-                onSelect = { selectedItem = 0 },
+                onSelect = {
+                    selectedItem = 0
+                    onSelect(generatePositionAlignment(selectedItem))
+                },
             )
             SelectableOptionItem(
                 modifier = Modifier.weight(1f), label = "Center",
                 isSelected = selectedItem == 1,
-                onSelect = { selectedItem = 1 },
+                onSelect = {
+                    selectedItem = 1
+                    onSelect(generatePositionAlignment(selectedItem))
+                },
             )
             SelectableOptionItem(
                 modifier = Modifier.weight(1f), label = "End",
                 isSelected = selectedItem == 2,
-                onSelect = { selectedItem = 2 },
+                onSelect = {
+                    selectedItem = 2
+                    onSelect(generatePositionAlignment(selectedItem))
+                },
             )
         }
     }
@@ -67,7 +90,7 @@ private fun SelectableOptionItem(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
-    val selectedBorder = if (isSelected) MaterialTheme.colors.onPrimary else Color.Transparent
+    val selectedBorder = if (isSelected) MaterialTheme.colors.onBackground else Color.Transparent
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.clickable { onSelect() }
@@ -95,11 +118,11 @@ private fun SelectableOptionItemPreview() {
 @Preview
 @Composable
 private fun TextPositionContainerPreview() {
-    TextPositionContainer("Quote")
+    TextPositionContainer("Quote") {}
 }
 
 @Preview
 @Composable
 private fun QuoteTextPositionPreview() {
-    QuoteTextPosition()
+    QuoteTextPosition(onQuotePosition = {}, onAuthorPosition = {}, onBookPosition = {})
 }

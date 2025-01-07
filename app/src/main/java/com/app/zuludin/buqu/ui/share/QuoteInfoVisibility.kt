@@ -16,7 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun QuoteInfoVisibility(modifier: Modifier = Modifier) {
+fun QuoteInfoVisibility(
+    modifier: Modifier = Modifier,
+    onBookVisibility: (Boolean) -> Unit,
+    onAuthorVisibility: (Boolean) -> Unit
+) {
     var authorVisibility by remember { mutableStateOf(true) }
     var bookVisibility by remember { mutableStateOf(true) }
 
@@ -31,6 +35,7 @@ fun QuoteInfoVisibility(modifier: Modifier = Modifier) {
                     checked = authorVisibility,
                     onCheckedChange = { isChecked ->
                         authorVisibility = isChecked
+                        onAuthorVisibility(isChecked)
                     }
                 )
                 Text("Author")
@@ -44,6 +49,7 @@ fun QuoteInfoVisibility(modifier: Modifier = Modifier) {
                     checked = bookVisibility,
                     onCheckedChange = { isChecked ->
                         bookVisibility = isChecked
+                        onBookVisibility(isChecked)
                     }
                 )
                 Text("Book")
@@ -55,5 +61,5 @@ fun QuoteInfoVisibility(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun QuoteInfoVisibilityPreview() {
-    QuoteInfoVisibility()
+    QuoteInfoVisibility(onAuthorVisibility = {}, onBookVisibility = {})
 }

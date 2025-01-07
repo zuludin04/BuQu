@@ -31,20 +31,20 @@ import com.app.zuludin.buqu.core.fontSelector
 import com.app.zuludin.buqu.core.theme.provider
 
 @Composable
-fun QuoteFontSelector(modifier: Modifier = Modifier) {
+fun QuoteFontSelector(modifier: Modifier = Modifier, onChangeFont: (FontFamily) -> Unit) {
     Column(modifier = modifier) {
-        Text(text = "Font", style = MaterialTheme.typography.caption)
-        SelectFontType()
+        Text(text = "Font Type", style = MaterialTheme.typography.caption)
+        SelectFontType(modifier = Modifier.padding(top = 8.dp), onSelectFont = onChangeFont)
     }
 }
 
 @Composable
-private fun SelectFontType() {
+private fun SelectFontType(modifier: Modifier = Modifier, onSelectFont: (FontFamily) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var fontName by remember { mutableStateOf("Rubik") }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .border(
                 border = BorderStroke(1.dp, SolidColor(Color.Gray)),
                 shape = RoundedCornerShape(5.dp)
@@ -75,6 +75,9 @@ private fun SelectFontType() {
                     onClick = {
                         expanded = false
                         fontName = fontType
+                        val font = GoogleFont(fontType)
+                        val family = FontFamily(Font(googleFont = font, fontProvider = provider))
+                        onSelectFont(family)
                     }
                 ) {
                     val font = GoogleFont(fontType)
@@ -89,5 +92,5 @@ private fun SelectFontType() {
 @Preview
 @Composable
 private fun SelectFontTypePreview() {
-    SelectFontType()
+    SelectFontType {}
 }
