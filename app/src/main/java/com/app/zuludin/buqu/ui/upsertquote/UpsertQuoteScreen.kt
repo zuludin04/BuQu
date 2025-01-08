@@ -247,7 +247,7 @@ fun UpsertQuoteScreen(
             if (uiState.categories.isNotEmpty()) {
                 ColorSpinner(
                     modifier = Modifier.padding(top = 12.dp),
-                    currentCategory = if (uiState.category == null) uiState.categories[0] else uiState.category!!,
+                    currentCategory = uiState.category,
                     categories = uiState.categories,
                     onSelectCategory = viewModel::updateCategory
                 )
