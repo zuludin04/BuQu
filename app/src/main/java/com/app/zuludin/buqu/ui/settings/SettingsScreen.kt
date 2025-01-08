@@ -39,14 +39,14 @@ fun SettingsScreen(onOpenCategorySelectScreen: () -> Unit) {
                     iconDesc = "",
                     onClick = onOpenCategorySelectScreen,
                 )
-                SettingsSwitchComp(
-                    name = "Theme",
-                    icon = R.drawable.ic_theme,
-                    iconDesc = "",
-//                    state =
-                ) {
-
-                }
+//                SettingsSwitchComp(
+//                    name = "Theme",
+//                    icon = R.drawable.ic_theme,
+//                    iconDesc = "",
+////                    state =
+//                ) {
+//
+//                }
                 SettingsClickableComp(
                     name = "Reset",
                     icon = R.drawable.ic_reset,
@@ -56,12 +56,12 @@ fun SettingsScreen(onOpenCategorySelectScreen: () -> Unit) {
             }
 
             SettingsGroup(name = "Other") {
-                SettingsClickableComp(
-                    name = "About",
-                    icon = R.drawable.ic_about,
-                    iconDesc = "",
-                    onClick = { },
-                )
+//                SettingsClickableComp(
+//                    name = "About",
+//                    icon = R.drawable.ic_about,
+//                    iconDesc = "",
+//                    onClick = { },
+//                )
                 SettingsClickableComp(
                     name = "Rate",
                     icon = R.drawable.ic_rate,
