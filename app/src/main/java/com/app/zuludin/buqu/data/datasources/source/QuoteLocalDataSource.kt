@@ -16,10 +16,6 @@ class QuoteLocalDataSource @Inject constructor(
 ) {
     fun getQuotes(): Flow<List<CategoryAndQuoteEntity>> = quoteDao.observeAllQuotes()
 
-//    fun getQuoteById(quoteId: String): Flow<QuoteEntity> = quoteDao.observeById(quoteId)
-//
-//    suspend fun getById(quoteId: String): QuoteEntity? = quoteDao.getById(quoteId)
-
     suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity? =
         quoteDao.getQuoteDetail(quoteId)
 
@@ -35,4 +31,11 @@ class QuoteLocalDataSource @Inject constructor(
     suspend fun upsertCategory(category: CategoryEntity) = categoryDao.upsert(category)
 
     suspend fun deleteCategory(categoryId: String) = categoryDao.deleteById(categoryId)
+
+    suspend fun deleteCategories() = categoryDao.deleteCategories()
+
+    suspend fun upsertCategories(categories: List<CategoryEntity>) =
+        categoryDao.upsertCategories(categories)
+
+    suspend fun deleteQuotes() = quoteDao.deleteQuotes()
 }

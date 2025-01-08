@@ -22,4 +22,10 @@ interface CategoryDao {
 
     @Query("DELETE FROM category WHERE categoryId = :categoryId")
     suspend fun deleteById(categoryId: String)
+
+    @Query("DELETE FROM category")
+    suspend fun deleteCategories()
+
+    @Upsert
+    suspend fun upsertCategories(categories: List<CategoryEntity>)
 }
