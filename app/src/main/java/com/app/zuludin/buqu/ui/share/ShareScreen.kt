@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -101,7 +102,6 @@ fun ShareScreen(
     var quoteShareBackground by remember { mutableStateOf(gradientBackgrounds[0]) }
     var quoteBookVisibility by remember { mutableStateOf(true) }
     var quoteAuthorVisibility by remember { mutableStateOf(true) }
-    var quotePosition by remember { mutableStateOf(Alignment.CenterHorizontally) }
     var bookPosition by remember { mutableStateOf(Alignment.CenterHorizontally) }
     var authorPosition by remember { mutableStateOf(Alignment.CenterHorizontally) }
     var fontFamily by remember { mutableStateOf(bodyFontFamily) }
@@ -145,7 +145,6 @@ fun ShareScreen(
                     backgroundColors = quoteShareBackground,
                     visibleAuthor = quoteAuthorVisibility,
                     visibleBook = quoteBookVisibility,
-                    quotePosition = quotePosition,
                     bookPosition = bookPosition,
                     authorPosition = authorPosition,
                     fontFamily = fontFamily
@@ -155,7 +154,6 @@ fun ShareScreen(
                 onChangeGradient = { quoteShareBackground = it },
                 onAuthorVisibility = { quoteAuthorVisibility = it },
                 onBookVisibility = { quoteBookVisibility = it },
-                onQuotePosition = { quotePosition = it },
                 onBookPosition = { bookPosition = it },
                 onAuthorPosition = { authorPosition = it },
                 onChangeFont = { fontFamily = it }
@@ -172,7 +170,6 @@ private fun QuoteShareContainer(
     backgroundColors: List<Color> = listOf(),
     visibleBook: Boolean = true,
     visibleAuthor: Boolean = true,
-    quotePosition: Alignment.Horizontal = Alignment.CenterHorizontally,
     bookPosition: Alignment.Horizontal = Alignment.CenterHorizontally,
     authorPosition: Alignment.Horizontal = Alignment.CenterHorizontally,
     fontFamily: FontFamily = bodyFontFamily
@@ -188,7 +185,12 @@ private fun QuoteShareContainer(
         AnimatedVisibility(visible = visibleBook, modifier = Modifier.align(bookPosition)) {
             Text(text = book, fontSize = 18.sp, fontFamily = fontFamily)
         }
-        Text(text = quote, modifier = Modifier.align(quotePosition), fontFamily = fontFamily)
+        Text(
+            text = quote,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            fontFamily = fontFamily,
+            textAlign = TextAlign.Center
+        )
         AnimatedVisibility(visible = visibleAuthor, modifier = Modifier.align(authorPosition)) {
             Text(text = "— $author —", fontFamily = fontFamily)
         }
@@ -200,7 +202,6 @@ private fun QuoteShareEditor(
     onChangeGradient: (List<Color>) -> Unit,
     onAuthorVisibility: (Boolean) -> Unit,
     onBookVisibility: (Boolean) -> Unit,
-    onQuotePosition: (Alignment.Horizontal) -> Unit,
     onAuthorPosition: (Alignment.Horizontal) -> Unit,
     onBookPosition: (Alignment.Horizontal) -> Unit,
     onChangeFont: (FontFamily) -> Unit
@@ -212,17 +213,15 @@ private fun QuoteShareEditor(
     ) {
         QuoteBackgroundSelector(onChangeGradient = onChangeGradient)
         QuoteInfoVisibility(
-            modifier = Modifier.padding(vertical = 16.dp),
+            modifier = Modifier.padding(top = 16.dp),
             onAuthorVisibility = onAuthorVisibility,
             onBookVisibility = onBookVisibility
         )
         QuoteFontSelector(
-            modifier = Modifier.padding(vertical = 16.dp),
             onChangeFont = onChangeFont
         )
         QuoteTextPosition(
-            modifier = Modifier.padding(vertical = 16.dp),
-            onQuotePosition = onQuotePosition,
+            modifier = Modifier.padding(top = 16.dp),
             onAuthorPosition = onAuthorPosition,
             onBookPosition = onBookPosition
         )
@@ -250,7 +249,6 @@ private fun QuoteShareEditorPreview() {
                 onAuthorVisibility = {},
                 onBookPosition = {},
                 onAuthorPosition = {},
-                onQuotePosition = {},
                 onChangeFont = {}
             )
         }

@@ -26,13 +26,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun QuoteTextPosition(
     modifier: Modifier = Modifier,
-    onQuotePosition: (Alignment.Horizontal) -> Unit,
     onBookPosition: (Alignment.Horizontal) -> Unit,
     onAuthorPosition: (Alignment.Horizontal) -> Unit,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(text = "Position", style = MaterialTheme.typography.caption)
-        TextPositionContainer(title = "Quote", onSelect = onQuotePosition)
         TextPositionContainer(title = "Book", onSelect = onBookPosition)
         TextPositionContainer(title = "Author", onSelect = onAuthorPosition)
     }
@@ -124,5 +122,5 @@ private fun TextPositionContainerPreview() {
 @Preview
 @Composable
 private fun QuoteTextPositionPreview() {
-    QuoteTextPosition(onQuotePosition = {}, onAuthorPosition = {}, onBookPosition = {})
+    QuoteTextPosition(onAuthorPosition = {}, onBookPosition = {})
 }
