@@ -14,12 +14,6 @@ interface QuoteDao {
     @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId")
     fun observeAllQuotes(): Flow<List<CategoryAndQuoteEntity>>
 
-//    @Query("SELECT * FROM quote WHERE quoteId = :quoteId")
-//    fun observeById(quoteId: String): Flow<QuoteEntity>
-//
-//    @Query("SELECT * FROM quote WHERE quoteId = :quoteId")
-//    suspend fun getById(quoteId: String): QuoteEntity?
-
     @Transaction
     @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId WHERE quoteId = :quoteId")
     suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity?
@@ -29,4 +23,7 @@ interface QuoteDao {
 
     @Query("DELETE FROM quote WHERE quoteId = :quoteId")
     suspend fun deleteById(quoteId: String)
+
+    @Query("DELETE FROM quote")
+    suspend fun deleteQuotes()
 }

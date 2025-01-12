@@ -18,8 +18,7 @@ import javax.inject.Singleton
 class QuoteRepository @Inject constructor(
     private val localSource: QuoteLocalDataSource,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
-) :
-    IQuoteRepository {
+) : IQuoteRepository {
     override fun getQuotes(): Flow<List<Quote>> {
         return localSource.getQuotes().map { quotes ->
             withContext(dispatcher) {
@@ -68,5 +67,9 @@ class QuoteRepository @Inject constructor(
 
     override suspend fun deleteQuote(quoteId: String) {
         localSource.deleteQuote(quoteId)
+    }
+
+    override suspend fun deleteAllQuote() {
+        localSource.deleteQuotes()
     }
 }

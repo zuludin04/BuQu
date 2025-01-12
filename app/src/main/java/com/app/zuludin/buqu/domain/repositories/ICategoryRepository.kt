@@ -16,4 +16,6 @@ interface ICategoryRepository {
     )
 
     suspend fun deleteCategory(categoryId: String)
+
+    suspend fun deleteAllCategory()
 }

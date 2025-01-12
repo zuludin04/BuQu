@@ -18,4 +18,6 @@ interface IQuoteRepository {
     )
 
     suspend fun deleteQuote(quoteId: String)
+
+    suspend fun deleteAllQuote()
 }

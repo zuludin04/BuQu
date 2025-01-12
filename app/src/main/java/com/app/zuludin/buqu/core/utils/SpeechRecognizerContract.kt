@@ -13,7 +13,7 @@ class SpeechRecognizerContract : ActivityResultContract<Unit, ArrayList<String>?
                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
             )
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "id")
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "id-ID")
         }
 
         return intent

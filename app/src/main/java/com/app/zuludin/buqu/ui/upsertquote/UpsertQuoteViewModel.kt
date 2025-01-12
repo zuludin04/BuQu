@@ -3,13 +3,13 @@ package com.app.zuludin.buqu.ui.upsertquote
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.core.utils.Async
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.usecases.DeleteQuoteUseCase
 import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
 import com.app.zuludin.buqu.domain.usecases.GetQuoteDetailUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
-import com.app.zuludin.buqu.core.utils.Async
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,12 @@ data class UpsertQuoteUiState(
     val book: String = "",
     val page: String = "",
     val author: String = "",
-    val category: Category? = null,
+    val category: Category = Category(
+        categoryId = "a76c5015-34c7-4a54-bdfb-c5ed2010b7c9",
+        name = "Motivation",
+        color = "03A9F4",
+        type = "Quote"
+    ),
     val categories: List<Category> = emptyList(),
     val isQuoteSaved: Boolean = false,
     val isError: Boolean = false,
@@ -62,7 +67,7 @@ class UpsertQuoteViewModel @Inject constructor(
                 book = state.book,
                 author = state.author,
                 page = state.page,
-                categoryId = state.category?.categoryId ?: ""
+                categoryId = state.category.categoryId
             )
             _uiState.update {
                 it.copy(isQuoteSaved = true, isError = false)
