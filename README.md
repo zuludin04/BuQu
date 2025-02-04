@@ -1,4 +1,4 @@
-# Nyarios
+# BuQu
 Every time we read a book, we must have found a meaningful quote or sentence and want to save it. There are several ways to do this, such as attaching sticky notes, using highlighter, or folding the book page. But what if you want to save a quote without having to change the original condition of the book?
 
 Based on this experience, the BuQu application was created. With this application, you can save quotes along with the page, book title, author, and category. There are also speech-to-text and image-to-text features to make it easier to fill in long quotes. In addition, each category can be customized according to your needs and you can share quotes with people close to you.
