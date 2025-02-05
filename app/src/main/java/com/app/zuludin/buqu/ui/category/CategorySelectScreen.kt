@@ -144,7 +144,7 @@ fun CategorySelectScreen(
 }
 
 @Composable
-private fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
+fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
