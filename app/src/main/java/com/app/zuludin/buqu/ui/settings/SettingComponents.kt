@@ -35,7 +35,7 @@ fun SettingsGroup(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(name)
+        Text(name, color = MaterialTheme.colorScheme.onBackground)
         Spacer(modifier = Modifier.height(8.dp))
         Surface(
             color = MaterialTheme.colorScheme.surfaceVariant,

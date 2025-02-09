@@ -24,6 +24,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -112,83 +113,88 @@ fun UpsertQuoteScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(scaffoldState = scaffoldState, topBar = {
-        BuQuToolbar(
-            title = topAppBarTitle,
-            backButton = {
-                IconButton(onClick = {
-                    onBack()
-                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-                }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = null)
+    Scaffold(
+        scaffoldState = scaffoldState,
+        backgroundColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            BuQuToolbar(
+                title = topAppBarTitle,
+                backButton = {
+                    IconButton(onClick = {
+                        onBack()
+                        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                    }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
+            )
+        },
+        bottomBar = {
+            BottomAppBar(actions = {
+                if (topAppBarTitle == "Update Quote") {
+                    IconButton(onClick = viewModel::deleteQuote) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete),
+                            contentDescription = "Localized description"
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        val quote = Quote(
+                            quoteId = "",
+                            quote = uiState.quote,
+                            author = uiState.author,
+                            book = uiState.book,
+                            page = 0,
+                            category = "",
+                            categoryId = "",
+                            color = ""
+                        )
+                        onShareQuote(quote)
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_share),
+                            contentDescription = "Localized description"
+                        )
+                    }
                 }
-            },
-        )
-    }, bottomBar = {
-        BottomAppBar(actions = {
-            if (topAppBarTitle == "Update Quote") {
-                IconButton(onClick = viewModel::deleteQuote) {
+
+                IconButton(onClick = {
+                    speechRecognizerLauncher.launch(Unit)
+                }) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_delete),
+                        painter = painterResource(R.drawable.ic_mic),
                         contentDescription = "Localized description"
                     )
                 }
 
                 IconButton(onClick = {
-                    val quote = Quote(
-                        quoteId = "",
-                        quote = uiState.quote,
-                        author = uiState.author,
-                        book = uiState.book,
-                        page = 0,
-                        category = "",
-                        categoryId = "",
-                        color = ""
-                    )
-                    onShareQuote(quote)
+                    val permissionCheckResult =
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                        cameraLauncher.launch(uri)
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
                 }) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_share),
+                        painter = painterResource(R.drawable.ic_image),
                         contentDescription = "Localized description"
                     )
                 }
-            }
-
-            IconButton(onClick = {
-                speechRecognizerLauncher.launch(Unit)
-            }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_mic),
-                    contentDescription = "Localized description"
-                )
-            }
-
-            IconButton(onClick = {
-                val permissionCheckResult =
-                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                    cameraLauncher.launch(uri)
-                } else {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
+            }, floatingActionButton = {
+                FloatingActionButton(
+                    onClick = viewModel::saveQuote,
+                    containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check), "Localized description"
+                    )
                 }
-            }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_image),
-                    contentDescription = "Localized description"
-                )
-            }
-        }, floatingActionButton = {
-            FloatingActionButton(
-                onClick = viewModel::saveQuote,
-                containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_check), "Localized description"
-                )
-            }
-        })
-    }) { contentPadding ->
+            })
+        }
+    ) { contentPadding ->
         Column(
             modifier = modifier
                 .padding(contentPadding)

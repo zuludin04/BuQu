@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -70,6 +71,7 @@ fun CategorySelectScreen(
 
     Scaffold(
         scaffoldState = scaffoldState,
+        backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
                 "Category",
@@ -159,7 +161,9 @@ fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
                 .background(color)
         )
         Text(
-            category.name, modifier = Modifier.padding(horizontal = 8.dp)
+            category.name,
+            modifier = Modifier.padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }

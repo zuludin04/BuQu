@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.quote
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +22,7 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -72,6 +72,7 @@ fun HomeScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = modifier.fillMaxSize(),
+        backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
                 title = "BuQu",
@@ -182,11 +183,12 @@ fun TasksEmptyContent(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = R.drawable.ic_empty),
             contentDescription = null,
-            modifier = Modifier.size(96.dp)
+            modifier = Modifier.size(96.dp),
+            tint = MaterialTheme.colorScheme.onBackground
         )
-        Text("Save the Greatest Quote")
+        Text("Save the Greatest Quote", color = MaterialTheme.colorScheme.onBackground)
     }
 }

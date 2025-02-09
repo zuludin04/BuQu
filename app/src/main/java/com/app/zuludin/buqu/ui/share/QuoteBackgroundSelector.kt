@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.ui.share
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -33,7 +34,8 @@ fun QuoteBackgroundSelector(
     var selectedIndexBackground by remember { mutableIntStateOf(0) }
 
     Column(modifier = modifier) {
-        Text(text = "Background", style = MaterialTheme.typography.caption)
+        val color = if (isSystemInDarkTheme()) Color.White else Color.Black
+        Text(text = "Background", style = MaterialTheme.typography.caption, color = color)
         FlowRow(modifier = Modifier.padding(top = 8.dp)) {
             repeat(gradientBackgrounds.size) {
                 BackgroundGradientItem(

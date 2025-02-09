@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.ui.share
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,14 +33,23 @@ import com.app.zuludin.buqu.core.theme.provider
 
 @Composable
 fun QuoteFontSelector(modifier: Modifier = Modifier, onChangeFont: (FontFamily) -> Unit) {
+    val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Column(modifier = modifier) {
-        Text(text = "Font Type", style = MaterialTheme.typography.caption)
-        SelectFontType(modifier = Modifier.padding(top = 8.dp), onSelectFont = onChangeFont)
+        Text(text = "Font Type", style = MaterialTheme.typography.caption, color = color)
+        SelectFontType(
+            modifier = Modifier.padding(top = 8.dp),
+            onSelectFont = onChangeFont,
+            textColor = color
+        )
     }
 }
 
 @Composable
-private fun SelectFontType(modifier: Modifier = Modifier, onSelectFont: (FontFamily) -> Unit) {
+private fun SelectFontType(
+    modifier: Modifier = Modifier,
+    onSelectFont: (FontFamily) -> Unit,
+    textColor: Color
+) {
     var expanded by remember { mutableStateOf(false) }
     var fontName by remember { mutableStateOf("Rubik") }
 
@@ -59,7 +69,9 @@ private fun SelectFontType(modifier: Modifier = Modifier, onSelectFont: (FontFam
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = fontName, modifier = Modifier
+                text = fontName,
+                color = textColor,
+                modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp)
             )
@@ -82,7 +94,9 @@ private fun SelectFontType(modifier: Modifier = Modifier, onSelectFont: (FontFam
                 ) {
                     val font = GoogleFont(fontType)
                     val family = FontFamily(Font(googleFont = font, fontProvider = provider))
-                    Text(fontType, fontFamily = family)
+                    val selectedColor =
+                        if (fontName == fontType) MaterialTheme.colors.secondary else textColor
+                    Text(fontType, fontFamily = family, color = selectedColor)
                 }
             }
         }
@@ -92,5 +106,5 @@ private fun SelectFontType(modifier: Modifier = Modifier, onSelectFont: (FontFam
 @Preview
 @Composable
 private fun SelectFontTypePreview() {
-    SelectFontType {}
+    SelectFontType(textColor = Color.Gray, onSelectFont = {})
 }

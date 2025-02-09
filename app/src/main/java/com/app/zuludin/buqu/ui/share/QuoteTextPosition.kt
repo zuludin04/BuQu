@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.ui.share
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,15 +30,20 @@ fun QuoteTextPosition(
     onBookPosition: (Alignment.Horizontal) -> Unit,
     onAuthorPosition: (Alignment.Horizontal) -> Unit,
 ) {
+    val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = "Position", style = MaterialTheme.typography.caption)
-        TextPositionContainer(title = "Book", onSelect = onBookPosition)
-        TextPositionContainer(title = "Author", onSelect = onAuthorPosition)
+        Text(text = "Position", style = MaterialTheme.typography.caption, color = color)
+        TextPositionContainer(title = "Book", onSelect = onBookPosition, textColor = color)
+        TextPositionContainer(title = "Author", onSelect = onAuthorPosition, textColor = color)
     }
 }
 
 @Composable
-private fun TextPositionContainer(title: String, onSelect: (Alignment.Horizontal) -> Unit) {
+private fun TextPositionContainer(
+    title: String,
+    onSelect: (Alignment.Horizontal) -> Unit,
+    textColor: Color
+) {
     var selectedItem by remember { mutableIntStateOf(1) }
 
     fun generatePositionAlignment(index: Int): Alignment.Horizontal {
@@ -50,12 +56,13 @@ private fun TextPositionContainer(title: String, onSelect: (Alignment.Horizontal
     }
 
     Column {
-        Text(text = title, modifier = Modifier.padding(top = 8.dp))
+        Text(text = title, modifier = Modifier.padding(top = 8.dp), color = textColor)
         Row(modifier = Modifier.padding(top = 4.dp)) {
             SelectableOptionItem(
                 modifier = Modifier.weight(1f),
                 label = "Start",
                 isSelected = selectedItem == 0,
+                textColor = textColor,
                 onSelect = {
                     selectedItem = 0
                     onSelect(generatePositionAlignment(selectedItem))
@@ -64,6 +71,7 @@ private fun TextPositionContainer(title: String, onSelect: (Alignment.Horizontal
             SelectableOptionItem(
                 modifier = Modifier.weight(1f), label = "Center",
                 isSelected = selectedItem == 1,
+                textColor = textColor,
                 onSelect = {
                     selectedItem = 1
                     onSelect(generatePositionAlignment(selectedItem))
@@ -72,6 +80,7 @@ private fun TextPositionContainer(title: String, onSelect: (Alignment.Horizontal
             SelectableOptionItem(
                 modifier = Modifier.weight(1f), label = "End",
                 isSelected = selectedItem == 2,
+                textColor = textColor,
                 onSelect = {
                     selectedItem = 2
                     onSelect(generatePositionAlignment(selectedItem))
@@ -86,9 +95,10 @@ private fun SelectableOptionItem(
     modifier: Modifier = Modifier,
     label: String,
     isSelected: Boolean,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    textColor: Color
 ) {
-    val selectedBorder = if (isSelected) MaterialTheme.colors.onBackground else Color.Transparent
+    val selectedBorder = if (isSelected) textColor else Color.Transparent
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.clickable { onSelect() }
@@ -98,11 +108,12 @@ private fun SelectableOptionItem(
                 .size(24.dp)
                 .border(width = 1.dp, color = selectedBorder, shape = CircleShape)
                 .padding(4.dp)
-                .background(MaterialTheme.colors.primary, shape = CircleShape)
+                .background(MaterialTheme.colors.secondary, shape = CircleShape)
         )
         Text(
             text = label,
-            modifier = Modifier.padding(start = 4.dp)
+            modifier = Modifier.padding(start = 4.dp),
+            color = textColor
         )
     }
 }
@@ -110,13 +121,13 @@ private fun SelectableOptionItem(
 @Preview
 @Composable
 private fun SelectableOptionItemPreview() {
-    SelectableOptionItem(label = "Start", isSelected = true) {}
+    SelectableOptionItem(label = "Start", isSelected = true, textColor = Color.White, onSelect = {})
 }
 
 @Preview
 @Composable
 private fun TextPositionContainerPreview() {
-    TextPositionContainer("Quote") {}
+    TextPositionContainer("Quote", textColor = Color.White, onSelect = {})
 }
 
 @Preview

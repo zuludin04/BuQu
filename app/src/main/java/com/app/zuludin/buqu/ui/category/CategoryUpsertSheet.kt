@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -85,6 +86,7 @@ fun CategoryUpsertSheet(
             onDismissRequest = { expanded = false }
         ) {
             colors.forEachIndexed { index, color ->
+                val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
                 val isSelected = color == categoryColor
                 val style = if (isSelected) {
                     androidx.compose.material.MaterialTheme.typography.body1.copy(
@@ -94,7 +96,7 @@ fun CategoryUpsertSheet(
                 } else {
                     androidx.compose.material.MaterialTheme.typography.body1.copy(
                         fontWeight = FontWeight.Normal,
-                        color = androidx.compose.material.MaterialTheme.colors.onSurface
+                        color = textColor
                     )
                 }
 
@@ -118,7 +120,12 @@ fun CategoryUpsertSheet(
                     .weight(1f)
                     .padding(end = 16.dp),
                 onClick = { onUpsertCategory(categoryColor, categoryName) },
-                content = { Text("Save") }
+                content = {
+                    Text(
+                        text = "Save",
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             )
             if (showDeleteButton) {
                 IconButton(
