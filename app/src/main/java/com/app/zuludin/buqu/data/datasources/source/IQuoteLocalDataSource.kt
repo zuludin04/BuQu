@@ -27,4 +27,6 @@ interface IQuoteLocalDataSource {
     suspend fun upsertCategories(categories: List<CategoryEntity>)
 
     suspend fun deleteQuotes()
+
+    suspend fun checkCategoryUsed(categoryId: String): List<QuoteEntity>
 }

@@ -39,4 +39,7 @@ class QuoteLocalDataSource @Inject constructor(
         categoryDao.upsertCategories(categories)
 
     override suspend fun deleteQuotes() = quoteDao.deleteQuotes()
+
+    override suspend fun checkCategoryUsed(categoryId: String) =
+        quoteDao.checkQuoteCategoryUsed(categoryId)
 }

@@ -6,7 +6,7 @@ import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class FakeQuoteDao(initialQuotes: List<QuoteEntity>? = emptyList()): QuoteDao {
+class FakeQuoteDao(initialQuotes: List<QuoteEntity>? = emptyList()) : QuoteDao {
     private var _quotes: MutableMap<String, QuoteEntity>? = null
 
     var quotes: List<QuoteEntity>?
@@ -39,6 +39,10 @@ class FakeQuoteDao(initialQuotes: List<QuoteEntity>? = emptyList()): QuoteDao {
 
     override suspend fun deleteQuotes() {
         _quotes?.clear()
+    }
+
+    override suspend fun checkQuoteCategoryUsed(categoryId: String): List<QuoteEntity> {
+        return quotes ?: throw Exception("Quote is empty")
     }
 
 }
