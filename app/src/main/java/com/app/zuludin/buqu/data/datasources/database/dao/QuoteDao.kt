@@ -26,4 +26,7 @@ interface QuoteDao {
 
     @Query("DELETE FROM quote")
     suspend fun deleteQuotes()
+
+    @Query("SELECT * FROM quote WHERE categoryId = :categoryId")
+    suspend fun checkQuoteCategoryUsed(categoryId: String): List<QuoteEntity>
 }

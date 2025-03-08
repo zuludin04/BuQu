@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +44,7 @@ fun ColorSpinner(
 ) {
     var selectedCategory: Category by remember { mutableStateOf(currentCategory) }
     var expanded by remember { mutableStateOf(false) }
+    val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
 
     Box(
         modifier = modifier
@@ -65,7 +68,10 @@ fun ColorSpinner(
                     .background(Color(android.graphics.Color.parseColor("#${selectedCategory.color}")))
             )
             Text(
-                text = selectedCategory.name, modifier = Modifier
+                text = selectedCategory.name,
+                color = textColor,
+                style = TextStyle(color = MaterialTheme.colors.onBackground),
+                modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp)
             )
@@ -87,7 +93,7 @@ fun ColorSpinner(
                 } else {
                     MaterialTheme.typography.body1.copy(
                         fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colors.onSurface
+                        color = textColor
                     )
                 }
 

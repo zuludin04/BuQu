@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.share
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -23,9 +25,10 @@ fun QuoteInfoVisibility(
 ) {
     var authorVisibility by remember { mutableStateOf(true) }
     var bookVisibility by remember { mutableStateOf(true) }
+    val color = if (isSystemInDarkTheme()) Color.White else Color.Black
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = "Visibility", style = MaterialTheme.typography.caption)
+        Text(text = "Visibility", style = MaterialTheme.typography.caption, color = color)
         Row {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -38,7 +41,7 @@ fun QuoteInfoVisibility(
                         onAuthorVisibility(isChecked)
                     }
                 )
-                Text("Author")
+                Text("Author", color = color)
             }
 
             Row(
@@ -52,7 +55,7 @@ fun QuoteInfoVisibility(
                         onBookVisibility(isChecked)
                     }
                 )
-                Text("Book")
+                Text("Book", color = color)
             }
         }
     }

@@ -2,12 +2,12 @@ package com.app.zuludin.buqu.ui.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.core.utils.Async
+import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.usecases.DeleteCategoryUseCase
 import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
 import com.app.zuludin.buqu.domain.usecases.UpsertCategoryUseCase
-import com.app.zuludin.buqu.core.utils.Async
-import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +30,8 @@ class CategorySelectViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     private val _categories = useCase.invoke()
 
+    val successDeleteCategory = MutableStateFlow(false)
+
     val uiState: StateFlow<CategoriesUiState> =
         combine(_isLoading, _categories) { isLoading, categories ->
             when (categories) {
@@ -44,7 +46,7 @@ class CategorySelectViewModel @Inject constructor(
                 is Async.Success -> {
                     CategoriesUiState(
                         isLoading = isLoading,
-                        categories = categories.data
+                        categories = categories.data,
                     )
                 }
             }
@@ -67,7 +69,12 @@ class CategorySelectViewModel @Inject constructor(
 
     fun deleteCategory(categoryId: String) {
         viewModelScope.launch {
-            deleteCategoryUseCase.invoke(categoryId)
+            val deleted = deleteCategoryUseCase.invoke(categoryId)
+            successDeleteCategory.value = deleted
         }
+    }
+
+    fun messageShown() {
+        successDeleteCategory.value = false
     }
 }

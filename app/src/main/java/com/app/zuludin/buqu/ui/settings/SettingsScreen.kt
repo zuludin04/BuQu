@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,7 +47,10 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val openConfirmDialog = remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { BuQuToolbar("Settings") }) { paddingValues ->
+    Scaffold(
+        topBar = { BuQuToolbar("Settings") },
+        backgroundColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())

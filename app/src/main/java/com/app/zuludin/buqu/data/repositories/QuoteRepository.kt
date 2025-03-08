@@ -72,4 +72,8 @@ class QuoteRepository @Inject constructor(
     override suspend fun deleteAllQuote() {
         localSource.deleteQuotes()
     }
+
+    override suspend fun checkCategoryUsed(categoryId: String): Boolean {
+        return localSource.checkCategoryUsed(categoryId).isNotEmpty()
+    }
 }
