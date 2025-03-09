@@ -4,14 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.core.utils.Async
 import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
+import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.domain.models.Category
-import com.app.zuludin.buqu.domain.usecases.DeleteCategoryUseCase
-import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
-import com.app.zuludin.buqu.domain.usecases.UpsertCategoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,12 +23,11 @@ data class CategoriesUiState(
 
 @HiltViewModel
 class CategorySelectViewModel @Inject constructor(
-    useCase: GetCategoriesUseCase,
-    private val upsertCategoryUseCase: UpsertCategoryUseCase,
-    private val deleteCategoryUseCase: DeleteCategoryUseCase
+    private val repository: CategoryRepository
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
-    private val _categories = useCase.invoke()
+    private val _categories = repository.getCategories().map { Async.Success(it) }
+        .catch<Async<List<Category>>> { emit(Async.Error("Error Loading Categories")) }
 
     val successDeleteCategory = MutableStateFlow(false)
 
@@ -58,7 +57,7 @@ class CategorySelectViewModel @Inject constructor(
 
     fun upsertCategory(id: String?, color: String, name: String) {
         viewModelScope.launch {
-            upsertCategoryUseCase.invoke(
+            repository.upsertCategory(
                 name = name,
                 color = color,
                 type = "Quote",
@@ -69,7 +68,7 @@ class CategorySelectViewModel @Inject constructor(
 
     fun deleteCategory(categoryId: String) {
         viewModelScope.launch {
-            val deleted = deleteCategoryUseCase.invoke(categoryId)
+            val deleted = repository.deleteCategory(categoryId)
             successDeleteCategory.value = deleted
         }
     }

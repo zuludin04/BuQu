@@ -60,8 +60,14 @@ class CategoryRepository @Inject constructor(
         }
     }
 
-    override suspend fun deleteCategory(categoryId: String) {
-        localSource.deleteCategory(categoryId)
+    override suspend fun deleteCategory(categoryId: String): Boolean {
+        val check = localSource.checkCategoryUsed(categoryId).isNotEmpty()
+        return if (check) {
+            true
+        } else {
+            localSource.deleteCategory(categoryId)
+            false
+        }
     }
 
     override suspend fun deleteAllCategory() {

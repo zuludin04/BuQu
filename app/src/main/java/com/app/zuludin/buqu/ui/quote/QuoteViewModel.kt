@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.core.utils.Async
 import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
+import com.app.zuludin.buqu.data.repositories.CategoryRepository
+import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
-import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
-import com.app.zuludin.buqu.domain.usecases.GetQuotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,20 +27,20 @@ data class QuoteUiState(
 
 @HiltViewModel
 class QuoteViewModel @Inject constructor(
-    getQuotesUseCase: GetQuotesUseCase,
-    getCategoriesUseCase: GetCategoriesUseCase
+    quoteRepository: QuoteRepository,
+    categoryRepository: CategoryRepository,
 ) : ViewModel() {
     private val _userMessage: MutableStateFlow<String?> = MutableStateFlow(null)
     private val _isLoading = MutableStateFlow(false)
     private val _categoryId = MutableStateFlow("")
 
-    private val _q = combine(getQuotesUseCase.invoke(), _categoryId) { quotes, categoryId ->
+    private val _q = combine(quoteRepository.getQuotes(), _categoryId) { quotes, categoryId ->
         filterQuote(quotes, categoryId)
     }
         .map { Async.Success(it) }
         .catch<Async<List<Quote>>> { emit(Async.Error("Error while load quotes")) }
 
-    private val _categories = getCategoriesUseCase.invoke()
+    private val _categories = categoryRepository.getCategories()
 
     val uiState: StateFlow<QuoteUiState> =
         combine(
@@ -61,11 +61,7 @@ class QuoteViewModel @Inject constructor(
                 is Async.Success -> {
                     val cats = mutableListOf<Category>()
                     viewModelScope.launch {
-                        when (categories) {
-                            is Async.Error -> {}
-                            Async.Loading -> {}
-                            is Async.Success -> cats.addAll(categories.data)
-                        }
+                        cats.addAll(categories)
                     }
                     QuoteUiState(
                         quotes = quotes.data,

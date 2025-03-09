@@ -3,12 +3,9 @@ package com.app.zuludin.buqu.ui.upsertquote
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.zuludin.buqu.core.utils.Async
+import com.app.zuludin.buqu.data.repositories.CategoryRepository
+import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.models.Category
-import com.app.zuludin.buqu.domain.usecases.DeleteQuoteUseCase
-import com.app.zuludin.buqu.domain.usecases.GetCategoriesUseCase
-import com.app.zuludin.buqu.domain.usecases.GetQuoteDetailUseCase
-import com.app.zuludin.buqu.domain.usecases.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,10 +33,8 @@ data class UpsertQuoteUiState(
 
 @HiltViewModel
 class UpsertQuoteViewModel @Inject constructor(
-    private val upsertQuoteUseCase: UpsertQuoteUseCase,
-    private val getQuoteDetailUseCase: GetQuoteDetailUseCase,
-    private val deleteQuoteUseCase: DeleteQuoteUseCase,
-    private val getCategoryUseCase: GetCategoriesUseCase,
+    private val quoteRepository: QuoteRepository,
+    private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
@@ -61,12 +56,12 @@ class UpsertQuoteViewModel @Inject constructor(
             state.author.isNotEmpty() &&
             state.page.isNotEmpty()
         ) {
-            upsertQuoteUseCase.invoke(
+            quoteRepository.upsertQuote(
                 quoteId = quoteId,
                 quote = state.quote,
                 book = state.book,
                 author = state.author,
-                page = state.page,
+                page = state.page.toInt(),
                 categoryId = state.category.categoryId
             )
             _uiState.update {
@@ -81,7 +76,7 @@ class UpsertQuoteViewModel @Inject constructor(
 
     fun deleteQuote() = viewModelScope.launch {
         if (quoteId != null) {
-            deleteQuoteUseCase.invoke(quoteId)
+            quoteRepository.deleteQuote(quoteId)
             _uiState.update {
                 it.copy(isQuoteSaved = true)
             }
@@ -128,7 +123,7 @@ class UpsertQuoteViewModel @Inject constructor(
 
     private fun loadQuote(quoteId: String) {
         viewModelScope.launch {
-            getQuoteDetailUseCase.invoke(quoteId).let { quote ->
+            quoteRepository.getQuoteById(quoteId).let { quote ->
                 if (quote != null) {
                     _uiState.update {
                         it.copy(
@@ -152,13 +147,9 @@ class UpsertQuoteViewModel @Inject constructor(
 
     private fun loadCategories() {
         viewModelScope.launch {
-            when (val categories = getCategoryUseCase.invoke().first()) {
-                is Async.Error -> {}
-                Async.Loading -> {}
-                is Async.Success -> {
-                    _uiState.update {
-                        it.copy(categories = categories.data)
-                    }
+            categoryRepository.getCategories().first().let { categories ->
+                _uiState.update {
+                    it.copy(categories = categories)
                 }
             }
         }

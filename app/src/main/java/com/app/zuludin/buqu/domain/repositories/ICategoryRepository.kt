@@ -15,7 +15,7 @@ interface ICategoryRepository {
         type: String
     )
 
-    suspend fun deleteCategory(categoryId: String)
+    suspend fun deleteCategory(categoryId: String): Boolean
 
     suspend fun deleteAllCategory()
 }
