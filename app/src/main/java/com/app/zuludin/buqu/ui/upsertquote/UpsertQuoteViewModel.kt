@@ -121,7 +121,7 @@ class UpsertQuoteViewModel @Inject constructor(
         }
     }
 
-    private fun loadQuote(quoteId: String) {
+    fun loadQuote(quoteId: String) {
         viewModelScope.launch {
             quoteRepository.getQuoteById(quoteId).let { quote ->
                 if (quote != null) {
