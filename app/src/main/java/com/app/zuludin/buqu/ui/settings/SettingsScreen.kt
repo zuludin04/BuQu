@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -121,7 +122,8 @@ private fun ResetDialogConfirmation(
         Card(
             modifier = Modifier
                 .defaultMinSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .testTag("ResetConfirm"),
             shape = RoundedCornerShape(16.dp),
         ) {
             Column(

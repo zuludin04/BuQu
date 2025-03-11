@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -163,7 +164,10 @@ private fun QuotesContent(
                         verticalItemSpacing = 16.dp
                     ) {
                         items(quotes.size) {
-                            QuoteItem(quote = quotes[it]) {
+                            QuoteItem(
+                                modifier = Modifier.testTag("QuoteItem"),
+                                quote = quotes[it]
+                            ) {
                                 onQuoteClick(quotes[it].quoteId)
                             }
                         }

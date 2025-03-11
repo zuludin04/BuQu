@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,7 +52,7 @@ fun CategoryUpsertSheet(
     var categoryColor by remember { mutableStateOf(color) }
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(16.dp).testTag("CategoryBottomSheet")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -118,7 +119,8 @@ fun CategoryUpsertSheet(
             ElevatedButton(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 16.dp),
+                    .padding(end = 16.dp)
+                    .testTag("AddCategory"),
                 onClick = { onUpsertCategory(categoryColor, categoryName) },
                 content = {
                     Text(

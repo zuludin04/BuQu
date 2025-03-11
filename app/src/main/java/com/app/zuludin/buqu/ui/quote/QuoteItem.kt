@@ -20,9 +20,9 @@ import com.app.zuludin.buqu.domain.models.Quote
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuoteItem(quote: Quote, onClick: () -> Unit) {
+fun QuoteItem(modifier: Modifier = Modifier, quote: Quote, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         onClick = onClick,
     ) {
         Column(

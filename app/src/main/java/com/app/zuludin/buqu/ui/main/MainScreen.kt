@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -38,6 +39,7 @@ fun MainScreen(
         floatingActionButton = {
             if (currentRoute in bottomBarRoutes) {
                 FloatingActionButton(
+                    modifier = Modifier.testTag("UpsertQuote"),
                     onClick = {
                         navActions.navigateToUpsertQuote("Insert Quote", null)
                     },

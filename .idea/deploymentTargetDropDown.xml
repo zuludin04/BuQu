@@ -5,6 +5,21 @@
       <entry key="app">
         <State />
       </entry>
+      <entry key="checkSettingsMenuItem()">
+        <State />
+      </entry>
+      <entry key="displayInitialCategoryState()">
+        <State />
+      </entry>
+      <entry key="displayNewCategoryItem()">
+        <State />
+      </entry>
+      <entry key="displayUpsertCategoryBottomSheet()">
+        <State />
+      </entry>
+      <entry key="showResetDialogConfirmation()">
+        <State />
+      </entry>
     </value>
   </component>
 </project>
