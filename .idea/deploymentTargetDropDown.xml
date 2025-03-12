@@ -2,19 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="UpsertQuoteScreenTest">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>
       <entry key="checkSettingsMenuItem()">
         <State />
       </entry>
-      <entry key="displayInitialCategoryState()">
+      <entry key="insertQuoteFailed()">
         <State />
       </entry>
-      <entry key="displayNewCategoryItem()">
-        <State />
-      </entry>
-      <entry key="displayUpsertCategoryBottomSheet()">
+      <entry key="insertQuoteSuccess()">
         <State />
       </entry>
       <entry key="showResetDialogConfirmation()">
