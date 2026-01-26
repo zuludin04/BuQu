@@ -72,4 +72,12 @@ class QuoteRepository @Inject constructor(
     override suspend fun deleteAllQuote() {
         localSource.deleteQuotes()
     }
+
+    override suspend fun getQuotesByCategory(categoryId: String): List<Quote> {
+        return localSource.getQuotesByCategory(categoryId).map { quotes ->
+            withContext(dispatcher) {
+                quotes.toExternal()
+            }
+        }
+    }
 }

@@ -12,9 +12,6 @@ interface CategoryDao {
     fun observeAllCategories(): Flow<List<CategoryEntity>>
 
     @Query("SELECT * FROM category WHERE categoryId = :categoryId")
-    fun observeById(categoryId: String): Flow<CategoryEntity>
-
-    @Query("SELECT * FROM category WHERE categoryId = :categoryId")
     suspend fun getById(categoryId: String): CategoryEntity?
 
     @Upsert

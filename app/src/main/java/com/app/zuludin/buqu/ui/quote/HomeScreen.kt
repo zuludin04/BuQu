@@ -27,7 +27,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +43,6 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,16 +57,6 @@ fun HomeScreen(
 
     val sheetState = rememberModalBottomSheetState()
     var showFilterSheet by remember { mutableStateOf(false) }
-    var selectedCategoryFilter by remember {
-        mutableStateOf(
-            Category(
-                categoryId = "",
-                name = "",
-                color = "",
-                type = ""
-            )
-        )
-    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -90,93 +78,90 @@ fun HomeScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            if (selectedCategoryFilter.categoryId != "") {
-                QuoteCategoryChips(category = selectedCategoryFilter) {
-                    viewModel.setFiltering("")
-                    selectedCategoryFilter = Category(
-                        categoryId = "",
-                        name = "",
-                        color = "",
-                        type = ""
-                    )
-                }
-            }
-
-            QuotesContent(
-                loading = uiState.isLoading,
+            HomeContent(
                 quotes = uiState.quotes,
-                onQuoteClick = onQuoteClick
+                selectedCategory = uiState.selectedCategory,
+                onQuoteClick = onQuoteClick,
+                onSelectCategory = { viewModel.filterQuotes(it) },
+                isLoading = uiState.isLoading,
+                onRefresh = { viewModel.filterQuotes(null) }
             )
-        }
 
-        uiState.userMessage?.let { message ->
-            LaunchedEffect(scaffoldState, viewModel, message) {
-                scaffoldState.snackbarHostState.showSnackbar(message)
-                viewModel.snackbarMessageShown()
-            }
-        }
-
-        if (showFilterSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showFilterSheet = false },
-                sheetState = sheetState
-            ) {
-                QuoteFilterSheet(uiState.categories) {
-                    showFilterSheet = false
-                    selectedCategoryFilter = it
-                    viewModel.setFiltering(it.categoryId)
+            if (showFilterSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showFilterSheet = false },
+                    sheetState = sheetState
+                ) {
+                    QuoteFilterSheet(uiState.categories) {
+                        showFilterSheet = false
+                        viewModel.filterQuotes(it)
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-private fun QuotesContent(
-    loading: Boolean,
+private fun HomeContent(
+    modifier: Modifier = Modifier,
     quotes: List<Quote>,
+    selectedCategory: Category?,
+    onSelectCategory: (Category?) -> Unit,
     onQuoteClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    isLoading: Boolean,
+    onRefresh: () -> Unit
 ) {
-    if (quotes.isEmpty() && !loading) {
-        TasksEmptyContent()
-    } else {
-        val refreshScope = rememberCoroutineScope()
-        var refreshing by remember { mutableStateOf(false) }
-        val state = rememberPullRefreshState(refreshing = refreshing, onRefresh = {
-            refreshScope.launch {
-                refreshing = true
-                delay(1000)
-                refreshing = false
-            }
-        })
+    Column(modifier = modifier) {
+        if (selectedCategory != null) {
+            QuoteCategoryChips(
+                backgroundColor = selectedCategory.color,
+                name = selectedCategory.name,
+                onClearChip = { onSelectCategory(null) }
+            )
+        }
 
-        Box(
-            modifier = modifier.pullRefresh(state),
-            content = {
-                Column(modifier = modifier.fillMaxSize()) {
-                    LazyVerticalStaggeredGrid(
-                        columns = StaggeredGridCells.Fixed(2),
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalItemSpacing = 16.dp
-                    ) {
-                        items(quotes.size) {
-                            QuoteItem(
-                                modifier = Modifier.testTag("QuoteItem"),
-                                quote = quotes[it]
-                            ) {
-                                onQuoteClick(quotes[it].quoteId)
+        if (quotes.isEmpty()) {
+            TasksEmptyContent()
+        } else {
+            val refreshScope = rememberCoroutineScope()
+            val state = rememberPullRefreshState(
+                refreshing = isLoading,
+                onRefresh = {
+                    refreshScope.launch { onRefresh() }
+                }
+            )
+
+            Box(
+                modifier = modifier.pullRefresh(state),
+                content = {
+                    Column(modifier = modifier.fillMaxSize()) {
+                        LazyVerticalStaggeredGrid(
+                            columns = StaggeredGridCells.Fixed(2),
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalItemSpacing = 16.dp
+                        ) {
+                            items(quotes.size) {
+                                QuoteItem(
+                                    modifier = Modifier.testTag("QuoteItem"),
+                                    quote = quotes[it].quote,
+                                    backgroundColor = "#${quotes[it].color}",
+                                    book = quotes[it].book,
+                                    author = quotes[it].author,
+                                ) {
+                                    onQuoteClick(quotes[it].quoteId)
+                                }
                             }
                         }
                     }
-                }
 
-                PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
-            },
-        )
+                    PullRefreshIndicator(isLoading, state, Modifier.align(Alignment.TopCenter))
+                },
+            )
+        }
     }
 }
 

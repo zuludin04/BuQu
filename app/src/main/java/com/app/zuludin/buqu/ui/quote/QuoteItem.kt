@@ -16,11 +16,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.app.zuludin.buqu.domain.models.Quote
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuoteItem(modifier: Modifier = Modifier, quote: Quote, onClick: () -> Unit) {
+fun QuoteItem(
+    modifier: Modifier = Modifier,
+    backgroundColor: String,
+    book: String,
+    quote: String,
+    author: String,
+    onClick: () -> Unit
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
@@ -28,24 +35,24 @@ fun QuoteItem(modifier: Modifier = Modifier, quote: Quote, onClick: () -> Unit) 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(android.graphics.Color.parseColor("#${quote.color}")).copy(alpha = 0.2f))
+                .background(Color(backgroundColor.toColorInt()))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = quote.book,
+                text = book,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 modifier = Modifier.padding(top = 4.dp),
-                text = quote.quote,
+                text = quote,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = quote.author,
+                text = author,
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -57,14 +64,10 @@ fun QuoteItem(modifier: Modifier = Modifier, quote: Quote, onClick: () -> Unit) 
 @Composable
 private fun QuoteItemPreview() {
     QuoteItem(
-        quote = Quote(
-            quoteId = "",
-            quote = "Hallo",
-            author = "123",
-            book = "BCD",
-            page = 0,
-            categoryId = ""
-        ),
+        quote = "Hallo",
+        author = "123",
+        book = "BCD",
+        backgroundColor = "#03A9F4",
         onClick = {}
     )
 }

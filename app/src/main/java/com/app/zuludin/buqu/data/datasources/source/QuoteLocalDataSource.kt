@@ -17,6 +17,9 @@ class QuoteLocalDataSource @Inject constructor(
 
     override fun getQuotes(): Flow<List<CategoryAndQuoteEntity>> = quoteDao.observeAllQuotes()
 
+    override suspend fun getQuotesByCategory(categoryId: String): List<CategoryAndQuoteEntity> =
+        quoteDao.quoteByCategory(categoryId)
+
     override suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity? =
         quoteDao.getQuoteDetail(quoteId)
 

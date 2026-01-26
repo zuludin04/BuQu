@@ -20,4 +20,6 @@ interface IQuoteRepository {
     suspend fun deleteQuote(quoteId: String)
 
     suspend fun deleteAllQuote()
+
+    suspend fun getQuotesByCategory(categoryId: String): List<Quote>
 }

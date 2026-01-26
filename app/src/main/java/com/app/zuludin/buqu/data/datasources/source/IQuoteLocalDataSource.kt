@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.Flow
 interface IQuoteLocalDataSource {
     fun getQuotes(): Flow<List<CategoryAndQuoteEntity>>
 
+    suspend fun getQuotesByCategory(categoryId: String): List<CategoryAndQuoteEntity>
+
     suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity?
 
     suspend fun upsertQuote(quote: QuoteEntity)

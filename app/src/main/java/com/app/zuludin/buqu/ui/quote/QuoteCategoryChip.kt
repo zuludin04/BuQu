@@ -15,21 +15,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.app.zuludin.buqu.domain.models.Category
+import androidx.core.graphics.toColorInt
 
 @Composable
-fun QuoteCategoryChips(category: Category, onClearChip: () -> Unit) {
+fun QuoteCategoryChips(backgroundColor: String, name: String, onClearChip: () -> Unit) {
     Surface(
         modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
         shadowElevation = 3.dp,
-        color = Color(android.graphics.Color.parseColor("#${category.color}")),
+        color = Color(backgroundColor.toColorInt()),
         shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier.padding(start = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(category.name, color = Color.White)
+            Text(name, color = Color.White)
             IconButton(onClick = onClearChip) {
                 Icon(Icons.Filled.Clear, null, tint = Color.White)
             }
@@ -40,11 +40,8 @@ fun QuoteCategoryChips(category: Category, onClearChip: () -> Unit) {
 @Preview
 @Composable
 private fun QuoteCategoryChipsPreview() {
-    val cat = Category(
-        categoryId = "",
+    QuoteCategoryChips(
         name = "Motivation",
-        color = "E91E63",
-        type = ""
-    )
-    QuoteCategoryChips(cat) {}
+        backgroundColor = "#E91E63",
+    ) {}
 }

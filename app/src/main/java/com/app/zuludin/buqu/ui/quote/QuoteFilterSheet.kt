@@ -7,13 +7,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.ui.category.CategoryItem
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun QuoteFilterSheet(categories: List<Category>, onSelectCategory: (Category) -> Unit) {
     LazyColumn {
         items(items = categories, itemContent = { item ->
             CategoryItem(
-                color = Color(android.graphics.Color.parseColor("#${item.color}")),
+                color = Color("#${item.color}".toColorInt()),
                 category = item,
                 onClick = { onSelectCategory(item) }
             )
