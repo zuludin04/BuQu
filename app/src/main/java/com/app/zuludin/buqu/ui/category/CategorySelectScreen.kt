@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
@@ -54,21 +55,10 @@ fun CategorySelectScreen(
     scaffoldState: ScaffoldState = rememberScaffoldState(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val successDelete by viewModel.successDeleteCategory.collectAsStateWithLifecycle()
+    val categoryInUse by viewModel.categoryInUse.collectAsStateWithLifecycle()
 
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
-
-    var selectedCategory by remember {
-        mutableStateOf(
-            Category(
-                categoryId = "",
-                name = "",
-                color = "",
-                type = ""
-            )
-        )
-    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -88,7 +78,7 @@ fun CategorySelectScreen(
                 modifier = Modifier.testTag("UpsertCategory"),
                 onClick = {
                     showBottomSheet = true
-                    selectedCategory = Category("", "", colors[0], "")
+                    viewModel.selectCategory(Category("", "", colors[0], ""))
                 },
             ) {
                 Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)
@@ -101,11 +91,11 @@ fun CategorySelectScreen(
             LazyColumn(modifier = Modifier.padding(paddingValues)) {
                 items(uiState.categories) { cat ->
                     CategoryItem(
-                        color = Color(android.graphics.Color.parseColor("#${cat.color}")),
-                        category = cat,
+                        color = Color("#${cat.color}".toColorInt()),
+                        name = cat.name,
                         onClick = {
                             showBottomSheet = true
-                            selectedCategory = cat
+                            viewModel.selectCategory(cat)
                         },
                     )
                     Divider()
@@ -120,40 +110,36 @@ fun CategorySelectScreen(
             sheetState = sheetState
         ) {
             CategoryUpsertSheet(
-                color = selectedCategory.color,
-                name = selectedCategory.name,
-                showDeleteButton = selectedCategory.categoryId != "",
+                color = uiState.selectedCategory.color,
+                name = uiState.selectedCategory.name,
+                showDeleteButton = uiState.selectedCategory.categoryId != "",
                 onUpsertCategory = { color, name ->
-                    viewModel.upsertCategory(
-                        color = color,
-                        name = name,
-                        id = selectedCategory.categoryId
-                    )
+                    viewModel.upsertCategory(name, color)
                     showBottomSheet = false
                 },
                 onDeleteCategory = {
-                    viewModel.deleteCategory(selectedCategory.categoryId)
+                    viewModel.deleteCategory()
                     showBottomSheet = false
                 }
             )
         }
     }
 
-    LaunchedEffect(successDelete) {
-        if (successDelete) {
+    LaunchedEffect(categoryInUse) {
+        if (categoryInUse) {
             scaffoldState.snackbarHostState.showSnackbar("Failed to delete, category is in used")
-            viewModel.messageShown()
+            viewModel.deleteCategory()
         }
     }
 }
 
 @Composable
-fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
+fun CategoryItem(color: Color, name: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onClick(category.categoryId) },
+            .clickable { onClick() }
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -163,7 +149,7 @@ fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
                 .background(color)
         )
         Text(
-            category.name,
+            name,
             modifier = Modifier.padding(horizontal = 8.dp),
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -175,18 +161,7 @@ fun CategoryItem(color: Color, category: Category, onClick: (String) -> Unit) {
 private fun CategoryItemPreview() {
     CategoryItem(
         color = Color(0xFFE91E63),
-        category = Category(
-            categoryId = "",
-            name = "",
-            color = "",
-            type = ""
-        ),
+        name = "",
         onClick = {}
     )
-}
-
-@Preview
-@Composable
-private fun CategorySelectScreenPreview() {
-    CategorySelectScreen(onBack = {})
 }

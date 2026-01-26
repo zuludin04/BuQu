@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.app.zuludin.buqu.core.colorNames
 import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.TitleInputField
@@ -52,7 +53,11 @@ fun CategoryUpsertSheet(
     var categoryColor by remember { mutableStateOf(color) }
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(16.dp).testTag("CategoryBottomSheet")) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .testTag("CategoryBottomSheet")
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -68,7 +73,7 @@ fun CategoryUpsertSheet(
                     modifier = Modifier
                         .clip(CircleShape)
                         .size(24.dp)
-                        .background(Color(android.graphics.Color.parseColor("#${categoryColor}")))
+                        .background(Color("#${categoryColor}".toColorInt()))
                 )
             }
             TitleInputField(
@@ -90,12 +95,12 @@ fun CategoryUpsertSheet(
                 val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
                 val isSelected = color == categoryColor
                 val style = if (isSelected) {
-                    androidx.compose.material.MaterialTheme.typography.body1.copy(
+                   MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = androidx.compose.material.MaterialTheme.colors.secondary
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 } else {
-                    androidx.compose.material.MaterialTheme.typography.body1.copy(
+                    MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Normal,
                         color = textColor
                     )
@@ -107,7 +112,7 @@ fun CategoryUpsertSheet(
                         categoryColor = color
                     }
                 ) {
-                    androidx.compose.material3.Text(colorNames[index], style = style)
+                    Text(colorNames[index], style = style)
                 }
             }
         }
@@ -151,5 +156,11 @@ fun CategoryUpsertSheet(
 @Preview
 @Composable
 fun CategoryUpsertSheetPreview() {
-    CategoryUpsertSheet("000000", "Hallo", false, { _, _ -> }, {})
+    CategoryUpsertSheet(
+        "000000",
+        "Hallo",
+        true,
+        { _, _ -> },
+        {}
+    )
 }

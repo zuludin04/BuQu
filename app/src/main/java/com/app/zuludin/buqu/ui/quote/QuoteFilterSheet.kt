@@ -15,7 +15,7 @@ fun QuoteFilterSheet(categories: List<Category>, onSelectCategory: (Category) ->
         items(items = categories, itemContent = { item ->
             CategoryItem(
                 color = Color("#${item.color}".toColorInt()),
-                category = item,
+                name = item.name,
                 onClick = { onSelectCategory(item) }
             )
         })

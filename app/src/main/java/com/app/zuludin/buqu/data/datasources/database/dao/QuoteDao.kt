@@ -18,7 +18,7 @@ interface QuoteDao {
     @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId WHERE quoteId = :quoteId")
     suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity?
 
-    @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId WHERE categoryId = :categoryId")
+    @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId WHERE quote.categoryId = :categoryId")
     suspend fun quoteByCategory(categoryId: String): List<CategoryAndQuoteEntity>
 
     @Upsert
