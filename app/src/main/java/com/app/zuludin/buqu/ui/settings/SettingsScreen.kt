@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -29,16 +30,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
-
-/**
- * General
- *  Category
- *  Theme
- *  Reset
- * Other
- *  About
- *  Rate
- * */
 
 @Composable
 fun SettingsScreen(
@@ -49,7 +40,7 @@ fun SettingsScreen(
     val openConfirmDialog = remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { BuQuToolbar("Settings") },
+        topBar = { BuQuToolbar(stringResource(R.string.settings)) },
         backgroundColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
@@ -58,38 +49,38 @@ fun SettingsScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            SettingsGroup(name = "General") {
+            SettingsGroup(name = stringResource(R.string.general)) {
                 SettingsClickableComp(
-                    name = "Category",
+                    name = stringResource(R.string.category),
                     icon = R.drawable.ic_category,
                     iconDesc = "",
                     onClick = onOpenCategorySelectScreen,
                 )
-//                SettingsSwitchComp(
-//                    name = "Theme",
-//                    icon = R.drawable.ic_theme,
-//                    iconDesc = "",
-////                    state =
-//                ) {
-//
-//                }
+                SettingsSwitchComp(
+                    name = stringResource(R.string.theme),
+                    icon = R.drawable.ic_theme,
+                    iconDesc = "",
+//                    state =
+                ) {
+
+                }
                 SettingsClickableComp(
-                    name = "Reset",
+                    name = stringResource(R.string.reset),
                     icon = R.drawable.ic_reset,
                     iconDesc = "",
                     onClick = { openConfirmDialog.value = true },
                 )
             }
 
-            SettingsGroup(name = "Other") {
-//                SettingsClickableComp(
-//                    name = "About",
-//                    icon = R.drawable.ic_about,
-//                    iconDesc = "",
-//                    onClick = { },
-//                )
+            SettingsGroup(name = stringResource(R.string.other)) {
                 SettingsClickableComp(
-                    name = "Rate",
+                    name = stringResource(R.string.about),
+                    icon = R.drawable.ic_about,
+                    iconDesc = "",
+                    onClick = { },
+                )
+                SettingsClickableComp(
+                    name = stringResource(R.string.rate),
                     icon = R.drawable.ic_rate,
                     iconDesc = "",
                     onClick = { },
@@ -132,7 +123,7 @@ private fun ResetDialogConfirmation(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "All data will be deleted. Are you sure?",
+                    text = stringResource(R.string.reset_confirm),
                     modifier = Modifier.padding(16.dp),
                     textAlign = TextAlign.Center,
                 )
@@ -145,13 +136,13 @@ private fun ResetDialogConfirmation(
                         onClick = { onDismissRequest() },
                         modifier = Modifier.padding(8.dp),
                     ) {
-                        Text("No")
+                        Text(stringResource(R.string.no))
                     }
                     TextButton(
                         onClick = { onConfirmation() },
                         modifier = Modifier.padding(8.dp),
                     ) {
-                        Text("Yes")
+                        Text(stringResource(R.string.yes))
                     }
                 }
             }

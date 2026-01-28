@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,7 +65,7 @@ fun HomeScreen(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = "BuQu",
+                title = stringResource(R.string.app_name),
                 actions = {
                     IconButton(onClick = { showFilterSheet = true }) {
                         Icon(Icons.Filled.List, null)
@@ -178,6 +179,9 @@ fun TasksEmptyContent(modifier: Modifier = Modifier) {
             modifier = Modifier.size(96.dp),
             tint = MaterialTheme.colorScheme.onBackground
         )
-        Text("Save the Greatest Quote", color = MaterialTheme.colorScheme.onBackground)
+        Text(
+            stringResource(R.string.empty_quote_message),
+            color = MaterialTheme.colorScheme.onBackground
+        )
     }
 }

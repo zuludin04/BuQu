@@ -15,7 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.app.zuludin.buqu.R
 
 @Composable
 fun QuoteInfoVisibility(
@@ -28,7 +30,11 @@ fun QuoteInfoVisibility(
     val color = if (isSystemInDarkTheme()) Color.White else Color.Black
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = "Visibility", style = MaterialTheme.typography.caption, color = color)
+        Text(
+            text = stringResource(R.string.visibility),
+            style = MaterialTheme.typography.caption,
+            color = color
+        )
         Row {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -41,7 +47,7 @@ fun QuoteInfoVisibility(
                         onAuthorVisibility(isChecked)
                     }
                 )
-                Text("Author", color = color)
+                Text(stringResource(R.string.author), color = color)
             }
 
             Row(
@@ -55,7 +61,7 @@ fun QuoteInfoVisibility(
                         onBookVisibility(isChecked)
                     }
                 )
-                Text("Book", color = color)
+                Text(stringResource(R.string.book), color = color)
             }
         }
     }

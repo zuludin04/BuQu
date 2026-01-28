@@ -21,8 +21,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.app.zuludin.buqu.R
 
 @Composable
 fun QuoteTextPosition(
@@ -32,9 +34,21 @@ fun QuoteTextPosition(
 ) {
     val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = "Position", style = MaterialTheme.typography.caption, color = color)
-        TextPositionContainer(title = "Book", onSelect = onBookPosition, textColor = color)
-        TextPositionContainer(title = "Author", onSelect = onAuthorPosition, textColor = color)
+        Text(
+            text = stringResource(R.string.position),
+            style = MaterialTheme.typography.caption,
+            color = color
+        )
+        TextPositionContainer(
+            title = stringResource(R.string.book),
+            onSelect = onBookPosition,
+            textColor = color
+        )
+        TextPositionContainer(
+            title = stringResource(R.string.author),
+            onSelect = onAuthorPosition,
+            textColor = color
+        )
     }
 }
 
@@ -60,7 +74,7 @@ private fun TextPositionContainer(
         Row(modifier = Modifier.padding(top = 4.dp)) {
             SelectableOptionItem(
                 modifier = Modifier.weight(1f),
-                label = "Start",
+                label = stringResource(R.string.start),
                 isSelected = selectedItem == 0,
                 textColor = textColor,
                 onSelect = {
@@ -69,7 +83,8 @@ private fun TextPositionContainer(
                 },
             )
             SelectableOptionItem(
-                modifier = Modifier.weight(1f), label = "Center",
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.center),
                 isSelected = selectedItem == 1,
                 textColor = textColor,
                 onSelect = {
@@ -78,7 +93,8 @@ private fun TextPositionContainer(
                 },
             )
             SelectableOptionItem(
-                modifier = Modifier.weight(1f), label = "End",
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.end),
                 isSelected = selectedItem == 2,
                 textColor = textColor,
                 onSelect = {

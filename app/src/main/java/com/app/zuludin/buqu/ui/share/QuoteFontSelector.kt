@@ -23,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.fontSelector
 import com.app.zuludin.buqu.core.theme.provider
 
@@ -35,7 +37,11 @@ import com.app.zuludin.buqu.core.theme.provider
 fun QuoteFontSelector(modifier: Modifier = Modifier, onChangeFont: (FontFamily) -> Unit) {
     val color = if (isSystemInDarkTheme()) Color.White else Color.Black
     Column(modifier = modifier) {
-        Text(text = "Font Type", style = MaterialTheme.typography.caption, color = color)
+        Text(
+            text = stringResource(R.string.font_type),
+            style = MaterialTheme.typography.caption,
+            color = color
+        )
         SelectFontType(
             modifier = Modifier.padding(top = 8.dp),
             onSelectFont = onChangeFont,

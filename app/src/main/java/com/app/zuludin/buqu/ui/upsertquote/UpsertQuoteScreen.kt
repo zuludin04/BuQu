@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -207,7 +208,7 @@ fun UpsertQuoteScreen(
             TitleInputField(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = false,
-                label = "Quote",
+                label = stringResource(R.string.quote),
                 capitalization = KeyboardCapitalization.Sentences,
                 value = uiState.quote,
                 onChanged = viewModel::updateQuote,
@@ -219,7 +220,7 @@ fun UpsertQuoteScreen(
             Row {
                 TitleInputField(
                     modifier = Modifier.weight(2f),
-                    label = "Book",
+                    label = stringResource(R.string.book),
                     capitalization = KeyboardCapitalization.Words,
                     value = uiState.book,
                     onChanged = viewModel::updateBook,
@@ -231,7 +232,7 @@ fun UpsertQuoteScreen(
                 Box(modifier = Modifier.padding(horizontal = 8.dp))
                 TitleInputField(
                     modifier = Modifier.weight(1f),
-                    label = "Page",
+                    label = stringResource(R.string.page),
                     keyboardType = KeyboardType.Number,
                     value = uiState.page,
                     onChanged = viewModel::updatePage,
@@ -243,7 +244,7 @@ fun UpsertQuoteScreen(
             }
             TitleInputField(
                 modifier = Modifier.fillMaxWidth(),
-                label = "Author",
+                label = stringResource(R.string.author),
                 capitalization = KeyboardCapitalization.Words,
                 value = uiState.author,
                 onChanged = viewModel::updateAuthor,

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.zuludin.buqu.R
@@ -55,7 +56,7 @@ fun MainScreen(
                 NavigationBar {
                     NavigationBarItem(
                         icon = { Icon(Icons.Filled.Home, null) },
-                        label = { Text("Home") },
+                        label = { Text(stringResource(R.string.home)) },
                         selected = currentRoute == BuquDestinations.QUOTES_ROUTE,
                         onClick = {
                             if (currentRoute != BuquDestinations.QUOTES_ROUTE) {
@@ -68,7 +69,7 @@ fun MainScreen(
                     )
                     NavigationBarItem(
                         icon = { Icon(Icons.Filled.Settings, null) },
-                        label = { Text("Settings") },
+                        label = { Text(stringResource(R.string.settings)) },
                         selected = currentRoute == BuquDestinations.SETTING_ROUTE,
                         onClick = {
                             if (currentRoute != BuquDestinations.SETTING_ROUTE) {
