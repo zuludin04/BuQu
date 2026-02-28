@@ -29,6 +29,12 @@ class FakeQuoteDao(initialQuotes: List<QuoteEntity>? = emptyList()) : QuoteDao {
         return data?.toQuoteAndCategory()
     }
 
+    override suspend fun quoteByCategory(categoryId: String): List<CategoryAndQuoteEntity> {
+        val data = quotes?.map { it.toQuoteAndCategory() } ?: throw Exception("Quote is empty")
+        val filtered = data.filter { it.categoryId == categoryId }
+        return filtered
+    }
+
     override suspend fun upsert(quote: QuoteEntity) {
         _quotes?.put(quote.quoteId, quote)
     }

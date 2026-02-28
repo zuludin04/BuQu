@@ -23,11 +23,6 @@ class FakeCategoryDao(initialCategories: List<CategoryEntity>? = emptyList()) : 
         return flow { emit(data) }
     }
 
-    override fun observeById(categoryId: String): Flow<CategoryEntity> {
-        val data = _categories?.get(categoryId) ?: throw Exception("Category not found")
-        return flow { emit(data) }
-    }
-
     override suspend fun getById(categoryId: String): CategoryEntity? = _categories?.get(categoryId)
 
     override suspend fun upsert(quote: CategoryEntity) {

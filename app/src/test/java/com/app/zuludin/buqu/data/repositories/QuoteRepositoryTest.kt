@@ -62,4 +62,17 @@ class QuoteRepositoryTest {
         assertEquals(quote.quote, actual?.quote)
         assertEquals(quote.author, actual?.author)
     }
+
+    @Test
+    fun getQuotesByCategory_successLoadQuotes() = runTest {
+        val quotes = DataDummy.generateQuoteDummy().map { it.toQuoteAndCategory() }
+        val filtered = quotes.filter { it.categoryId == "Category1" }
+        `when`(localSource.getQuotesByCategory("Category1")).thenReturn(filtered)
+
+        val actual = repository.getQuotesByCategory("Category1")
+
+        assertNotNull(actual)
+        assertTrue(actual.isNotEmpty())
+        assertEquals(filtered.size, actual.size)
+    }
 }

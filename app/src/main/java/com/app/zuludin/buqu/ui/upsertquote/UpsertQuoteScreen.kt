@@ -2,8 +2,7 @@ package com.app.zuludin.buqu.ui.upsertquote
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.MediaStore
+import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,14 +49,12 @@ import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
+import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.compose.TitleInputField
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.core.utils.createImageFile
+import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Quote
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.TextRecognizer
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.util.Objects
 
 @Suppress("DEPRECATION")
@@ -78,28 +75,30 @@ fun UpsertQuoteScreen(
             viewModel.updateQuote(result.substring(1, result.length - 1))
         })
 
-    val file = context.createImageFile()
+    val file = remember { context.createImageFile() }
     val uri = FileProvider.getUriForFile(
         Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
     )
 
-    val recognizer: TextRecognizer =
-        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var showTextSelection by remember { mutableStateOf(false) }
 
-    var capturedImageUri by remember {
-        mutableStateOf<Uri>(Uri.EMPTY)
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            capturedBitmap = context.fixImageRotation(uri)
+            showTextSelection = true
+        }
     }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
-        capturedImageUri = uri
-        val bitmap = MediaStore.Images.Media.getBitmap(
-            context.contentResolver, capturedImageUri
+    if (showTextSelection && capturedBitmap != null) {
+        TextSelectionDialog(
+            bitmap = capturedBitmap!!,
+            onDismiss = { showTextSelection = false },
+            onTextSelected = { selectedText ->
+                viewModel.updateQuote(selectedText)
+                showTextSelection = false
+            }
         )
-
-        val image = InputImage.fromBitmap(bitmap, 0)
-        recognizer.process(image).addOnSuccessListener { visionText ->
-            viewModel.updateQuote(visionText.text)
-        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(

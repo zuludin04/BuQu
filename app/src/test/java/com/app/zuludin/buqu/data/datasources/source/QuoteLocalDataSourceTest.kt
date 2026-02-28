@@ -45,6 +45,14 @@ class QuoteLocalDataSourceTest {
     }
 
     @Test
+    fun getQuotesByCategory_requestQuotesFromDatabase() = runTest {
+        val sample = localQuotes.filter { it.categoryId == "Category1" }
+        val quotes = localSource.getQuotesByCategory("Category1")
+        assertNotNull(quotes)
+        assertEquals(sample.size, quotes.size)
+    }
+
+    @Test
     fun getQuoteDetail_requestDetailQuoteFromDatabase() = runTest {
         val sample = localQuotes[0]
         val actual = localSource.getQuoteDetail(sample.quoteId)

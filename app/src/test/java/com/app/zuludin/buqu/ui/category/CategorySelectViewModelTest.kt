@@ -39,8 +39,8 @@ class CategorySelectViewModelTest {
     @Test
     fun createCategory_successfullyCreateNewCategory() = runTest {
         val category =
-            Category(categoryId = "cat1", name = "Vision", color = "000000", type = "Quote")
-        viewModel.upsertCategory(category.categoryId, category.color, category.name)
+            Category(categoryId = "", name = "Vision", color = "000000", type = "Quote")
+        viewModel.upsertCategory(category.color, category.name)
         verify(repository).upsertCategory(
             category.categoryId,
             category.name,
@@ -53,7 +53,7 @@ class CategorySelectViewModelTest {
     fun deleteCategory_successfullyDeleteCategory() = runTest {
         `when`(repository.deleteCategory("cat1")).thenReturn(true)
 
-        viewModel.deleteCategory("cat1")
+        viewModel.deleteCategory()
         verify(repository).deleteCategory("cat1")
         assertTrue(repository.deleteCategory("cat1"))
     }
@@ -62,7 +62,7 @@ class CategorySelectViewModelTest {
     fun deleteCategory_failedDeleteCategory() = runTest {
         `when`(repository.deleteCategory("cat1")).thenReturn(false)
 
-        viewModel.deleteCategory("cat1")
+        viewModel.deleteCategory()
         verify(repository).deleteCategory("cat1")
         assertFalse(repository.deleteCategory("cat1"))
     }

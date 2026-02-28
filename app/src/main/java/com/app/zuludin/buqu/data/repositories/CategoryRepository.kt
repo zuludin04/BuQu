@@ -38,26 +38,17 @@ class CategoryRepository @Inject constructor(
         color: String,
         type: String
     ) {
-        if (categoryId != null) {
-            val q = getCategoryById(categoryId)!!.copy(
+        val id = withContext(dispatcher) {
+            UUID.randomUUID().toString()
+        }
+        val savedCategory =
+            Category(
+                categoryId = id,
                 name = name,
                 color = color,
                 type = type
             )
-            localSource.upsertCategory(q.toLocal())
-        } else {
-            val id = withContext(dispatcher) {
-                UUID.randomUUID().toString()
-            }
-            val savedCategory =
-                Category(
-                    categoryId = id,
-                    name = name,
-                    color = color,
-                    type = type
-                )
-            localSource.upsertCategory(savedCategory.toLocal())
-        }
+        localSource.upsertCategory(savedCategory.toLocal())
     }
 
     override suspend fun deleteCategory(categoryId: String): Boolean {
