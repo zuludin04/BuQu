@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.core.compose
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,12 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.app.zuludin.buqu.domain.models.Category
 
 @Composable
@@ -45,6 +48,10 @@ fun ColorSpinner(
     var selectedCategory: Category by remember { mutableStateOf(currentCategory) }
     var expanded by remember { mutableStateOf(false) }
     val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+    val iconRotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "iconRotaion"
+    )
 
     Box(
         modifier = modifier
@@ -65,7 +72,7 @@ fun ColorSpinner(
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(24.dp)
-                    .background(Color(android.graphics.Color.parseColor("#${selectedCategory.color}")))
+                    .background(Color("#${selectedCategory.color}".toColorInt()))
             )
             Text(
                 text = selectedCategory.name,
@@ -75,7 +82,12 @@ fun ColorSpinner(
                     .weight(1f)
                     .padding(start = 8.dp)
             )
-            Icon(imageVector = Icons.Filled.ArrowDropDown, "")
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                "",
+                tint = textColor,
+                modifier = Modifier.rotate(iconRotation)
+            )
         }
 
         DropdownMenu(
