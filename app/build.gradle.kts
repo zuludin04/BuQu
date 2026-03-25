@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.app.zuludin.buqu"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.app.zuludin.buqu"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = 23
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
