@@ -1,5 +1,8 @@
 package com.app.zuludin.buqu.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,7 +30,12 @@ fun BuquNavGraph(
         BuquNavigationActions(navController)
     }
 ) {
-    NavHost(navController, startDestination = BuquDestinations.QUOTES_ROUTE) {
+    NavHost(
+        navController,
+        startDestination = BuquDestinations.QUOTES_ROUTE,
+        enterTransition = { fadeIn(tween(0)) },
+        exitTransition = { fadeOut(tween(0)) }
+    ) {
         composable(BuquDestinations.QUOTES_ROUTE) {
             HomeScreen(
                 onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
@@ -39,13 +47,15 @@ fun BuquNavGraph(
 
         composable(
             BuquDestinations.UPSERT_QUOTE_ROUTE,
-            arguments = listOf(navArgument(TITLE_ARG) { type = NavType.StringType },
+            arguments = listOf(
+                navArgument(TITLE_ARG) { type = NavType.StringType },
                 navArgument(QUOTE_ID_ARG) {
                     type = NavType.StringType; nullable = true
                 })
         ) { entry ->
             val title = entry.arguments?.getString(TITLE_ARG)
-            UpsertQuoteScreen(onBack = { navController.popBackStack() },
+            UpsertQuoteScreen(
+                onBack = { navController.popBackStack() },
                 topAppBarTitle = title ?: "",
                 onShareQuote = {
                     navActions.navigateToShareQuote(
