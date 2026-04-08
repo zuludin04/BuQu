@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.settings
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -24,7 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,7 +50,7 @@ fun SettingsGroup(
 
 @Composable
 fun SettingsClickableComp(
-    @DrawableRes icon: Int,
+    icon: ImageVector,
     iconDesc: String,
     name: String,
     onClick: () -> Unit
@@ -70,7 +69,7 @@ fun SettingsClickableComp(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        painterResource(id = icon),
+                        imageVector = icon,
                         contentDescription = iconDesc,
                         modifier = Modifier.size(24.dp)
                     )
@@ -100,7 +99,7 @@ fun SettingsClickableComp(
 
 @Composable
 fun SettingsSwitchComp(
-    @DrawableRes icon: Int,
+    icon: ImageVector,
     iconDesc: String,
     name: String,
 //    state: State<Boolean>,
@@ -120,7 +119,7 @@ fun SettingsSwitchComp(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        painterResource(id = icon),
+                        imageVector = icon,
                         contentDescription = iconDesc,
                         modifier = Modifier.size(24.dp)
                     )

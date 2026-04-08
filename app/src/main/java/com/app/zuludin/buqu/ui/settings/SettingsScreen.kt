@@ -30,6 +30,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.icons.PhosphorArrowClockwise
+import com.app.zuludin.buqu.core.icons.PhosphorGridFour
+import com.app.zuludin.buqu.core.icons.PhosphorInfo
+import com.app.zuludin.buqu.core.icons.PhosphorMoon
+import com.app.zuludin.buqu.core.icons.PhosphorStar
 
 @Composable
 fun SettingsScreen(
@@ -52,13 +57,13 @@ fun SettingsScreen(
             SettingsGroup(name = stringResource(R.string.general)) {
                 SettingsClickableComp(
                     name = stringResource(R.string.category),
-                    icon = R.drawable.ic_category,
+                    icon = PhosphorGridFour,
                     iconDesc = "",
                     onClick = onOpenCategorySelectScreen,
                 )
                 SettingsSwitchComp(
                     name = stringResource(R.string.theme),
-                    icon = R.drawable.ic_theme,
+                    icon = PhosphorMoon,
                     iconDesc = "",
 //                    state =
                 ) {
@@ -66,7 +71,7 @@ fun SettingsScreen(
                 }
                 SettingsClickableComp(
                     name = stringResource(R.string.reset),
-                    icon = R.drawable.ic_reset,
+                    icon = PhosphorArrowClockwise,
                     iconDesc = "",
                     onClick = { openConfirmDialog.value = true },
                 )
@@ -75,13 +80,13 @@ fun SettingsScreen(
             SettingsGroup(name = stringResource(R.string.other)) {
                 SettingsClickableComp(
                     name = stringResource(R.string.about),
-                    icon = R.drawable.ic_about,
+                    icon = PhosphorInfo,
                     iconDesc = "",
                     onClick = { },
                 )
                 SettingsClickableComp(
                     name = stringResource(R.string.rate),
-                    icon = R.drawable.ic_rate,
+                    icon = PhosphorStar,
                     iconDesc = "",
                     onClick = { },
                 )

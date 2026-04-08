@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
@@ -35,7 +33,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -51,6 +48,12 @@ import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
 import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.compose.TitleInputField
+import com.app.zuludin.buqu.core.icons.PhosphorAperture
+import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorCheck
+import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
+import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.core.utils.createImageFile
 import com.app.zuludin.buqu.core.utils.fixImageRotation
@@ -83,12 +86,13 @@ fun UpsertQuoteScreen(
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showTextSelection by remember { mutableStateOf(false) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) {
-            capturedBitmap = context.fixImageRotation(uri)
-            showTextSelection = true
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                capturedBitmap = context.fixImageRotation(uri)
+                showTextSelection = true
+            }
         }
-    }
 
     if (showTextSelection && capturedBitmap != null) {
         TextSelectionDialog(
@@ -125,7 +129,7 @@ fun UpsertQuoteScreen(
                         onBack()
                         scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
                     }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                        Icon(PhosphorArrowLeft, null)
                     }
                 },
             )
@@ -134,10 +138,7 @@ fun UpsertQuoteScreen(
             BottomAppBar(actions = {
                 if (topAppBarTitle == "Update Quote") {
                     IconButton(onClick = viewModel::deleteQuote) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_delete),
-                            contentDescription = "Localized description"
-                        )
+                        Icon(PhosphorTrash, "Localized description")
                     }
 
                     IconButton(onClick = {
@@ -153,20 +154,14 @@ fun UpsertQuoteScreen(
                         )
                         onShareQuote(quote)
                     }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_share),
-                            contentDescription = "Localized description"
-                        )
+                        Icon(PhosphorShareNetwork, "Localized description")
                     }
                 }
 
                 IconButton(onClick = {
                     speechRecognizerLauncher.launch(Unit)
                 }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_mic),
-                        contentDescription = "Localized description"
-                    )
+                    Icon(PhosphorMicrophone, "Localized description")
                 }
 
                 IconButton(onClick = {
@@ -178,10 +173,7 @@ fun UpsertQuoteScreen(
                         permissionLauncher.launch(Manifest.permission.CAMERA)
                     }
                 }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_image),
-                        contentDescription = "Localized description"
-                    )
+                    Icon(PhosphorAperture, "Localized description")
                 }
             }, floatingActionButton = {
                 FloatingActionButton(
@@ -190,9 +182,7 @@ fun UpsertQuoteScreen(
                     containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                     elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_check), "Localized description"
-                    )
+                    Icon(PhosphorCheck, "Localized description")
                 }
             })
         }

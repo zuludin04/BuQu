@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.icons.PhosphorListDashes
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
 import kotlinx.coroutines.launch
@@ -68,7 +69,7 @@ fun HomeScreen(
                 title = stringResource(R.string.app_name),
                 actions = {
                     IconButton(onClick = { showFilterSheet = true }) {
-                        Icon(Icons.Filled.List, null)
+                        Icon(PhosphorListDashes, null)
                     }
                 }
             )

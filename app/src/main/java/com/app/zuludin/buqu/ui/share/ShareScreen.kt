@@ -15,8 +15,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,15 +35,15 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.gradientBackgrounds
+import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.theme.BuQuTheme
 import com.app.zuludin.buqu.core.theme.bodyFontFamily
 import com.app.zuludin.buqu.core.utils.shareImage
@@ -113,7 +111,7 @@ fun ShareScreen(
                 title = "Share",
                 backButton = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                        Icon(PhosphorArrowLeft, null)
                     }
                 },
             )
@@ -122,7 +120,7 @@ fun ShareScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { shareQuote() },
-                content = { Icon(painterResource(R.drawable.ic_share), null) }
+                content = { Icon(PhosphorShareNetwork, null) }
             )
         }
     ) { paddingValues ->

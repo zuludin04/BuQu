@@ -13,8 +13,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,6 +42,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
 
@@ -69,7 +68,7 @@ fun CategorySelectScreen(
                 title = stringResource(R.string.category),
                 backButton = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                        Icon(PhosphorArrowLeft, null)
                     }
                 }
             )
@@ -82,7 +81,7 @@ fun CategorySelectScreen(
                     viewModel.selectCategory(Category("", "", colors[0], ""))
                 },
             ) {
-                Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)
+                Icon(PhosphorPlus, null)
             }
         }
     ) { paddingValues ->

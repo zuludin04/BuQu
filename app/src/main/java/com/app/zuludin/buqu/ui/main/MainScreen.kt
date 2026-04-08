@@ -1,11 +1,7 @@
 package com.app.zuludin.buqu.ui.main
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.FabPosition
 import androidx.compose.material.Scaffold
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -16,11 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.core.icons.PhosphorGear
+import com.app.zuludin.buqu.core.icons.PhosphorNote
+import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.navigation.BuquDestinations
 import com.app.zuludin.buqu.navigation.BuquNavGraph
 import com.app.zuludin.buqu.navigation.BuquNavigationActions
@@ -45,17 +43,15 @@ fun MainScreen(
                         navActions.navigateToUpsertQuote("Insert Quote", null)
                     },
                 ) {
-                    Icon(painter = painterResource(R.drawable.ic_add), contentDescription = null)
+                    Icon(PhosphorPlus, null)
                 }
             }
         },
-        floatingActionButtonPosition = FabPosition.Center,
-        isFloatingActionButtonDocked = true,
         bottomBar = {
             if (currentRoute in bottomBarRoutes) {
                 NavigationBar {
                     NavigationBarItem(
-                        icon = { Icon(Icons.Filled.Home, null) },
+                        icon = { Icon(PhosphorNote, null) },
                         label = { Text(stringResource(R.string.home)) },
                         selected = currentRoute == BuquDestinations.QUOTES_ROUTE,
                         onClick = {
@@ -68,7 +64,7 @@ fun MainScreen(
                         }
                     )
                     NavigationBarItem(
-                        icon = { Icon(Icons.Filled.Settings, null) },
+                        icon = { Icon(PhosphorGear, null) },
                         label = { Text(stringResource(R.string.settings)) },
                         selected = currentRoute == BuquDestinations.SETTING_ROUTE,
                         onClick = {
