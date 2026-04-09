@@ -41,7 +41,10 @@ fun MainScreen(
                 FloatingActionButton(
                     modifier = Modifier.testTag("UpsertQuote"),
                     onClick = {
-                        navActions.navigateToUpsertQuote("Insert Quote", null)
+                        when (currentRoute) {
+                            "quotes" -> navActions.navigateToUpsertQuote("Insert Quote", null)
+                            "board" -> navActions.navigateToBoardEditor()
+                        }
                     },
                 ) {
                     Icon(PhosphorPlus, null)

@@ -19,6 +19,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_AUTHOR_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_BOOK_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
+import com.app.zuludin.buqu.ui.board.BoardEditorScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.HomeScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
@@ -91,6 +92,13 @@ fun BuquNavGraph(
                 book = book ?: "",
                 quote = quote ?: "",
                 author = author ?: "",
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(BuquDestinations.BOARD_EDITOR_ROUTE) {
+            BoardEditorScreen(
+                topAppBarTitle = "Board Editor",
                 onBack = { navController.popBackStack() }
             )
         }
