@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.core.icons.PhosphorChalkboardSimple
 import com.app.zuludin.buqu.core.icons.PhosphorGear
 import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
@@ -36,7 +37,7 @@ fun MainScreen(
 
     Scaffold(
         floatingActionButton = {
-            if (currentRoute in bottomBarRoutes) {
+            if (currentRoute in bottomBarRoutes && currentRoute != BuquDestinations.SETTING_ROUTE) {
                 FloatingActionButton(
                     modifier = Modifier.testTag("UpsertQuote"),
                     onClick = {
@@ -52,11 +53,24 @@ fun MainScreen(
                 NavigationBar {
                     NavigationBarItem(
                         icon = { Icon(PhosphorNote, null) },
-                        label = { Text(stringResource(R.string.home)) },
+                        label = { Text(stringResource(R.string.quote)) },
                         selected = currentRoute == BuquDestinations.QUOTES_ROUTE,
                         onClick = {
                             if (currentRoute != BuquDestinations.QUOTES_ROUTE) {
                                 navController.navigate(BuquDestinations.QUOTES_ROUTE) {
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(PhosphorChalkboardSimple, null) },
+                        label = { Text(stringResource(R.string.board)) },
+                        selected = currentRoute == BuquDestinations.BOARD_ROUTE,
+                        onClick = {
+                            if (currentRoute != BuquDestinations.BOARD_ROUTE) {
+                                navController.navigate(BuquDestinations.BOARD_ROUTE) {
                                     popUpTo(navController.graph.startDestinationId)
                                     launchSingleTop = true
                                 }

@@ -3,6 +3,9 @@ package com.app.zuludin.buqu.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -40,6 +43,11 @@ fun BuquNavGraph(
             HomeScreen(
                 onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
             )
+        }
+        composable(BuquDestinations.BOARD_ROUTE) {
+            Scaffold {
+                Text("Board Screen", modifier = Modifier.padding(it))
+            }
         }
         composable(BuquDestinations.SETTING_ROUTE) {
             SettingsScreen(onOpenCategorySelectScreen = { navActions.navigateToCategorySelect() })
@@ -89,4 +97,8 @@ fun BuquNavGraph(
     }
 }
 
-val bottomBarRoutes = setOf(BuquDestinations.QUOTES_ROUTE, BuquDestinations.SETTING_ROUTE)
+val bottomBarRoutes = setOf(
+    BuquDestinations.QUOTES_ROUTE,
+    BuquDestinations.BOARD_ROUTE,
+    BuquDestinations.SETTING_ROUTE
+)
