@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -42,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.compose.NoteCard
 import com.app.zuludin.buqu.core.icons.PhosphorListDashes
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
@@ -147,7 +146,7 @@ private fun HomeContent(
                             verticalItemSpacing = 16.dp
                         ) {
                             items(quotes.size) {
-                                QuoteItem(
+                                NoteCard(
                                     modifier = Modifier.testTag("QuoteItem"),
                                     quote = quotes[it].quote,
                                     backgroundColor = "#${quotes[it].color}",
