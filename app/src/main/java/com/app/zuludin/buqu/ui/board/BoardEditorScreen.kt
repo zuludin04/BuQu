@@ -2,21 +2,33 @@ package com.app.zuludin.buqu.ui.board
 
 import android.content.res.Resources
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -25,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -34,18 +47,20 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -53,11 +68,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
+import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
+import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
+import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.Yarn
-import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -75,7 +93,8 @@ fun BoardEditorScreen(
 
     val cards = remember { mutableStateListOf<Note>() }
     val yarns = remember { mutableStateListOf<Yarn>() }
-    var showSheet by remember { mutableStateOf(false) }
+    var showConnectionSheet by remember { mutableStateOf(false) }
+    var showAddNoteSheet by remember { mutableStateOf(false) }
     var sourceTheory by remember { mutableStateOf<Note?>(null) }
 
     Scaffold(
@@ -98,18 +117,7 @@ fun BoardEditorScreen(
                         containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
                         content = { Icon(PhosphorPlus, null) },
-                        onClick = {
-                            cards.add(
-                                Note(
-                                    id = UUID.randomUUID().toString(),
-                                    content = randomWord(),
-                                    xPos = 0f,
-                                    yPos = 0f,
-                                    size = IntSize.Zero,
-                                    color = Color.Cyan
-                                )
-                            )
-                        },
+                        onClick = { showAddNoteSheet = true },
                     )
                 }
             )
@@ -124,22 +132,177 @@ fun BoardEditorScreen(
             },
             onSelectTheory = {
                 sourceTheory = it
-                showSheet = true
+                showConnectionSheet = true
             }
         )
     }
 
-    if (showSheet) {
+    if (showConnectionSheet) {
         TheoryBottomDialog(
             source = sourceTheory!!,
             theories = cards,
             onDismiss = {
+                showConnectionSheet = false
                 if (it != null) {
                     yarns.add(it)
                 }
-                showSheet = false
             }
         )
+    }
+
+    if (showAddNoteSheet) {
+        NoteInputDialog(
+            onDismiss = { showAddNoteSheet = false },
+            onConfirm = { content, color ->
+                cards.add(
+                    Note(
+                        id = UUID.randomUUID().toString(),
+                        content = content,
+                        xPos = 100f,
+                        yPos = 100f,
+                        size = IntSize.Zero,
+                        color = color
+                    )
+                )
+                showAddNoteSheet = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NoteInputDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, Color) -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+    val colors = listOf(
+        Color(0xFFE1F5FE), Color(0xFFFFF9C4), Color(0xFFF1F8E9),
+        Color(0xFFFFEBEE), Color(0xFFF3E5F5), Color(0xFFEFEBE9)
+    )
+    var selectedColor by remember { mutableStateOf(colors[0]) }
+    val sheetState = rememberModalBottomSheetState()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                "Add New Card",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text("What's on your mind?") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                minLines = 3,
+                maxLines = 5,
+                trailingIcon = {
+                    if (text.isNotEmpty()) {
+                        IconButton(onClick = { text = "" }) {
+                            Icon(PhosphorXCircle, null)
+                        }
+                    }
+                }
+            )
+
+            // Input Helpers Row
+            Row(
+                modifier = Modifier.padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Microphone / Voice Input Button
+                InputHelperChip(
+                    label = "Voice",
+                    icon = PhosphorMicrophone, // Ensure you have this icon
+                    onClick = { /* TODO: Trigger Speech-to-Text Intent */ }
+                )
+
+                // Camera / Scan Button
+                InputHelperChip(
+                    label = "Scan",
+                    icon = PhosphorAperture, // Ensure you have this icon
+                    onClick = { /* TODO: Navigate to Camera Screen or OCR */ }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Select Color", style = MaterialTheme.typography.labelLarge)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                colors.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(
+                                width = if (selectedColor == color) 3.dp else 1.dp,
+                                color = if (selectedColor == color)
+                                    MaterialTheme.colorScheme.primary
+                                else Color.LightGray.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            )
+                            .clickable { selectedColor = color }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { if (text.isNotBlank()) onConfirm(text, selectedColor) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                enabled = text.isNotBlank()
+            ) {
+                Text("Create Card", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
+@Composable
+fun InputHelperChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(label, style = MaterialTheme.typography.labelMedium)
+        }
     }
 }
 
@@ -264,32 +427,101 @@ fun BoardEditor(
 fun TheoryBottomDialog(
     source: Note,
     theories: List<Note>,
-    onDismiss: (rope: Yarn?) -> Unit
+    onDismiss: (Yarn?) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
+
+    // Filter out the source note so you can't connect a note to itself
+    val potentialTargets = theories.filter { it.id != source.id }
 
     ModalBottomSheet(
         onDismissRequest = { onDismiss(null) },
         sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        Column {
-            theories.filter { it.id != source.id }.forEach { t ->
-                Column(
-                    Modifier
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "Connect to...",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Linking from: \"${source.content.take(20)}${if (source.content.length > 20) "..." else ""}\"",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            if (potentialTargets.isEmpty()) {
+                Box(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(vertical = 40.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(t.content)
-                    Button(onClick = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                val rope = connectTheoryYarn(source, t)
-                                onDismiss(rope)
-                            }
+                    Text("No other cards to connect to.", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(potentialTargets) { target ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(target.color.copy(alpha = 0.3f))
+                                .border(1.dp, target.color, RoundedCornerShape(16.dp))
+                                .clickable {
+                                    val yarn = Yarn(
+                                        id = UUID.randomUUID().toString(),
+                                        sourceNoteId = source.id,
+                                        targetNoteId = target.id,
+                                        xSource = source.xPos,
+                                        ySource = source.yPos,
+                                        xTarget = target.xPos,
+                                        yTarget = target.yPos,
+                                        sourceSize = source.size,
+                                        targetSize = target.size
+                                    )
+                                    onDismiss(yarn)
+                                }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Small color indicator
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(target.color)
+                                    .border(1.dp, Color.Black.copy(alpha = 0.1f), CircleShape)
+                            )
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Text(
+                                text = target.content,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Icon(
+                                imageVector = PhosphorLinkBreak,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
-                    }) {
-                        Text("Connect")
                     }
                 }
             }
