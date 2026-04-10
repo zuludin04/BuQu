@@ -9,5 +9,6 @@ data class Note(
     val color: Color,
     val xPos: Float,
     val yPos: Float,
-    val size: IntSize
+    val size: IntSize,
+    val isSelected: Boolean = false
 )

@@ -82,6 +82,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
+import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.Yarn
@@ -109,15 +110,29 @@ fun BoardEditorScreen(
         offset += offsetChange
     }
 
+    var isSelectionMode by remember { mutableStateOf(false) }
+
     Scaffold(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = topAppBarTitle,
+                title = if (isSelectionMode) "0 Selected" else topAppBarTitle,
                 backButton = {
-                    IconButton(onClick = onBack) {
-                        Icon(PhosphorArrowLeft, null)
-                    }
+                    IconButton(
+                        onClick = {
+                            if (isSelectionMode) {
+                                isSelectionMode = false
+                            } else {
+                                onBack()
+                            }
+                        },
+                        content = {
+                            Icon(
+                                if (isSelectionMode) PhosphorX else PhosphorArrowLeft,
+                                null
+                            )
+                        }
+                    )
                 },
             )
         },
@@ -180,7 +195,7 @@ fun BoardEditorScreen(
                     content = { Icon(PhosphorLineSegments, null) }
                 )
                 IconButton(
-                    onClick = {},
+                    onClick = { isSelectionMode = !isSelectionMode },
                     content = { Icon(PhosphorSelectionAll, null) }
                 )
             }
