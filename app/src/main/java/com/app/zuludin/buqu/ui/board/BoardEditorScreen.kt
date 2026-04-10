@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -57,7 +58,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,32 +73,33 @@ import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorDotsThreeVertical
+import com.app.zuludin.buqu.core.icons.PhosphorImage
+import com.app.zuludin.buqu.core.icons.PhosphorLineSegments
 import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
+import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
+import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.Yarn
 import java.util.UUID
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 @Composable
 fun BoardEditorScreen(
     topAppBarTitle: String,
     onBack: () -> Unit,
 ) {
-    fun randomWord(): String {
-        val charPool = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        val randomNum = Random.nextInt(0, charPool.length)
-        return CharArray(randomNum) { charPool.random() }.concatToString()
-    }
-
     val cards = remember { mutableStateListOf<Note>() }
     val yarns = remember { mutableStateListOf<Yarn>() }
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
+    var showOverflowMenu by remember { mutableStateOf(false) }
     var sourceTheory by remember { mutableStateOf<Note?>(null) }
+    var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
+    var zoomInfo by remember { mutableStateOf("1") }
 
     Scaffold(
         backgroundColor = MaterialTheme.colorScheme.background,
@@ -111,7 +115,29 @@ fun BoardEditorScreen(
         },
         bottomBar = {
             BottomAppBar(
-                actions = {},
+                actions = {
+                    IconButton(
+                        onClick = {},
+                        content = { Icon(PhosphorAperture, null) }
+                    )
+                    IconButton(
+                        onClick = {},
+                        content = { Icon(PhosphorImage, null) }
+                    )
+                    IconButton(
+                        onClick = {},
+                        content = { Icon(PhosphorMicrophone, null) }
+                    )
+                    IconButton(
+                        modifier = Modifier.onGloballyPositioned {
+                            overflowMenuPosition = it.positionOnScreen()
+                        },
+                        onClick = {
+                            showOverflowMenu = true
+                        },
+                        content = { Icon(PhosphorDotsThreeVertical, null) }
+                    )
+                },
                 floatingActionButton = {
                     FloatingActionButton(
                         containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
@@ -123,18 +149,39 @@ fun BoardEditorScreen(
             )
         }
     ) { paddingValues ->
-        BoardEditor(
-            modifier = Modifier.padding(paddingValues),
-            cards = cards,
-            yarns = yarns,
-            onDragNote = { note, index ->
-                cards[index] = note
-            },
-            onSelectTheory = {
-                sourceTheory = it
-                showConnectionSheet = true
+        Box {
+            Row(modifier = Modifier.align(Alignment.TopEnd)) {
+                IconButton(
+                    onClick = {},
+                    content = { Icon(PhosphorLineSegments, null) }
+                )
+                IconButton(
+                    onClick = {},
+                    content = { Icon(PhosphorSelectionAll, null) }
+                )
             }
-        )
+
+            Row {
+                Text(zoomInfo)
+                IconButton(
+                    onClick = {},
+                    content = { Icon(PhosphorMagnifyingGlass, null) }
+                )
+            }
+
+            BoardEditor(
+                modifier = Modifier.padding(paddingValues),
+                cards = cards,
+                yarns = yarns,
+                onDragNote = { note, index ->
+                    cards[index] = note
+                },
+                onSelectTheory = {
+                    sourceTheory = it
+                    showConnectionSheet = true
+                }
+            )
+        }
     }
 
     if (showConnectionSheet) {
@@ -167,6 +214,57 @@ fun BoardEditorScreen(
                 showAddNoteSheet = false
             }
         )
+    }
+
+    if (showOverflowMenu) {
+        Popup(
+            offset = IntOffset(
+                overflowMenuPosition.x.roundToInt() + 80,
+                overflowMenuPosition.y.roundToInt() - 180
+            ),
+            onDismissRequest = { showOverflowMenu = false }
+        ) {
+            Column(modifier = Modifier.widthIn(max = 120.dp)) {
+                Surface(
+                    color = Color.White,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 4.dp
+                ) {
+                    Box(
+                        modifier = Modifier.clickable {
+                            showOverflowMenu = false
+                        }
+                    ) {
+                        Text(
+                            "Auto Layout",
+                            Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+                Surface(
+                    color = Color.White,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 4.dp
+                ) {
+                    Box(
+                        modifier = Modifier.clickable {
+                            showOverflowMenu = false
+                        }
+                    ) {
+                        Text(
+                            "Settings",
+                            Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -220,23 +318,20 @@ fun NoteInputDialog(
                 }
             )
 
-            // Input Helpers Row
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Microphone / Voice Input Button
                 InputHelperChip(
                     label = "Voice",
-                    icon = PhosphorMicrophone, // Ensure you have this icon
-                    onClick = { /* TODO: Trigger Speech-to-Text Intent */ }
+                    icon = PhosphorMicrophone,
+                    onClick = { }
                 )
 
-                // Camera / Scan Button
                 InputHelperChip(
                     label = "Scan",
-                    icon = PhosphorAperture, // Ensure you have this icon
-                    onClick = { /* TODO: Navigate to Camera Screen or OCR */ }
+                    icon = PhosphorAperture,
+                    onClick = { }
                 )
             }
 
@@ -430,8 +525,6 @@ fun TheoryBottomDialog(
     onDismiss: (Yarn?) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
-
-    // Filter out the source note so you can't connect a note to itself
     val potentialTargets = theories.filter { it.id != source.id }
 
     ModalBottomSheet(
@@ -497,7 +590,6 @@ fun TheoryBottomDialog(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Small color indicator
                             Box(
                                 modifier = Modifier
                                     .size(12.dp)
