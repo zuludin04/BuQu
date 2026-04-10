@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -84,6 +85,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.Yarn
+import java.text.DecimalFormat
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -99,7 +101,13 @@ fun BoardEditorScreen(
     var showOverflowMenu by remember { mutableStateOf(false) }
     var sourceTheory by remember { mutableStateOf<Note?>(null) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
-    var zoomInfo by remember { mutableStateOf("1") }
+
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+        scale *= zoomChange
+        offset += offsetChange
+    }
 
     Scaffold(
         backgroundColor = MaterialTheme.colorScheme.background,
@@ -150,6 +158,22 @@ fun BoardEditorScreen(
         }
     ) { paddingValues ->
         Box {
+            BoardEditor(
+                modifier = Modifier.padding(paddingValues),
+                cards = cards,
+                yarns = yarns,
+                onDragNote = { note, index ->
+                    cards[index] = note
+                },
+                onSelectTheory = {
+                    sourceTheory = it
+                    showConnectionSheet = true
+                },
+                scale = scale,
+                offset = offset,
+                state = state
+            )
+
             Row(modifier = Modifier.align(Alignment.TopEnd)) {
                 IconButton(
                     onClick = {},
@@ -162,25 +186,15 @@ fun BoardEditorScreen(
             }
 
             Row {
-                Text(zoomInfo)
+                Text("x${DecimalFormat("#.#").format(scale)}")
                 IconButton(
-                    onClick = {},
+                    onClick = {
+                        scale = 1f
+                        offset = Offset.Zero
+                    },
                     content = { Icon(PhosphorMagnifyingGlass, null) }
                 )
             }
-
-            BoardEditor(
-                modifier = Modifier.padding(paddingValues),
-                cards = cards,
-                yarns = yarns,
-                onDragNote = { note, index ->
-                    cards[index] = note
-                },
-                onSelectTheory = {
-                    sourceTheory = it
-                    showConnectionSheet = true
-                }
-            )
         }
     }
 
@@ -407,18 +421,14 @@ fun BoardEditor(
     cards: MutableList<Note>,
     yarns: MutableList<Yarn>,
     onDragNote: (Note, Int) -> Unit,
-    onSelectTheory: (Note) -> Unit
+    onSelectTheory: (Note) -> Unit,
+    scale: Float,
+    offset: Offset,
+    state: TransformableState
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
     var selectedTheory by remember { mutableStateOf<Note?>(null) }
-
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-        scale *= zoomChange
-        offset += offsetChange
-    }
 
     Box(
         modifier = modifier
@@ -433,10 +443,10 @@ fun BoardEditor(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = {
-                        if (scale != 1f || offset != Offset.Zero) {
-                            scale = 1f
-                            offset = Offset.Zero
-                        }
+//                        if (scale != 1f || offset != Offset.Zero) {
+//                            scale = 1f
+//                            offset = Offset.Zero
+//                        }
                     }
                 )
             }
