@@ -6,6 +6,7 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -153,6 +154,14 @@ fun BoardEditorScreen(
             }
         }
 
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { success ->
+            if (success != null) {
+                capturedBitmap = context.fixImageRotation(success)
+                showTextSelection = true
+            }
+        }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
@@ -219,7 +228,13 @@ fun BoardEditorScreen(
                         content = { Icon(PhosphorAperture, null) }
                     )
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        },
                         content = { Icon(PhosphorImage, null) }
                     )
                     IconButton(
