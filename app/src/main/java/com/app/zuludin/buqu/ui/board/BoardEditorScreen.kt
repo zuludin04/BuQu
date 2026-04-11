@@ -94,6 +94,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
@@ -113,6 +114,7 @@ fun BoardEditorScreen(
 ) {
     val cards = remember { mutableStateListOf<Note>() }
     val yarns = remember { mutableStateListOf<Yarn>() }
+    val selectedNoteIds = remember { mutableStateListOf<String>() }
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
@@ -189,7 +191,7 @@ fun BoardEditorScreen(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = if (isSelectionMode) "0 Selected" else topAppBarTitle,
+                title = if (isSelectionMode) "${selectedNoteIds.size} Selected" else topAppBarTitle,
                 backButton = {
                     IconButton(
                         onClick = {
@@ -207,6 +209,19 @@ fun BoardEditorScreen(
                         }
                     )
                 },
+                actions = {
+                    if (isSelectionMode && selectedNoteIds.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                cards.removeAll { note ->
+                                    selectedNoteIds.contains(note.id)
+                                }
+                                selectedNoteIds.clear()
+                            },
+                            content = { Icon(PhosphorTrash, null) }
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -276,7 +291,20 @@ fun BoardEditorScreen(
                 },
                 scale = scale,
                 offset = offset,
-                state = state
+                state = state,
+                isSelectionMode = isSelectionMode,
+                onSelectedCard = { index, id ->
+                    val currentCard = cards[index]
+                    val isSelected = !currentCard.isSelected
+                    val card = currentCard.copy(isSelected = isSelected)
+                    cards[index] = card
+
+                    if (selectedNoteIds.contains(id)) {
+                        selectedNoteIds.remove(id)
+                    } else {
+                        selectedNoteIds.add(id)
+                    }
+                }
             )
 
             Row(modifier = Modifier.align(Alignment.TopEnd)) {
@@ -531,7 +559,9 @@ fun BoardEditor(
     onSelectTheory: (Note) -> Unit,
     scale: Float,
     offset: Offset,
-    state: TransformableState
+    state: TransformableState,
+    isSelectionMode: Boolean,
+    onSelectedCard: (Int, String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -601,10 +631,16 @@ fun BoardEditor(
                     cards[index] = note
                 },
                 onSelect = { t, off ->
-                    selectedTheory = t
-                    popupOffset = off
-                    showMenu = true
+                    if (!isSelectionMode) {
+                        selectedTheory = t
+                        popupOffset = off
+                        showMenu = true
+                    } else {
+                        onSelectedCard(index, n.id)
+                    }
                 },
+                isSelectionMode = isSelectionMode,
+                isSelected = n.isSelected
             )
         }
 
@@ -774,7 +810,9 @@ fun DraggableCard(
     onPositionChanged: (Note) -> Unit,
     onSelect: (Note, Offset) -> Unit,
     onGetSize: (IntSize) -> Unit,
-    isDraggable: Boolean = true
+    isDraggable: Boolean = true,
+    isSelected: Boolean, // New parameter
+    isSelectionMode: Boolean, // New parameter
 ) {
     var isDragging by remember { mutableStateOf(false) }
     var newOffset by remember { mutableStateOf(currentOffset) }
@@ -795,13 +833,19 @@ fun DraggableCard(
             }
             .graphicsLayer {
                 if (isDraggable) {
-                    scaleX = if (isDragging) 1.05f else 1f
-                    scaleY = if (isDragging) 1.05f else 1f
+                    val scaleValue = if (isDragging || (isSelectionMode && isSelected)) 1.1f else 1f
+                    scaleX = scaleValue
+                    scaleY = scaleValue
                 }
             }
             .neumorphicShadow(backgroundColor = note.color)
+            .border(
+                width = if (isSelectionMode && isSelected) 3.dp else 0.dp,
+                color = if (isSelectionMode && isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(12.dp) // Match your card shape
+            )
             .padding(16.dp)
-            .pointerInput(note.id) {
+            .pointerInput(note.id, isSelectionMode) {
                 detectTapGestures(
                     onTap = { tapOffset ->
                         val absoluteTapPos = Offset(
@@ -820,10 +864,12 @@ fun DraggableCard(
                     onDragEnd = { isDragging = false },
                     onDragCancel = { isDragging = false },
                     onDrag = { change, dragAmount ->
-                        change.consume()
-                        newOffset += dragAmount
-                        val n = note.copy(xPos = newOffset.x, yPos = newOffset.y)
-                        updatedOnPositionChanged(n)
+                        if (!isSelectionMode) {
+                            change.consume()
+                            newOffset += dragAmount
+                            val n = note.copy(xPos = newOffset.x, yPos = newOffset.y)
+                            updatedOnPositionChanged(n)
+                        }
                     }
                 )
             }
