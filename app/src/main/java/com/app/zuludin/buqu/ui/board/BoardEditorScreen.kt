@@ -1,7 +1,12 @@
 package com.app.zuludin.buqu.ui.board
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -63,6 +68,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionOnScreen
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,7 +77,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
@@ -86,9 +96,12 @@ import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
+import com.app.zuludin.buqu.core.utils.createImageFile
+import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.Yarn
 import java.text.DecimalFormat
+import java.util.Objects
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -122,6 +135,47 @@ fun BoardEditorScreen(
             showAddNoteSheet = true
         })
 
+    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var showTextSelection by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    val file = remember { context.createImageFile() }
+    val uri = FileProvider.getUriForFile(
+        Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
+    )
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                capturedBitmap = context.fixImageRotation(uri)
+                showTextSelection = true
+            }
+        }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    if (showTextSelection && capturedBitmap != null) {
+        TextSelectionDialog(
+            bitmap = capturedBitmap!!,
+            onDismiss = { showTextSelection = !showTextSelection },
+            onTextSelected = { selectedText ->
+                noteText = selectedText
+                showTextSelection = !showTextSelection
+                showAddNoteSheet = true
+            }
+        )
+    }
+
     Scaffold(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -150,7 +204,18 @@ fun BoardEditorScreen(
             BottomAppBar(
                 actions = {
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            val permissionCheckResult =
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CAMERA
+                                )
+                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        },
                         content = { Icon(PhosphorAperture, null) }
                     )
                     IconButton(
@@ -228,7 +293,7 @@ fun BoardEditorScreen(
             source = sourceTheory!!,
             theories = cards,
             onDismiss = {
-                showConnectionSheet = false
+                showConnectionSheet = !showConnectionSheet
                 if (it != null) {
                     yarns.add(it)
                 }
@@ -238,7 +303,7 @@ fun BoardEditorScreen(
 
     if (showAddNoteSheet) {
         NoteInputDialog(
-            onDismiss = { showAddNoteSheet = false },
+            onDismiss = { showAddNoteSheet = !showAddNoteSheet },
             inputText = noteText,
             onConfirm = { content, color ->
                 cards.add(
@@ -251,7 +316,7 @@ fun BoardEditorScreen(
                         color = color
                     )
                 )
-                showAddNoteSheet = false
+                showAddNoteSheet = !showAddNoteSheet
             }
         )
     }
@@ -262,7 +327,7 @@ fun BoardEditorScreen(
                 overflowMenuPosition.x.roundToInt() + 80,
                 overflowMenuPosition.y.roundToInt() - 180
             ),
-            onDismissRequest = { showOverflowMenu = false }
+            onDismissRequest = { showOverflowMenu = !showOverflowMenu }
         ) {
             Column(modifier = Modifier.widthIn(max = 120.dp)) {
                 Surface(
@@ -272,7 +337,7 @@ fun BoardEditorScreen(
                 ) {
                     Box(
                         modifier = Modifier.clickable {
-                            showOverflowMenu = false
+                            showOverflowMenu = !showOverflowMenu
                         }
                     ) {
                         Text(
@@ -656,21 +721,6 @@ fun TheoryBottomDialog(
             }
         }
     }
-}
-
-fun connectTheoryYarn(source: Note, target: Note): Yarn {
-    val rope = Yarn(
-        id = UUID.randomUUID().toString(),
-        xSource = source.xPos,
-        ySource = source.yPos,
-        xTarget = target.xPos,
-        yTarget = target.yPos,
-        sourceNoteId = source.id,
-        targetNoteId = target.id,
-        sourceSize = source.size,
-        targetSize = target.size
-    )
-    return rope
 }
 
 @Composable
