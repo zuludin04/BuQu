@@ -187,6 +187,9 @@ fun BoardEditorScreen(
         )
     }
 
+    var isConnectionMode by remember { mutableStateOf(false) }
+    var sourceConnectionNote by remember { mutableStateOf<Note?>(null) }
+
     Scaffold(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -197,6 +200,7 @@ fun BoardEditorScreen(
                         onClick = {
                             if (isSelectionMode) {
                                 isSelectionMode = false
+                                selectedNoteIds.clear()
                             } else {
                                 onBack()
                             }
@@ -304,13 +308,47 @@ fun BoardEditorScreen(
                     } else {
                         selectedNoteIds.add(id)
                     }
+                },
+                isConnectionMode = isConnectionMode,
+                onConnectCard = { note ->
+                    if (sourceConnectionNote == null) {
+                        sourceConnectionNote = note
+                    } else if (sourceConnectionNote?.id != note.id) {
+                        val yarn = Yarn(
+                            id = UUID.randomUUID().toString(),
+                            sourceNoteId = sourceConnectionNote!!.id,
+                            targetNoteId = note.id,
+                            xSource = sourceConnectionNote!!.xPos,
+                            ySource = sourceConnectionNote!!.yPos,
+                            xTarget = note.xPos,
+                            yTarget = note.yPos,
+                            sourceSize = sourceConnectionNote!!.size,
+                            targetSize = note.size
+                        )
+                        yarns.add(yarn)
+                        sourceConnectionNote = null
+                    }
                 }
             )
 
-            Row(modifier = Modifier.align(Alignment.TopEnd)) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(24.dp)
+                    )
+            ) {
                 IconButton(
-                    onClick = {},
-                    content = { Icon(PhosphorLineSegments, null) }
+                    onClick = { isConnectionMode = !isConnectionMode },
+                    content = {
+                        Icon(
+                            imageVector = PhosphorLineSegments,
+                            contentDescription = null,
+                            tint = if (isConnectionMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                 )
                 IconButton(
                     onClick = { isSelectionMode = !isSelectionMode },
@@ -561,6 +599,8 @@ fun BoardEditor(
     offset: Offset,
     state: TransformableState,
     isSelectionMode: Boolean,
+    isConnectionMode: Boolean,
+    onConnectCard: (Note) -> Unit,
     onSelectedCard: (Int, String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -631,16 +671,19 @@ fun BoardEditor(
                     cards[index] = note
                 },
                 onSelect = { t, off ->
-                    if (!isSelectionMode) {
+                    if (isSelectionMode) {
+                        onSelectedCard(index, n.id)
+                    } else if (isConnectionMode) {
+                        onConnectCard(t)
+                    } else {
                         selectedTheory = t
                         popupOffset = off
                         showMenu = true
-                    } else {
-                        onSelectedCard(index, n.id)
                     }
                 },
                 isSelectionMode = isSelectionMode,
-                isSelected = n.isSelected
+                isSelected = n.isSelected,
+                isConnectionMode = isConnectionMode
             )
         }
 
@@ -813,6 +856,7 @@ fun DraggableCard(
     isDraggable: Boolean = true,
     isSelected: Boolean, // New parameter
     isSelectionMode: Boolean, // New parameter
+    isConnectionMode: Boolean
 ) {
     var isDragging by remember { mutableStateOf(false) }
     var newOffset by remember { mutableStateOf(currentOffset) }
@@ -845,7 +889,7 @@ fun DraggableCard(
                 shape = RoundedCornerShape(12.dp) // Match your card shape
             )
             .padding(16.dp)
-            .pointerInput(note.id, isSelectionMode) {
+            .pointerInput(note.id, isSelectionMode, isConnectionMode) {
                 detectTapGestures(
                     onTap = { tapOffset ->
                         val absoluteTapPos = Offset(
@@ -864,12 +908,10 @@ fun DraggableCard(
                     onDragEnd = { isDragging = false },
                     onDragCancel = { isDragging = false },
                     onDrag = { change, dragAmount ->
-                        if (!isSelectionMode) {
-                            change.consume()
-                            newOffset += dragAmount
-                            val n = note.copy(xPos = newOffset.x, yPos = newOffset.y)
-                            updatedOnPositionChanged(n)
-                        }
+                        change.consume()
+                        newOffset += dragAmount
+                        val n = note.copy(xPos = newOffset.x, yPos = newOffset.y)
+                        updatedOnPositionChanged(n)
                     }
                 )
             }
