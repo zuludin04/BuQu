@@ -1,6 +1,7 @@
 package com.app.zuludin.buqu.ui.board
 
 import android.content.res.Resources
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -84,6 +85,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
+import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.Yarn
 import java.text.DecimalFormat
@@ -110,7 +112,15 @@ fun BoardEditorScreen(
         offset += offsetChange
     }
 
+    var noteText by remember { mutableStateOf("") }
     var isSelectionMode by remember { mutableStateOf(false) }
+
+    val speechRecognizerLauncher =
+        rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
+            val result = it.toString()
+            noteText = result.substring(1, result.length - 1)
+            showAddNoteSheet = true
+        })
 
     Scaffold(
         backgroundColor = MaterialTheme.colorScheme.background,
@@ -148,7 +158,7 @@ fun BoardEditorScreen(
                         content = { Icon(PhosphorImage, null) }
                     )
                     IconButton(
-                        onClick = {},
+                        onClick = { speechRecognizerLauncher.launch(Unit) },
                         content = { Icon(PhosphorMicrophone, null) }
                     )
                     IconButton(
@@ -229,6 +239,7 @@ fun BoardEditorScreen(
     if (showAddNoteSheet) {
         NoteInputDialog(
             onDismiss = { showAddNoteSheet = false },
+            inputText = noteText,
             onConfirm = { content, color ->
                 cards.add(
                     Note(
@@ -300,10 +311,11 @@ fun BoardEditorScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteInputDialog(
+    inputText: String,
     onDismiss: () -> Unit,
     onConfirm: (String, Color) -> Unit
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(inputText) }
     val colors = listOf(
         Color(0xFFE1F5FE), Color(0xFFFFF9C4), Color(0xFFF1F8E9),
         Color(0xFFFFEBEE), Color(0xFFF3E5F5), Color(0xFFEFEBE9)
