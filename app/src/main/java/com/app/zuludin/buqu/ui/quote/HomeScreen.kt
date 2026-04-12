@@ -67,7 +67,7 @@ fun HomeScreen(
             BuQuToolbar(
                 title = stringResource(R.string.app_name),
                 actions = {
-                    IconButton(onClick = { showFilterSheet = true }) {
+                    IconButton(onClick = { showFilterSheet = !showFilterSheet }) {
                         Icon(PhosphorListDashes, null)
                     }
                 }

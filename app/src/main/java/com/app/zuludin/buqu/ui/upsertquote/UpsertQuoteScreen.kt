@@ -97,10 +97,10 @@ fun UpsertQuoteScreen(
     if (showTextSelection && capturedBitmap != null) {
         TextSelectionDialog(
             bitmap = capturedBitmap!!,
-            onDismiss = { showTextSelection = false },
+            onDismiss = { showTextSelection = !showTextSelection },
             onTextSelected = { selectedText ->
                 viewModel.updateQuote(selectedText)
-                showTextSelection = false
+                showTextSelection = !showTextSelection
             }
         )
     }
