@@ -4,20 +4,18 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.IconButton
@@ -40,6 +38,7 @@ import androidx.core.graphics.toColorInt
 import com.app.zuludin.buqu.core.colorNames
 import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.TitleInputField
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 
 @Composable
 fun CategoryUpsertSheet(
@@ -92,19 +91,13 @@ fun CategoryUpsertSheet(
             onDismissRequest = { expanded = false }
         ) {
             colors.forEachIndexed { index, color ->
-                val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
                 val isSelected = color == categoryColor
-                val style = if (isSelected) {
-                   MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.secondary
+                val style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = 0.5f
                     )
-                } else {
-                    MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Normal,
-                        color = textColor
-                    )
-                }
+                )
 
                 DropdownMenuItem(
                     onClick = {
@@ -112,7 +105,16 @@ fun CategoryUpsertSheet(
                         categoryColor = color
                     }
                 ) {
-                    Text(colorNames[index], style = style)
+                    Row {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(Color("#${color}".toColorInt()))
+                        )
+                        Box(modifier = Modifier.width(8.dp))
+                        Text(colorNames[index], style = style)
+                    }
                 }
             }
         }
@@ -141,7 +143,7 @@ fun CategoryUpsertSheet(
                         .background(MaterialTheme.colorScheme.errorContainer),
                     content = {
                         Icon(
-                            imageVector = Icons.Filled.Delete,
+                            imageVector = PhosphorTrash,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onErrorContainer
                         )

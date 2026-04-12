@@ -106,7 +106,7 @@ fun CategorySelectScreen(
 
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
+            onDismissRequest = { showBottomSheet = !showBottomSheet },
             sheetState = sheetState
         ) {
             CategoryUpsertSheet(
@@ -115,11 +115,11 @@ fun CategorySelectScreen(
                 showDeleteButton = uiState.selectedCategory.categoryId != "",
                 onUpsertCategory = { color, name ->
                     viewModel.upsertCategory(name, color)
-                    showBottomSheet = false
+                    showBottomSheet = !showBottomSheet
                 },
                 onDeleteCategory = {
                     viewModel.deleteCategory()
-                    showBottomSheet = false
+                    showBottomSheet = !showBottomSheet
                 }
             )
         }
