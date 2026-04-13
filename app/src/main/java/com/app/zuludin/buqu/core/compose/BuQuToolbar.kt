@@ -1,7 +1,6 @@
 package com.app.zuludin.buqu.core.compose
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -28,7 +27,6 @@ fun BuQuToolbar(
 ) {
     TopAppBar(
         title = { Text(title) },
-        windowInsets = WindowInsets(0, 0, 0, 0),
         navigationIcon = backButton,
         actions = actions,
         modifier = Modifier.fillMaxWidth().shadow(elevation = 2.dp)
