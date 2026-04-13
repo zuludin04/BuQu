@@ -38,7 +38,7 @@ class CategoryRepository @Inject constructor(
         color: String,
         type: String
     ) {
-        val id = withContext(dispatcher) {
+        val id = categoryId ?: withContext(dispatcher) {
             UUID.randomUUID().toString()
         }
         val savedCategory =
