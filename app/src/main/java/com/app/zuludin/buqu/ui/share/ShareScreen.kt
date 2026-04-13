@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,9 +43,12 @@ import androidx.compose.ui.unit.sp
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.gradientBackgrounds
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorDownload
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.theme.BuQuTheme
 import com.app.zuludin.buqu.core.theme.bodyFontFamily
+import com.app.zuludin.buqu.core.utils.openImage
+import com.app.zuludin.buqu.core.utils.saveImageToGallery
 import com.app.zuludin.buqu.core.utils.shareImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -98,6 +101,42 @@ fun ShareScreen(
         }
     }
 
+    fun downloadQuote() {
+        if (writeStorageAccessState.allPermissionsGranted) {
+            coroutineScope.launch {
+                val bitmap = graphicsLayer.toImageBitmap()
+                val uri = context.saveImageToGallery(
+                    bitmap.asAndroidBitmap(),
+                    "buqu-${System.currentTimeMillis()}.png"
+                )
+
+                if (uri != null) {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Image saved to gallery",
+                        actionLabel = "Open"
+                    )
+
+                    if (result == SnackbarResult.ActionPerformed) {
+                        context.openImage(uri)
+                    }
+                }
+            }
+        } else if (writeStorageAccessState.shouldShowRationale) {
+            coroutineScope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "The storage permission is needed to save the image",
+                    actionLabel = "Grant Access"
+                )
+
+                if (result == SnackbarResult.ActionPerformed) {
+                    writeStorageAccessState.launchMultiplePermissionRequest()
+                }
+            }
+        } else {
+            writeStorageAccessState.launchMultiplePermissionRequest()
+        }
+    }
+
     var quoteShareBackground by remember { mutableStateOf(gradientBackgrounds[0]) }
     var quoteBookVisibility by remember { mutableStateOf(true) }
     var quoteAuthorVisibility by remember { mutableStateOf(true) }
@@ -114,15 +153,20 @@ fun ShareScreen(
                         Icon(PhosphorArrowLeft, null)
                     }
                 },
+                actions = {
+                    IconButton(
+                        content = { Icon(PhosphorShareNetwork, null) },
+                        onClick = { shareQuote() }
+                    )
+                    IconButton(
+                        content = { Icon(PhosphorDownload, null) },
+                        onClick = { downloadQuote() }
+                    )
+                }
             )
         },
         backgroundColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { shareQuote() },
-                content = { Icon(PhosphorShareNetwork, null) }
-            )
-        }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             Column(

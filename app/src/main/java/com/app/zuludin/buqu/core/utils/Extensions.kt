@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.core.utils
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.createChooser
@@ -7,6 +8,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
@@ -14,6 +18,7 @@ import com.app.zuludin.buqu.BuildConfig
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,6 +55,51 @@ fun Context.shareImage(title: String, image: Bitmap, filename: String) {
     chooser.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
 
     startActivity(chooser)
+}
+
+fun Context.saveImageToGallery(bitmap: Bitmap, filename: String): Uri? {
+    val outputStream: OutputStream?
+    var uri: Uri? = null
+
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val resolver = contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "BuQu")
+            }
+            uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            outputStream = uri?.let { resolver.openOutputStream(it) }
+        } else {
+            val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString()
+            val file = File(imagesDir, filename)
+            outputStream = FileOutputStream(file)
+            
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DATA, file.absolutePath)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            }
+            uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        }
+
+        outputStream?.use {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
+        
+        return uri
+    } catch (e: Exception) {
+        toast("Failed to save image: ${e.message}")
+        return null
+    }
+}
+
+fun Context.openImage(uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "image/png")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    startActivity(intent)
 }
 
 fun File.toUriCompat(context: Context): Uri {
