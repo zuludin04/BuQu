@@ -6,6 +6,7 @@ import com.app.zuludin.buqu.data.datasources.database.dao.CategoryDao
 import com.app.zuludin.buqu.data.datasources.database.dao.QuoteDao
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
+import com.app.zuludin.buqu.data.datasources.source.board.QuoteLocalDataSource
 import com.app.zuludin.buqu.utils.DataDummy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

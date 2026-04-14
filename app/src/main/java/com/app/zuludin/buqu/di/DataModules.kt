@@ -2,12 +2,12 @@ package com.app.zuludin.buqu.di
 
 import android.content.Context
 import androidx.room.Room
+import com.app.zuludin.buqu.core.utils.PrePopulateCategoryCallback
 import com.app.zuludin.buqu.data.datasources.database.BuQuDatabase
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.repositories.ICategoryRepository
 import com.app.zuludin.buqu.domain.repositories.IQuoteRepository
-import com.app.zuludin.buqu.core.utils.PrePopulateCategoryCallback
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -45,4 +45,10 @@ object DatabaseModule {
 
     @Provides
     fun provideCategoryDao(database: BuQuDatabase) = database.categoryDao()
+
+    @Provides
+    fun provideBoardDao(database: BuQuDatabase) = database.boardDao()
+
+    @Provides
+    fun provideNoteCardDao(database: BuQuDatabase) = database.noteCardDao()
 }

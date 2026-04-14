@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.data.datasources.source
+package com.app.zuludin.buqu.data.datasources.source.board
 
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity

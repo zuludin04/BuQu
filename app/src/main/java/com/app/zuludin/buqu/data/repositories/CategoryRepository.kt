@@ -1,7 +1,7 @@
 package com.app.zuludin.buqu.data.repositories
 
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
-import com.app.zuludin.buqu.data.datasources.source.QuoteLocalDataSource
+import com.app.zuludin.buqu.data.datasources.source.board.QuoteLocalDataSource
 import com.app.zuludin.buqu.data.toExternal
 import com.app.zuludin.buqu.data.toLocal
 import com.app.zuludin.buqu.di.DefaultDispatcher
