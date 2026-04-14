@@ -3,9 +3,6 @@ package com.app.zuludin.buqu.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -20,6 +17,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_BOOK_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.BoardEditorScreen
+import com.app.zuludin.buqu.ui.board.list.BoardListScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.HomeScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
@@ -46,9 +44,7 @@ fun BuquNavGraph(
             )
         }
         composable(BuquDestinations.BOARD_ROUTE) {
-            Scaffold {
-                Text("Board Screen", modifier = Modifier.padding(it))
-            }
+            BoardListScreen(onBoardClick = {})
         }
         composable(BuquDestinations.SETTING_ROUTE) {
             SettingsScreen(onOpenCategorySelectScreen = { navActions.navigateToCategorySelect() })
