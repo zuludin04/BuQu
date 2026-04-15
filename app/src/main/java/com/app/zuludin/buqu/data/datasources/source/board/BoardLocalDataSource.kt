@@ -38,4 +38,10 @@ class BoardLocalDataSource @Inject constructor(
 
     override suspend fun getConnectedRopes(boardId: String): List<ConnectedRopeEntity> =
         ropeDao.getConnectedRopes(boardId)
+
+    override suspend fun deleteSelectedNotes(notes: List<NoteCardEntity>) =
+        noteCardDao.deleteSelectedNotes(notes)
+
+    override suspend fun deleteSelectedRopes(ropes: List<RopeEntity>) =
+        ropeDao.deleteSelectedRopes(ropes)
 }

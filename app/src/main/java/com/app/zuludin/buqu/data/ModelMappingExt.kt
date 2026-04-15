@@ -99,6 +99,3 @@ fun ConnectedRopeEntity.toExternal() = Rope(
     targetX = targetX,
     targetY = targetY
 )
-
-@JvmName("localToExternalRope")
-fun List<ConnectedRopeEntity>.toExternal() = map(ConnectedRopeEntity::toExternal)

@@ -118,8 +118,6 @@ fun BoardEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val cards = remember { mutableStateListOf<Note>() }
-    val selectedNoteIds = remember { mutableStateListOf<String>() }
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
@@ -133,7 +131,6 @@ fun BoardEditorScreen(
     }
 
     var noteText by remember { mutableStateOf("") }
-    var isSelectionMode by remember { mutableStateOf(false) }
 
     val speechRecognizerLauncher =
         rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
@@ -198,34 +195,29 @@ fun BoardEditorScreen(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = if (isSelectionMode) "${selectedNoteIds.size} Selected" else topAppBarTitle,
+                title = if (uiState.isSelectionMode) "${uiState.selectedNoteIds.size} Selected" else topAppBarTitle,
                 backButton = {
                     IconButton(
                         onClick = {
-                            if (isSelectionMode) {
-                                isSelectionMode = false
-                                selectedNoteIds.clear()
+                            if (uiState.isSelectionMode) {
+                                viewModel.toggleSelectionModel()
+                                viewModel.clearNoteIds()
                             } else {
                                 onBack()
                             }
                         },
                         content = {
                             Icon(
-                                if (isSelectionMode) PhosphorX else PhosphorArrowLeft,
+                                if (uiState.isSelectionMode) PhosphorX else PhosphorArrowLeft,
                                 null
                             )
                         }
                     )
                 },
                 actions = {
-                    if (isSelectionMode && selectedNoteIds.isNotEmpty()) {
+                    if (uiState.isSelectionMode) {
                         IconButton(
-                            onClick = {
-                                cards.removeAll { note ->
-                                    selectedNoteIds.contains(note.id)
-                                }
-                                selectedNoteIds.clear()
-                            },
+                            onClick = { viewModel.deleteSelectedNotes() },
                             content = { Icon(PhosphorTrash, null) }
                         )
                     } else {
@@ -298,13 +290,13 @@ fun BoardEditorScreen(
                 onDragNote = { noteId, x, y ->
                     viewModel.dragNoteCard(noteId, x, y)
                 },
-                onSelectTheory = {
+                onSelectNote = {
                     showConnectionSheet = true
                 },
                 scale = scale,
                 offset = offset,
                 state = state,
-                isSelectionMode = isSelectionMode,
+                isSelectionMode = uiState.isSelectionMode,
                 onSelectedCard = { index, id ->
 //                    val currentCard = cards[index]
 //                    val isSelected = !currentCard.isSelected
@@ -316,6 +308,7 @@ fun BoardEditorScreen(
 //                    } else {
 //                        selectedNoteIds.add(id)
 //                    }
+                    viewModel.changeNoteSelectionStatus(id)
                 },
                 isConnectionMode = isConnectionMode,
                 onConnectCard = { note ->
@@ -341,7 +334,7 @@ fun BoardEditorScreen(
                 },
                 onGetSize = { size, index ->
                     viewModel.getCardSize(size, index)
-                }
+                },
             )
 
             Row(
@@ -364,7 +357,7 @@ fun BoardEditorScreen(
                     },
                 )
                 IconButton(
-                    onClick = { isSelectionMode = !isSelectionMode },
+                    onClick = { viewModel.toggleSelectionModel() },
                     content = { Icon(PhosphorSelectionAll, null) }
                 )
             }
@@ -600,7 +593,7 @@ fun BoardEditor(
     yarns: List<Rope>,
     onDragNote: (String, Float, Float) -> Unit,
     onGetSize: (IntSize, Int) -> Unit,
-    onSelectTheory: (Note) -> Unit,
+    onSelectNote: (NoteCard) -> Unit,
     scale: Float,
     offset: Offset,
     state: TransformableState,
@@ -611,7 +604,7 @@ fun BoardEditor(
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
-    var selectedTheory by remember { mutableStateOf<Note?>(null) }
+    var selectedNote by remember { mutableStateOf<NoteCard?>(null) }
 
     Box(
         modifier = modifier
@@ -646,10 +639,17 @@ fun BoardEditor(
                     onGetSize(size, index)
                 },
                 onSelect = { t, off ->
+                    if (isSelectionMode) {
+                        onSelectedCard(1, t.noteId)
+                    } else {
+                        selectedNote = t
+                        popupOffset = off
+                        showMenu = true
+                    }
 //                    if (isSelectionMode) {
 //                    onSelectedCard(index, n.noteId)
 //                    } else if (isConnectionMode) {
-                    onConnectCard(t)
+//                    onConnectCard(t)
 //                    } else {
 //                        selectedTheory = t
 //                        popupOffset = off
@@ -657,7 +657,7 @@ fun BoardEditor(
 //                    }
                 },
                 isSelectionMode = isSelectionMode,
-                isSelected = /*n.isSelected*/ false,
+                isSelected = n.isSelected,
                 isConnectionMode = isConnectionMode
             )
         }
@@ -675,11 +675,11 @@ fun BoardEditor(
                     ) {
                         Box(
                             modifier = Modifier.clickable {
-                                onSelectTheory(selectedTheory!!)
+                                onConnectCard(selectedNote!!)
                                 showMenu = false
                             }
                         ) {
-                            Text("Connect Theory", Modifier.align(Alignment.Center))
+                            Text("Connect Note", Modifier.align(Alignment.Center))
                         }
                     }
                 },

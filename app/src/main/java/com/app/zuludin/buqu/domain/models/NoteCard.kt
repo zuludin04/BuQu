@@ -9,4 +9,5 @@ data class NoteCard(
     val posX: Float,
     val posY: Float,
     val size: IntSize = IntSize.Zero,
+    val isSelected: Boolean = false
 )

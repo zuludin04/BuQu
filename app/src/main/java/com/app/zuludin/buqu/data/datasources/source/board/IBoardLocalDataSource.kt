@@ -26,4 +26,8 @@ interface IBoardLocalDataSource {
     suspend fun deleteRope(ropeId: String)
 
     suspend fun getConnectedRopes(boardId: String): List<ConnectedRopeEntity>
+
+    suspend fun deleteSelectedNotes(notes: List<NoteCardEntity>)
+
+    suspend fun deleteSelectedRopes(ropes: List<RopeEntity>)
 }

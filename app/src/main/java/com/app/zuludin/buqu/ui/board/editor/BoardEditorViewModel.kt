@@ -24,7 +24,11 @@ data class BoardEditorUiState(
     val board: Board? = null,
     val ropes: List<Rope> = emptyList(),
     val sourceNote: NoteCard? = null,
-    val targetNote: NoteCard? = null
+    val targetNote: NoteCard? = null,
+    val isSelectionMode: Boolean = false,
+    val selectedNoteIds: List<String> = emptyList(),
+    val deletedNotes: List<NoteCard> = emptyList(),
+    val deletedRopes: List<Rope> = emptyList()
 )
 
 @HiltViewModel
@@ -129,6 +133,14 @@ class BoardEditorViewModel @Inject constructor(
 
             val notes = _uiState.value.notes
             noteRepository.upsertNotes(notes)
+
+            if (_uiState.value.deletedNotes.isNotEmpty()) {
+                noteRepository.deleteSelectedNotes(_uiState.value.deletedNotes)
+            }
+
+            if (_uiState.value.deletedRopes.isNotEmpty()) {
+                ropeRepository.deleteSelectedRopes(_uiState.value.deletedRopes)
+            }
         }
     }
 
@@ -189,5 +201,66 @@ class BoardEditorViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun toggleSelectionModel() {
+        val isSelection = _uiState.value.isSelectionMode
+        _uiState.update { it.copy(isSelectionMode = !isSelection) }
+    }
+
+    fun changeNoteSelectionStatus(noteId: String) {
+        val note = _uiState.value.notes.first { it.noteId == noteId }
+        val isSelected = note.isSelected
+        val newNote = note.copy(isSelected = !isSelected)
+        val notes = _uiState.value.notes.toMutableList()
+        notes[notes.indexOf(note)] = newNote
+
+        val noteIds = _uiState.value.selectedNoteIds.toMutableList()
+        if (noteIds.contains(noteId)) {
+            noteIds.remove(noteId)
+        } else {
+            noteIds.add(noteId)
+        }
+
+        _uiState.update { it.copy(notes = notes, selectedNoteIds = noteIds) }
+    }
+
+    fun clearNoteIds() {
+        val noteIds = _uiState.value.selectedNoteIds.toMutableList()
+        noteIds.clear()
+
+        val notes = _uiState.value.notes.toMutableList()
+        notes.forEach {
+            val newNote = it.copy(isSelected = false)
+            notes[notes.indexOf(it)] = newNote
+        }
+
+        _uiState.update { it.copy(selectedNoteIds = noteIds) }
+    }
+
+    fun deleteSelectedNotes() {
+        val notes = _uiState.value.notes.toMutableList()
+        val ropes = _uiState.value.ropes.toMutableList()
+        val selectedNoteIds = _uiState.value.selectedNoteIds
+
+        val deletedNotes = _uiState.value.notes.filter { selectedNoteIds.contains(it.noteId) }
+        val deletedRopes = _uiState.value.ropes.filter {
+            selectedNoteIds.contains(it.sourceNoteId) || selectedNoteIds.contains(it.targetNoteId)
+        }
+
+        notes.removeAll { selectedNoteIds.contains(it.noteId) }
+        ropes.removeAll { selectedNoteIds.contains(it.sourceNoteId) || selectedNoteIds.contains(it.targetNoteId) }
+
+
+        _uiState.update {
+            it.copy(
+                notes = notes,
+                ropes = ropes,
+                deletedNotes = deletedNotes,
+                deletedRopes = deletedRopes
+            )
+        }
+
+        clearNoteIds()
     }
 }
