@@ -1,6 +1,7 @@
 package com.app.zuludin.buqu.navigation
 
 import androidx.navigation.NavController
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.BOARD_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_AUTHOR_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_BOOK_ARG
@@ -30,6 +31,7 @@ object BuquDestinationArgs {
     const val SHARE_QUOTE_ARG = "shareQuote"
     const val SHARE_AUTHOR_ARG = "shareAuthor"
     const val SHARE_BOOK_ARG = "shareBook"
+    const val BOARD_ID_ARG = "boardId"
 }
 
 object BuquDestinations {
@@ -41,7 +43,7 @@ object BuquDestinations {
     const val SHARE_ROUTE =
         "${SHARE_SCREEN}?${SHARE_QUOTE_ARG}={${SHARE_QUOTE_ARG}}&${SHARE_AUTHOR_ARG}={${SHARE_AUTHOR_ARG}}&${SHARE_BOOK_ARG}={${SHARE_BOOK_ARG}}"
     const val BOARD_ROUTE = BOARD_SCREEN
-    const val BOARD_EDITOR_ROUTE = BOARD_EDITOR_SCREEN
+    const val BOARD_EDITOR_ROUTE = "${BOARD_EDITOR_SCREEN}/${BOARD_ID_ARG}={${BOARD_ID_ARG}}"
 }
 
 class BuquNavigationActions(private val navController: NavController) {
@@ -59,7 +61,9 @@ class BuquNavigationActions(private val navController: NavController) {
         navController.navigate("${SHARE_SCREEN}?$SHARE_QUOTE_ARG=$quote&$SHARE_AUTHOR_ARG=$author&$SHARE_BOOK_ARG=$book")
     }
 
-    fun navigateToBoardEditor() {
-        navController.navigate(BuquDestinations.BOARD_EDITOR_ROUTE)
+    fun navigateToBoardEditor(boardId: String?) {
+        navController.navigate(BuquDestinations.BOARD_EDITOR_ROUTE.let {
+            if (boardId != null) "$it?$BOARD_ID_ARG=$boardId" else it
+        })
     }
 }

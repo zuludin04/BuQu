@@ -43,7 +43,7 @@ fun MainScreen(
                     onClick = {
                         when (currentRoute) {
                             "quotes" -> navActions.navigateToUpsertQuote("Insert Quote", null)
-                            "board" -> navActions.navigateToBoardEditor()
+                            "board" -> navActions.navigateToBoardEditor(null)
                         }
                     },
                 ) {

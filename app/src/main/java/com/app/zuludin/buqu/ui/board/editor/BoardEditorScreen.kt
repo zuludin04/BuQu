@@ -1,9 +1,9 @@
-package com.app.zuludin.buqu.ui.board
+package com.app.zuludin.buqu.ui.board.editor
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -65,6 +65,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -73,19 +74,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorDotsThreeVertical
 import com.app.zuludin.buqu.core.icons.PhosphorImage
 import com.app.zuludin.buqu.core.icons.PhosphorLineSegments
@@ -100,7 +103,9 @@ import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.core.utils.createImageFile
 import com.app.zuludin.buqu.core.utils.fixImageRotation
+import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.Note
+import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Yarn
 import java.text.DecimalFormat
 import java.util.Objects
@@ -109,9 +114,12 @@ import kotlin.math.roundToInt
 
 @Composable
 fun BoardEditorScreen(
+    viewModel: BoardEditorViewModel = hiltViewModel(),
     topAppBarTitle: String,
     onBack: () -> Unit,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     val cards = remember { mutableStateListOf<Note>() }
     val yarns = remember { mutableStateListOf<Yarn>() }
     val selectedNoteIds = remember { mutableStateListOf<String>() }
@@ -224,6 +232,11 @@ fun BoardEditorScreen(
                             },
                             content = { Icon(PhosphorTrash, null) }
                         )
+                    } else {
+                        IconButton(
+                            onClick = { viewModel.saveBoarAndCards("Hallo Board") },
+                            content = { Icon(PhosphorCheck, null) }
+                        )
                     }
                 }
             )
@@ -284,10 +297,10 @@ fun BoardEditorScreen(
         Box {
             BoardEditor(
                 modifier = Modifier.padding(paddingValues),
-                cards = cards,
+                notes = uiState.notes,
                 yarns = yarns,
-                onDragNote = { note, index ->
-                    cards[index] = note
+                onDragNote = { noteId, x, y ->
+                    viewModel.dragNoteCard(noteId, x, y)
                 },
                 onSelectTheory = {
                     sourceTheory = it
@@ -298,16 +311,17 @@ fun BoardEditorScreen(
                 state = state,
                 isSelectionMode = isSelectionMode,
                 onSelectedCard = { index, id ->
-                    val currentCard = cards[index]
-                    val isSelected = !currentCard.isSelected
-                    val card = currentCard.copy(isSelected = isSelected)
-                    cards[index] = card
-
-                    if (selectedNoteIds.contains(id)) {
-                        selectedNoteIds.remove(id)
-                    } else {
-                        selectedNoteIds.add(id)
-                    }
+//                    val currentCard = cards[index]
+//                    val isSelected = !currentCard.isSelected
+//                    val card = currentCard.copy(isSelected = isSelected)
+//                    cards[index] = card
+//
+//                    if (selectedNoteIds.contains(id)) {
+//                        selectedNoteIds.remove(id)
+//                    } else {
+//                        selectedNoteIds.add(id)
+//                    }
+                    Log.d("NOTE_SIZE", uiState.notes[index].size.toString())
                 },
                 isConnectionMode = isConnectionMode,
                 onConnectCard = { note ->
@@ -328,6 +342,9 @@ fun BoardEditorScreen(
                         yarns.add(yarn)
                         sourceConnectionNote = null
                     }
+                },
+                onGetSize = { size, index ->
+                    viewModel.getCardSize(size, index)
                 }
             )
 
@@ -386,17 +403,8 @@ fun BoardEditorScreen(
         NoteInputDialog(
             onDismiss = { showAddNoteSheet = !showAddNoteSheet },
             inputText = noteText,
-            onConfirm = { content, color ->
-                cards.add(
-                    Note(
-                        id = UUID.randomUUID().toString(),
-                        content = content,
-                        xPos = 100f,
-                        yPos = 100f,
-                        size = IntSize.Zero,
-                        color = color
-                    )
-                )
+            onConfirm = { content, _ ->
+                viewModel.addNote(content)
                 showAddNoteSheet = !showAddNoteSheet
             }
         )
@@ -568,7 +576,7 @@ fun NoteInputDialog(
 @Composable
 fun InputHelperChip(
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit
 ) {
     Surface(
@@ -591,9 +599,10 @@ fun InputHelperChip(
 @Composable
 fun BoardEditor(
     modifier: Modifier = Modifier,
-    cards: MutableList<Note>,
+    notes: List<NoteCard>,
     yarns: MutableList<Yarn>,
-    onDragNote: (Note, Int) -> Unit,
+    onDragNote: (String, Float, Float) -> Unit,
+    onGetSize: (IntSize, Int) -> Unit,
     onSelectTheory: (Note) -> Unit,
     scale: Float,
     offset: Offset,
@@ -617,16 +626,6 @@ fun BoardEditor(
                 translationY = offset.y
             )
             .transformable(state = state)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onDoubleTap = {
-//                        if (scale != 1f || offset != Offset.Zero) {
-//                            scale = 1f
-//                            offset = Offset.Zero
-//                        }
-                    }
-                )
-            }
     ) {
         yarns.forEach {
             DraggableYarn(
@@ -637,52 +636,51 @@ fun BoardEditor(
             )
         }
 
-        cards.forEachIndexed { index, n ->
+        notes.forEachIndexed { index, n ->
             DraggableCard(
                 note = n,
-                currentOffset = Offset(n.xPos, n.yPos),
-                onPositionChanged = { note ->
-                    if (yarns.isNotEmpty()) {
-                        val sourceRope = yarns.filter { it.sourceNoteId == note.id }
-                        if (sourceRope.isNotEmpty()) {
-                            sourceRope.forEach { rope ->
-                                val r = rope.copy(xSource = note.xPos, ySource = note.yPos)
-                                val selected = yarns.first { it.id == rope.id }
-                                val index = yarns.indexOf(selected)
-                                yarns[index] = r
-                            }
-                        }
-
-                        val targetRope = yarns.filter { it.targetNoteId == note.id }
-                        if (targetRope.isNotEmpty()) {
-                            targetRope.forEach { rope ->
-                                val r = rope.copy(xTarget = note.xPos, yTarget = note.yPos)
-                                val selected = yarns.first { it.id == rope.id }
-                                val index = yarns.indexOf(selected)
-                                yarns[index] = r
-                            }
-                        }
-                    }
-
-                    onDragNote(note, index)
+                onPositionChanged = { noteId, x, y ->
+//                    if (yarns.isNotEmpty()) {
+//                        val sourceRope = yarns.filter { it.sourceNoteId == note.id }
+//                        if (sourceRope.isNotEmpty()) {
+//                            sourceRope.forEach { rope ->
+//                                val r = rope.copy(xSource = note.xPos, ySource = note.yPos)
+//                                val selected = yarns.first { it.id == rope.id }
+//                                val index = yarns.indexOf(selected)
+//                                yarns[index] = r
+//                            }
+//                        }
+//
+//                        val targetRope = yarns.filter { it.targetNoteId == note.id }
+//                        if (targetRope.isNotEmpty()) {
+//                            targetRope.forEach { rope ->
+//                                val r = rope.copy(xTarget = note.xPos, yTarget = note.yPos)
+//                                val selected = yarns.first { it.id == rope.id }
+//                                val index = yarns.indexOf(selected)
+//                                yarns[index] = r
+//                            }
+//                        }
+//                    }
+//
+//                    onDragNote(note, index)
+                    onDragNote(noteId, x, y)
                 },
-                onGetSize = {
-                    val note = n.copy(size = it)
-                    cards[index] = note
+                onGetSize = { size ->
+                    onGetSize(size, index)
                 },
                 onSelect = { t, off ->
-                    if (isSelectionMode) {
-                        onSelectedCard(index, n.id)
-                    } else if (isConnectionMode) {
-                        onConnectCard(t)
-                    } else {
-                        selectedTheory = t
-                        popupOffset = off
-                        showMenu = true
-                    }
+//                    if (isSelectionMode) {
+                    onSelectedCard(index, n.noteId)
+//                    } else if (isConnectionMode) {
+//                        onConnectCard(t)
+//                    } else {
+//                        selectedTheory = t
+//                        popupOffset = off
+//                        showMenu = true
+//                    }
                 },
                 isSelectionMode = isSelectionMode,
-                isSelected = n.isSelected,
+                isSelected = /*n.isSelected*/ false,
                 isConnectionMode = isConnectionMode
             )
         }
@@ -848,31 +846,28 @@ fun DraggableYarn(
 
 @Composable
 fun DraggableCard(
-    note: Note,
-    currentOffset: Offset,
-    onPositionChanged: (Note) -> Unit,
-    onSelect: (Note, Offset) -> Unit,
+    note: NoteCard,
+    onPositionChanged: (String, Float, Float) -> Unit,
+    onSelect: (NoteCard, Offset) -> Unit,
     onGetSize: (IntSize) -> Unit,
     isDraggable: Boolean = true,
-    isSelected: Boolean, // New parameter
-    isSelectionMode: Boolean, // New parameter
+    isSelected: Boolean,
+    isSelectionMode: Boolean,
     isConnectionMode: Boolean
 ) {
     var isDragging by remember { mutableStateOf(false) }
-    var newOffset by remember { mutableStateOf(currentOffset) }
+    var newOffset by remember { mutableStateOf(Offset(note.posX, note.posY)) }
     var newTheory by remember { mutableStateOf<Note?>(null) }
 
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
     Box(
         modifier = Modifier
-            .onSizeChanged {
-                onGetSize(it)
-            }
+            .onSizeChanged { onGetSize(it) }
             .offset {
                 IntOffset(
-                    currentOffset.x.roundToInt(),
-                    currentOffset.y.roundToInt()
+                    note.posX.roundToInt(),
+                    note.posY.roundToInt()
                 )
             }
             .graphicsLayer {
@@ -882,27 +877,28 @@ fun DraggableCard(
                     scaleY = scaleValue
                 }
             }
-            .neumorphicShadow(backgroundColor = note.color)
+            .neumorphicShadow(backgroundColor = Color.LightGray)
             .border(
                 width = if (isSelectionMode && isSelected) 3.dp else 0.dp,
                 color = if (isSelectionMode && isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                shape = RoundedCornerShape(12.dp) // Match your card shape
+                shape = RoundedCornerShape(12.dp)
             )
             .padding(16.dp)
-            .pointerInput(note.id, isSelectionMode, isConnectionMode) {
+            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
                 detectTapGestures(
                     onTap = { tapOffset ->
-                        val absoluteTapPos = Offset(
-                            newOffset.x + tapOffset.x,
-                            newOffset.y + tapOffset.y
-                        )
-                        newTheory = note.copy(xPos = newOffset.x, yPos = newOffset.y)
-                        onSelect(newTheory!!, absoluteTapPos)
-                        isDragging = false
+//                        val absoluteTapPos = Offset(
+//                            newOffset.x + tapOffset.x,
+//                            newOffset.y + tapOffset.y
+//                        )
+//                        newTheory = note.copy(xPos = newOffset.x, yPos = newOffset.y)
+//                        onSelect(newTheory!!, absoluteTapPos)
+//                        isDragging = false
+                        onSelect(note, tapOffset)
                     }
                 )
             }
-            .pointerInput(note.id) {
+            .pointerInput(note.noteId) {
                 detectDragGestures(
                     onDragStart = { isDragging = true },
                     onDragEnd = { isDragging = false },
@@ -910,19 +906,16 @@ fun DraggableCard(
                     onDrag = { change, dragAmount ->
                         change.consume()
                         newOffset += dragAmount
-                        val n = note.copy(xPos = newOffset.x, yPos = newOffset.y)
-                        updatedOnPositionChanged(n)
+                        updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
                     }
                 )
             }
     ) {
         Text(
             modifier = Modifier.padding(top = 4.dp),
-            text = note.content,
+            text = note.title,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium
         )
     }
 }
-
-fun Int.pxToDp(): Dp = (this / Resources.getSystem().displayMetrics.density).dp

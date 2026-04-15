@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.createChooser
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -12,6 +13,8 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import com.app.zuludin.buqu.BuildConfig
@@ -59,7 +62,7 @@ fun Context.shareImage(title: String, image: Bitmap, filename: String) {
 
 fun Context.saveImageToGallery(bitmap: Bitmap, filename: String): Uri? {
     val outputStream: OutputStream?
-    var uri: Uri? = null
+    var uri: Uri?
 
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -141,3 +144,5 @@ fun Context.fixImageRotation(uri: Uri): Bitmap? {
         else -> bitmap
     }
 }
+
+fun Int.pxToDp(): Dp = (this / Resources.getSystem().displayMetrics.density).dp

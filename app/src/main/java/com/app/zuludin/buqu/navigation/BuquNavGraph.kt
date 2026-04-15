@@ -16,7 +16,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_AUTHOR_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_BOOK_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
-import com.app.zuludin.buqu.ui.board.BoardEditorScreen
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.HomeScreen
@@ -44,7 +44,9 @@ fun BuquNavGraph(
             )
         }
         composable(BuquDestinations.BOARD_ROUTE) {
-            BoardListScreen(onBoardClick = {})
+            BoardListScreen(onBoardClick = {
+                navActions.navigateToBoardEditor(it)
+            })
         }
         composable(BuquDestinations.SETTING_ROUTE) {
             SettingsScreen(onOpenCategorySelectScreen = { navActions.navigateToCategorySelect() })
