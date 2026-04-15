@@ -3,7 +3,6 @@ package com.app.zuludin.buqu.ui.board.editor
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -106,10 +105,9 @@ import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.NoteCard
-import com.app.zuludin.buqu.domain.models.Yarn
+import com.app.zuludin.buqu.domain.models.Rope
 import java.text.DecimalFormat
 import java.util.Objects
-import java.util.UUID
 import kotlin.math.roundToInt
 
 @Composable
@@ -121,12 +119,10 @@ fun BoardEditorScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val cards = remember { mutableStateListOf<Note>() }
-    val yarns = remember { mutableStateListOf<Yarn>() }
     val selectedNoteIds = remember { mutableStateListOf<String>() }
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
-    var sourceTheory by remember { mutableStateOf<Note?>(null) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
 
     var scale by remember { mutableFloatStateOf(1f) }
@@ -234,7 +230,7 @@ fun BoardEditorScreen(
                         )
                     } else {
                         IconButton(
-                            onClick = { viewModel.saveBoarAndCards("Hallo Board") },
+                            onClick = { viewModel.saveBoardAndCards("Hallo Board") },
                             content = { Icon(PhosphorCheck, null) }
                         )
                     }
@@ -298,12 +294,11 @@ fun BoardEditorScreen(
             BoardEditor(
                 modifier = Modifier.padding(paddingValues),
                 notes = uiState.notes,
-                yarns = yarns,
+                yarns = uiState.ropes,
                 onDragNote = { noteId, x, y ->
                     viewModel.dragNoteCard(noteId, x, y)
                 },
                 onSelectTheory = {
-                    sourceTheory = it
                     showConnectionSheet = true
                 },
                 scale = scale,
@@ -321,27 +316,28 @@ fun BoardEditorScreen(
 //                    } else {
 //                        selectedNoteIds.add(id)
 //                    }
-                    Log.d("NOTE_SIZE", uiState.notes[index].size.toString())
                 },
                 isConnectionMode = isConnectionMode,
                 onConnectCard = { note ->
-                    if (sourceConnectionNote == null) {
-                        sourceConnectionNote = note
-                    } else if (sourceConnectionNote?.id != note.id) {
-                        val yarn = Yarn(
-                            id = UUID.randomUUID().toString(),
-                            sourceNoteId = sourceConnectionNote!!.id,
-                            targetNoteId = note.id,
-                            xSource = sourceConnectionNote!!.xPos,
-                            ySource = sourceConnectionNote!!.yPos,
-                            xTarget = note.xPos,
-                            yTarget = note.yPos,
-                            sourceSize = sourceConnectionNote!!.size,
-                            targetSize = note.size
-                        )
-                        yarns.add(yarn)
-                        sourceConnectionNote = null
-                    }
+//                    if (sourceConnectionNote == null) {
+//                        sourceConnectionNote = note
+//                    } else if (sourceConnectionNote?.id != note.id) {
+//                        val yarn = Yarn(
+//                            id = UUID.randomUUID().toString(),
+//                            sourceNoteId = sourceConnectionNote!!.id,
+//                            targetNoteId = note.id,
+//                            xSource = sourceConnectionNote!!.xPos,
+//                            ySource = sourceConnectionNote!!.yPos,
+//                            xTarget = note.xPos,
+//                            yTarget = note.yPos,
+//                            sourceSize = sourceConnectionNote!!.size,
+//                            targetSize = note.size
+//                        )
+//                        yarns.add(yarn)
+//                        sourceConnectionNote = null
+//                    }
+                    viewModel.updateSourceNote(note)
+                    showConnectionSheet = true
                 },
                 onGetSize = { size, index ->
                     viewModel.getCardSize(size, index)
@@ -388,12 +384,13 @@ fun BoardEditorScreen(
 
     if (showConnectionSheet) {
         TheoryBottomDialog(
-            source = sourceTheory!!,
-            theories = cards,
+            source = uiState.sourceNote!!,
+            notes = uiState.notes,
             onDismiss = {
                 showConnectionSheet = !showConnectionSheet
                 if (it != null) {
-                    yarns.add(it)
+                    val note = uiState.notes.first { n -> n.noteId == it.noteId }
+                    viewModel.connectNoteWithRope(note)
                 }
             }
         )
@@ -600,7 +597,7 @@ fun InputHelperChip(
 fun BoardEditor(
     modifier: Modifier = Modifier,
     notes: List<NoteCard>,
-    yarns: MutableList<Yarn>,
+    yarns: List<Rope>,
     onDragNote: (String, Float, Float) -> Unit,
     onGetSize: (IntSize, Int) -> Unit,
     onSelectTheory: (Note) -> Unit,
@@ -609,7 +606,7 @@ fun BoardEditor(
     state: TransformableState,
     isSelectionMode: Boolean,
     isConnectionMode: Boolean,
-    onConnectCard: (Note) -> Unit,
+    onConnectCard: (NoteCard) -> Unit,
     onSelectedCard: (Int, String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -628,11 +625,14 @@ fun BoardEditor(
             .transformable(state = state)
     ) {
         yarns.forEach {
+            val target = notes.first { n -> n.noteId == it.targetNoteId }
+            val source = notes.first { n -> n.noteId == it.sourceNoteId }
+
             DraggableYarn(
-                initialRope = Offset(it.xSource, it.ySource),
-                targetRope = Offset(it.xTarget, it.yTarget),
-                targetTheory = it.targetSize,
-                startTheory = it.sourceSize,
+                initialRope = Offset(it.sourceX, it.sourceY),
+                targetRope = Offset(it.targetX, it.targetY),
+                sourceSize = source.size,
+                targetSize = target.size,
             )
         }
 
@@ -640,29 +640,6 @@ fun BoardEditor(
             DraggableCard(
                 note = n,
                 onPositionChanged = { noteId, x, y ->
-//                    if (yarns.isNotEmpty()) {
-//                        val sourceRope = yarns.filter { it.sourceNoteId == note.id }
-//                        if (sourceRope.isNotEmpty()) {
-//                            sourceRope.forEach { rope ->
-//                                val r = rope.copy(xSource = note.xPos, ySource = note.yPos)
-//                                val selected = yarns.first { it.id == rope.id }
-//                                val index = yarns.indexOf(selected)
-//                                yarns[index] = r
-//                            }
-//                        }
-//
-//                        val targetRope = yarns.filter { it.targetNoteId == note.id }
-//                        if (targetRope.isNotEmpty()) {
-//                            targetRope.forEach { rope ->
-//                                val r = rope.copy(xTarget = note.xPos, yTarget = note.yPos)
-//                                val selected = yarns.first { it.id == rope.id }
-//                                val index = yarns.indexOf(selected)
-//                                yarns[index] = r
-//                            }
-//                        }
-//                    }
-//
-//                    onDragNote(note, index)
                     onDragNote(noteId, x, y)
                 },
                 onGetSize = { size ->
@@ -670,9 +647,9 @@ fun BoardEditor(
                 },
                 onSelect = { t, off ->
 //                    if (isSelectionMode) {
-                    onSelectedCard(index, n.noteId)
+//                    onSelectedCard(index, n.noteId)
 //                    } else if (isConnectionMode) {
-//                        onConnectCard(t)
+                    onConnectCard(t)
 //                    } else {
 //                        selectedTheory = t
 //                        popupOffset = off
@@ -714,12 +691,12 @@ fun BoardEditor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TheoryBottomDialog(
-    source: Note,
-    theories: List<Note>,
-    onDismiss: (Yarn?) -> Unit
+    source: NoteCard,
+    notes: List<NoteCard>,
+    onDismiss: (NoteCard?) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
-    val potentialTargets = theories.filter { it.id != source.id }
+    val potentialTargets = notes.filter { it.noteId != source.noteId }
 
     ModalBottomSheet(
         onDismissRequest = { onDismiss(null) },
@@ -740,7 +717,7 @@ fun TheoryBottomDialog(
             )
 
             Text(
-                text = "Linking from: \"${source.content.take(20)}${if (source.content.length > 20) "..." else ""}\"",
+                text = "Linking from: \"${source.title.take(20)}${if (source.title.length > 20) "..." else ""}\"",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -765,21 +742,10 @@ fun TheoryBottomDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(target.color.copy(alpha = 0.3f))
-                                .border(1.dp, target.color, RoundedCornerShape(16.dp))
+//                                .background(target.color.copy(alpha = 0.3f))
+//                                .border(1.dp, target.color, RoundedCornerShape(16.dp))
                                 .clickable {
-                                    val yarn = Yarn(
-                                        id = UUID.randomUUID().toString(),
-                                        sourceNoteId = source.id,
-                                        targetNoteId = target.id,
-                                        xSource = source.xPos,
-                                        ySource = source.yPos,
-                                        xTarget = target.xPos,
-                                        yTarget = target.yPos,
-                                        sourceSize = source.size,
-                                        targetSize = target.size
-                                    )
-                                    onDismiss(yarn)
+                                    onDismiss(target)
                                 }
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -788,14 +754,14 @@ fun TheoryBottomDialog(
                                 modifier = Modifier
                                     .size(12.dp)
                                     .clip(CircleShape)
-                                    .background(target.color)
+//                                    .background(target.color)
                                     .border(1.dp, Color.Black.copy(alpha = 0.1f), CircleShape)
                             )
 
                             Spacer(modifier = Modifier.width(16.dp))
 
                             Text(
-                                text = target.content,
+                                text = target.title,
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
@@ -819,19 +785,19 @@ fun TheoryBottomDialog(
 fun DraggableYarn(
     initialRope: Offset,
     targetRope: Offset,
-    startTheory: IntSize,
-    targetTheory: IntSize
+    sourceSize: IntSize,
+    targetSize: IntSize
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val startCenterOffset =
             Offset(
-                startTheory.width.pxToDp().toPx() / 2,
-                startTheory.height.pxToDp().toPx() / 2
+                sourceSize.width.pxToDp().toPx() / 2,
+                sourceSize.height.pxToDp().toPx() / 2
             )
         val targetCenterOffset =
             Offset(
-                targetTheory.width.pxToDp().toPx() / 2,
-                targetTheory.height.pxToDp().toPx() / 2
+                targetSize.width.pxToDp().toPx() / 2,
+                targetSize.height.pxToDp().toPx() / 2
             )
 
         drawLine(
@@ -857,7 +823,6 @@ fun DraggableCard(
 ) {
     var isDragging by remember { mutableStateOf(false) }
     var newOffset by remember { mutableStateOf(Offset(note.posX, note.posY)) }
-    var newTheory by remember { mutableStateOf<Note?>(null) }
 
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
@@ -887,14 +852,12 @@ fun DraggableCard(
             .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
                 detectTapGestures(
                     onTap = { tapOffset ->
-//                        val absoluteTapPos = Offset(
-//                            newOffset.x + tapOffset.x,
-//                            newOffset.y + tapOffset.y
-//                        )
-//                        newTheory = note.copy(xPos = newOffset.x, yPos = newOffset.y)
-//                        onSelect(newTheory!!, absoluteTapPos)
-//                        isDragging = false
-                        onSelect(note, tapOffset)
+                        val absoluteTapPos = Offset(
+                            newOffset.x + tapOffset.x,
+                            newOffset.y + tapOffset.y
+                        )
+                        onSelect(note, absoluteTapPos)
+                        isDragging = false
                     }
                 )
             }

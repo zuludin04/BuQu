@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.data.repositories.BoardRepository
 import com.app.zuludin.buqu.data.repositories.NoteCardRepository
+import com.app.zuludin.buqu.data.repositories.RopeRepository
 import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.NoteCard
+import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,13 +21,17 @@ import javax.inject.Inject
 
 data class BoardEditorUiState(
     val notes: List<NoteCard> = emptyList(),
-    val board: Board? = null
+    val board: Board? = null,
+    val ropes: List<Rope> = emptyList(),
+    val sourceNote: NoteCard? = null,
+    val targetNote: NoteCard? = null
 )
 
 @HiltViewModel
 class BoardEditorViewModel @Inject constructor(
     private val boardRepository: BoardRepository,
     private val noteRepository: NoteCardRepository,
+    private val ropeRepository: RopeRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boardId: String? = savedStateHandle[BuquDestinationArgs.BOARD_ID_ARG]
@@ -46,6 +52,7 @@ class BoardEditorViewModel @Inject constructor(
     fun loadData(boardId: String) {
         loadBoard(boardId)
         loadNotes(boardId)
+        loadRopes(boardId)
     }
 
     private fun loadBoard(boardId: String) {
@@ -65,6 +72,16 @@ class BoardEditorViewModel @Inject constructor(
             noteRepository.getNotesByBoard(boardId).let { notes ->
                 _uiState.update {
                     it.copy(notes = notes)
+                }
+            }
+        }
+    }
+
+    private fun loadRopes(boardId: String) {
+        viewModelScope.launch {
+            ropeRepository.getConnectedRopes(boardId).let { ropes ->
+                _uiState.update {
+                    it.copy(ropes = ropes)
                 }
             }
         }
@@ -92,6 +109,7 @@ class BoardEditorViewModel @Inject constructor(
         val index = notes.indexOf(note)
         notes[index] = newNote
         _uiState.update { it.copy(notes = notes) }
+        updateRopePosition(note)
     }
 
     fun getCardSize(size: IntSize, index: Int) {
@@ -102,12 +120,74 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(notes = notes) }
     }
 
-    fun saveBoarAndCards(name: String) {
+    fun saveBoardAndCards(name: String) {
         viewModelScope.launch {
             boardRepository.upsertBoard(boardId ?: currentBoardId, name, "000000")
 
+            val ropes = _uiState.value.ropes
+            ropeRepository.upsertRopes(ropes)
+
             val notes = _uiState.value.notes
             noteRepository.upsertNotes(notes)
+        }
+    }
+
+    fun connectNoteWithRope(target: NoteCard) {
+        val source = _uiState.value.sourceNote
+//        val target = _uiState.value.targetNote
+
+        if (source != null) {
+            val rope = Rope(
+                ropeId = UUID.randomUUID().toString(),
+                sourceNoteId = source.noteId,
+                targetNoteId = target.noteId,
+                boardId = boardId ?: currentBoardId,
+                sourceX = source.posX,
+                sourceY = source.posY,
+                targetX = target.posX,
+                targetY = target.posY
+            )
+
+            val ropes = _uiState.value.ropes.toMutableList()
+            ropes.add(rope)
+            _uiState.update {
+                it.copy(ropes = ropes)
+            }
+        }
+    }
+
+    fun updateSourceNote(note: NoteCard) {
+        val n = _uiState.value.notes.first { it.noteId == note.noteId }
+        _uiState.update { it.copy(sourceNote = n) }
+    }
+
+    private fun updateRopePosition(note: NoteCard) {
+        val ropes = _uiState.value.ropes
+
+        if (ropes.isNotEmpty()) {
+            val sourceRope = ropes.filter { it.sourceNoteId == note.noteId }
+            if (sourceRope.isNotEmpty()) {
+                sourceRope.forEach { rope ->
+                    val r = rope.copy(sourceX = note.posX, sourceY = note.posY)
+                    val selected = ropes.first { it.ropeId == rope.ropeId }
+                    val index = ropes.indexOf(selected)
+                    val rs = _uiState.value.ropes.toMutableList()
+                    rs[index] = r
+                    _uiState.update { it.copy(ropes = rs) }
+                }
+            }
+
+            val targetRope = ropes.filter { it.targetNoteId == note.noteId }
+            if (targetRope.isNotEmpty()) {
+                targetRope.forEach { rope ->
+                    val r = rope.copy(targetX = note.posX, targetY = note.posY)
+                    val selected = ropes.first { it.ropeId == rope.ropeId }
+                    val index = ropes.indexOf(selected)
+                    val rs = _uiState.value.ropes.toMutableList()
+                    rs[index] = r
+                    _uiState.update { it.copy(ropes = rs) }
+                }
+            }
         }
     }
 }
