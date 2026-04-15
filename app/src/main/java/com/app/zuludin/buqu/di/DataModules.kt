@@ -51,4 +51,7 @@ object DatabaseModule {
 
     @Provides
     fun provideNoteCardDao(database: BuQuDatabase) = database.noteCardDao()
+
+    @Provides
+    fun provideRopeDao(database: BuQuDatabase) = database.ropeDao()
 }

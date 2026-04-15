@@ -3,12 +3,15 @@ package com.app.zuludin.buqu.data
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
 import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
+import com.app.zuludin.buqu.domain.models.Rope
 
 fun Quote.toLocal() =
     QuoteEntity(
@@ -75,3 +78,27 @@ fun NoteCardEntity.toExternal() = NoteCard(
 
 @JvmName("externalToLocalNoteCard")
 fun List<NoteCard>.toLocal() = map(NoteCard::toLocal)
+
+fun Rope.toLocal() = RopeEntity(
+    ropeId = ropeId,
+    sourceNoteId = sourceNoteId,
+    targetNoteId = targetNoteId,
+    boardId = boardId,
+)
+
+@JvmName("externalToLocalRopes")
+fun List<Rope>.toLocal() = map(Rope::toLocal)
+
+fun ConnectedRopeEntity.toExternal() = Rope(
+    ropeId = ropeId,
+    sourceNoteId = sourceNoteId,
+    targetNoteId = targetNoteId,
+    boardId = boardId,
+    sourceX = sourceX,
+    sourceY = sourceY,
+    targetX = targetX,
+    targetY = targetY
+)
+
+@JvmName("localToExternalRope")
+fun List<ConnectedRopeEntity>.toExternal() = map(ConnectedRopeEntity::toExternal)

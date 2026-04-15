@@ -2,7 +2,7 @@ package com.app.zuludin.buqu.data.repositories
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.app.zuludin.buqu.data.datasources.database.toQuoteAndCategory
-import com.app.zuludin.buqu.data.datasources.source.board.QuoteLocalDataSource
+import com.app.zuludin.buqu.data.datasources.source.quote.QuoteLocalDataSource
 import com.app.zuludin.buqu.utils.DataDummy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first

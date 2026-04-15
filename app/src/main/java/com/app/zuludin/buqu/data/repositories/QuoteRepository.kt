@@ -1,6 +1,6 @@
 package com.app.zuludin.buqu.data.repositories
 
-import com.app.zuludin.buqu.data.datasources.source.board.QuoteLocalDataSource
+import com.app.zuludin.buqu.data.datasources.source.quote.QuoteLocalDataSource
 import com.app.zuludin.buqu.data.toExternal
 import com.app.zuludin.buqu.data.toLocal
 import com.app.zuludin.buqu.di.DefaultDispatcher

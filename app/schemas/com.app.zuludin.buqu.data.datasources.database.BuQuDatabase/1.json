@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0f8feab3c01f9c2eed9a02a620a9530f",
+    "identityHash": "eeff68958eec8260e4d4bf2af4829fd0",
     "entities": [
       {
         "tableName": "quote",
@@ -167,12 +167,50 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "rope",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ropeId` TEXT NOT NULL, `sourceNoteId` TEXT NOT NULL, `targetNoteId` TEXT NOT NULL, `boardId` TEXT NOT NULL, PRIMARY KEY(`ropeId`))",
+        "fields": [
+          {
+            "fieldPath": "ropeId",
+            "columnName": "ropeId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceNoteId",
+            "columnName": "sourceNoteId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetNoteId",
+            "columnName": "targetNoteId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "boardId",
+            "columnName": "boardId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ropeId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0f8feab3c01f9c2eed9a02a620a9530f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eeff68958eec8260e4d4bf2af4829fd0')"
     ]
   }
 }

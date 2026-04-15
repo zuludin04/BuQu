@@ -1,7 +1,9 @@
-package com.app.zuludin.buqu.data.datasources.source.quote
+package com.app.zuludin.buqu.data.datasources.source.board
 
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
 import kotlinx.coroutines.flow.Flow
 
 interface IBoardLocalDataSource {
@@ -18,4 +20,10 @@ interface IBoardLocalDataSource {
     suspend fun deleteNote(noteId: String)
 
     suspend fun getNotesByBoard(boardId: String): List<NoteCardEntity>
+
+    suspend fun upsertRopes(ropes: List<RopeEntity>)
+
+    suspend fun deleteRope(ropeId: String)
+
+    suspend fun getConnectedRopes(boardId: String): List<ConnectedRopeEntity>
 }
