@@ -29,6 +29,7 @@ data class BoardEditorUiState(
     val deletedNotes: List<NoteCard> = emptyList(),
     val deletedRopes: List<Rope> = emptyList(),
     val isConnectionMode: Boolean = false,
+    val errorConnectSameNote: Boolean = false,
 )
 
 @HiltViewModel
@@ -277,9 +278,19 @@ class BoardEditorViewModel @Inject constructor(
             val note = notes.first { it.noteId == noteId }
             _uiState.update { it.copy(sourceNote = note) }
         } else {
-            val note = notes.first { it.noteId == noteId }
-            connectNoteWithRope(note)
-            _uiState.update { it.copy(sourceNote = null) }
+            if (noteId == source.noteId) {
+                _uiState.update { it.copy(errorConnectSameNote = true) }
+            } else {
+                val note = notes.first { it.noteId == noteId }
+                connectNoteWithRope(note)
+                _uiState.update { it.copy(sourceNote = null) }
+            }
+        }
+    }
+
+    fun snackbarMessageShown() {
+        _uiState.update {
+            it.copy(errorConnectSameNote = false)
         }
     }
 }

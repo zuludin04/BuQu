@@ -34,6 +34,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.BottomSheetDefaults
@@ -50,6 +52,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -114,6 +117,7 @@ fun BoardEditorScreen(
     viewModel: BoardEditorViewModel = hiltViewModel(),
     topAppBarTitle: String,
     onBack: () -> Unit,
+    scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -191,6 +195,7 @@ fun BoardEditorScreen(
     var sourceConnectionNote by remember { mutableStateOf<Note?>(null) }
 
     Scaffold(
+        scaffoldState = scaffoldState,
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
@@ -377,6 +382,13 @@ fun BoardEditorScreen(
                     content = { Icon(PhosphorMagnifyingGlass, null) }
                 )
             }
+        }
+    }
+
+    LaunchedEffect(uiState) {
+        if (uiState.errorConnectSameNote) {
+            scaffoldState.snackbarHostState.showSnackbar("Can't connect to same note")
+            viewModel.snackbarMessageShown()
         }
     }
 
