@@ -25,5 +25,17 @@ data class ConnectedRopeEntity(
     var targetX: Float,
 
     @ColumnInfo("targetY")
-    var targetY: Float
+    var targetY: Float,
+
+    @ColumnInfo("sourceWidth")
+    var sourceWidth: Int,
+
+    @ColumnInfo("sourceHeight")
+    var sourceHeight: Int,
+
+    @ColumnInfo("targetWidth")
+    var targetWidth: Int,
+
+    @ColumnInfo("targetHeight")
+    var targetHeight: Int
 )

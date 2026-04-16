@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.data
 
+import androidx.compose.ui.unit.IntSize
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
@@ -66,7 +67,9 @@ fun NoteCard.toLocal() = NoteCardEntity(
     posX = posX,
     posY = posY,
     boardId = boardId,
-    color = color
+    color = color,
+    width = size.width,
+    height = size.height
 )
 
 fun NoteCardEntity.toExternal() = NoteCard(
@@ -75,7 +78,8 @@ fun NoteCardEntity.toExternal() = NoteCard(
     posX = posX,
     posY = posY,
     boardId = boardId,
-    color = color
+    color = color,
+    size = IntSize(width, height)
 )
 
 @JvmName("externalToLocalNoteCard")
@@ -99,5 +103,7 @@ fun ConnectedRopeEntity.toExternal() = Rope(
     sourceX = sourceX,
     sourceY = sourceY,
     targetX = targetX,
-    targetY = targetY
+    targetY = targetY,
+    sourceSize = IntSize(sourceWidth, sourceHeight),
+    targetSize = IntSize(targetWidth, targetHeight)
 )

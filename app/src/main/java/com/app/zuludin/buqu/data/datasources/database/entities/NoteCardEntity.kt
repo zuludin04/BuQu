@@ -22,6 +22,12 @@ data class NoteCardEntity(
     @ColumnInfo("color")
     var color: String,
 
+    @ColumnInfo("width")
+    var width: Int,
+
+    @ColumnInfo("height")
+    var height: Int,
+
     @ColumnInfo("boardId")
     var boardId: String
 )

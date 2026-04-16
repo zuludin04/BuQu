@@ -99,7 +99,8 @@ class BoardEditorViewModel @Inject constructor(
             title = title,
             posX = 100f,
             posY = 100f,
-            color = color
+            color = color,
+            size = IntSize.Zero
         )
         val notes = _uiState.value.notes.toMutableList()
         notes.add(note)
@@ -159,7 +160,9 @@ class BoardEditorViewModel @Inject constructor(
                 sourceX = source.posX,
                 sourceY = source.posY,
                 targetX = target.posX,
-                targetY = target.posY
+                targetY = target.posY,
+                targetSize = target.size,
+                sourceSize = source.size
             )
 
             val ropes = _uiState.value.ropes.toMutableList()

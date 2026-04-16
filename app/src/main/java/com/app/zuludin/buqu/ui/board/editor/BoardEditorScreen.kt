@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.ui.board.editor
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -751,16 +752,15 @@ fun BoardEditor(
             )
             .transformable(state = state)
     ) {
-        yarns.forEach {
-            val target = IntSize.Zero
-            val source = IntSize.Zero
-
-            DraggableYarn(
-                initialRope = Offset(it.sourceX, it.sourceY),
-                targetRope = Offset(it.targetX, it.targetY),
-                sourceSize = source,
-                targetSize = target,
-            )
+        if (yarns.isNotEmpty()) {
+            yarns.forEach {
+                DraggableYarn(
+                    initialRope = Offset(it.sourceX, it.sourceY),
+                    targetRope = Offset(it.targetX, it.targetY),
+                    sourceSize = it.sourceSize,
+                    targetSize = it.targetSize,
+                )
+            }
         }
 
         notes.forEachIndexed { index, n ->
@@ -773,6 +773,7 @@ fun BoardEditor(
                     onGetSize(size, index)
                 },
                 onSelect = { t, off ->
+                    Log.d("CARD_SIZE", t.size.toString())
                     if (isSelectionMode || isConnectionMode) {
                         onSelectedCard(t.noteId)
                     } else {

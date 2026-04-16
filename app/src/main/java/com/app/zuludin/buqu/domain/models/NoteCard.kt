@@ -8,7 +8,7 @@ data class NoteCard(
     val title: String,
     val posX: Float,
     val posY: Float,
-    val size: IntSize = IntSize.Zero,
+    val size: IntSize,
     val isSelected: Boolean = false,
     val color: String,
 )

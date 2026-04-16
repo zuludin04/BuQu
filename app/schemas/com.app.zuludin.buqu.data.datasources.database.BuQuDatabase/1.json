@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ac4002a183474c681eb665996dd3bd1a",
+    "identityHash": "94669a74e5ab64894e89b5d6c5a5a174",
     "entities": [
       {
         "tableName": "quote",
@@ -126,7 +126,7 @@
       },
       {
         "tableName": "note_card",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`noteId` TEXT NOT NULL, `title` TEXT NOT NULL, `posX` REAL NOT NULL, `posY` REAL NOT NULL, `color` TEXT NOT NULL, `boardId` TEXT NOT NULL, PRIMARY KEY(`noteId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`noteId` TEXT NOT NULL, `title` TEXT NOT NULL, `posX` REAL NOT NULL, `posY` REAL NOT NULL, `color` TEXT NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `boardId` TEXT NOT NULL, PRIMARY KEY(`noteId`))",
         "fields": [
           {
             "fieldPath": "noteId",
@@ -156,6 +156,18 @@
             "fieldPath": "color",
             "columnName": "color",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "width",
+            "columnName": "width",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "height",
+            "columnName": "height",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -216,7 +228,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ac4002a183474c681eb665996dd3bd1a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '94669a74e5ab64894e89b5d6c5a5a174')"
     ]
   }
 }
