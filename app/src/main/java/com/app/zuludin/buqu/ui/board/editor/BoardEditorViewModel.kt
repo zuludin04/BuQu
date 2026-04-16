@@ -207,7 +207,7 @@ class BoardEditorViewModel @Inject constructor(
 
     fun toggleSelectionModel() {
         val isSelection = _uiState.value.isSelectionMode
-        _uiState.update { it.copy(isSelectionMode = !isSelection) }
+        _uiState.update { it.copy(isSelectionMode = !isSelection, isConnectionMode = false) }
     }
 
     fun changeNoteSelectionStatus(noteId: String) {
@@ -268,7 +268,7 @@ class BoardEditorViewModel @Inject constructor(
 
     fun toggleConnectionMode() {
         val isConnectionMode = _uiState.value.isConnectionMode
-        _uiState.update { it.copy(isConnectionMode = !isConnectionMode) }
+        _uiState.update { it.copy(isConnectionMode = !isConnectionMode, isSelectionMode = false) }
     }
 
     fun noteConnectMode(noteId: String) {

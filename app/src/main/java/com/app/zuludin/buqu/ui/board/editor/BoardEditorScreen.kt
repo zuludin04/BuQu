@@ -95,8 +95,8 @@ import com.app.zuludin.buqu.core.icons.PhosphorDotsThreeVertical
 import com.app.zuludin.buqu.core.icons.PhosphorImage
 import com.app.zuludin.buqu.core.icons.PhosphorLineSegments
 import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
-import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
+import com.app.zuludin.buqu.core.icons.PhosphorMinus
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
@@ -108,7 +108,6 @@ import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
-import java.text.DecimalFormat
 import java.util.Objects
 import kotlin.math.roundToInt
 
@@ -283,7 +282,20 @@ fun BoardEditorScreen(
             )
         }
     ) { paddingValues ->
-        Box {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .border(
+                    width = if (uiState.isConnectionMode || uiState.isSelectionMode) 4.dp else 0.dp,
+                    color = if (uiState.isConnectionMode)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    else if (uiState.isSelectionMode)
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+                    else Color.Transparent
+                )
+        ) {
+            GridBackground(scale = scale, offset = offset)
+
             BoardEditor(
                 modifier = Modifier.padding(paddingValues),
                 notes = uiState.notes,
@@ -314,12 +326,88 @@ fun BoardEditorScreen(
                 },
             )
 
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+                    .padding(bottom = 100.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                tonalElevation = 4.dp
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                ) {
+                    IconButton(onClick = { scale = (scale - 0.1f).coerceAtLeast(0.5f) }) {
+                        Icon(PhosphorMinus, null, modifier = Modifier.size(18.dp))
+                    }
+                    Text(
+                        text = "${(scale * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier
+                            .width(40.dp)
+                            .clickable {
+                                scale = 1f
+                                offset = Offset.Zero
+                            },
+                        textAlign = TextAlign.Center
+                    )
+                    IconButton(onClick = { scale = (scale + 0.1f).coerceAtMost(3f) }) {
+                        Icon(PhosphorPlus, null, modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
+
+            // Selection/Connection Mode Indicator & Hint
+            if (uiState.isConnectionMode || uiState.isSelectionMode) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        color = if (uiState.isConnectionMode)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.secondary,
+                        shape = RoundedCornerShape(20.dp),
+                        tonalElevation = 6.dp
+                    ) {
+                        Text(
+                            text = if (uiState.isConnectionMode) "Connection Mode" else "Selection Mode",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = if (uiState.isConnectionMode)
+                                "Tap two cards to link them"
+                            else "Tap cards to select/deselect",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+                    .padding(bottom = 100.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
                         shape = RoundedCornerShape(24.dp)
                     )
             ) {
@@ -329,24 +417,19 @@ fun BoardEditorScreen(
                         Icon(
                             imageVector = PhosphorLineSegments,
                             contentDescription = null,
-                            tint = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (uiState.isConnectionMode) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                 )
                 IconButton(
                     onClick = { viewModel.toggleSelectionModel() },
-                    content = { Icon(PhosphorSelectionAll, null) }
-                )
-            }
-
-            Row {
-                Text("x${DecimalFormat("#.#").format(scale)}")
-                IconButton(
-                    onClick = {
-                        scale = 1f
-                        offset = Offset.Zero
-                    },
-                    content = { Icon(PhosphorMagnifyingGlass, null) }
+                    content = {
+                        Icon(
+                            imageVector = PhosphorSelectionAll,
+                            contentDescription = null,
+                            tint = if (uiState.isSelectionMode) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 )
             }
         }
@@ -811,8 +894,12 @@ fun DraggableCard(
                 )
             }
             .graphicsLayer {
+                // Add a slight rotation based on the noteId for an organic "sticky note" feel
+                rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
+
                 if (isDraggable) {
-                    val scaleValue = if (isDragging || (isSelectionMode && isSelected)) 1.1f else 1f
+                    val scaleValue =
+                        if (isDragging || (isSelectionMode && isSelected)) 1.15f else 1f
                     scaleX = scaleValue
                     scaleY = scaleValue
                 }
@@ -849,11 +936,56 @@ fun DraggableCard(
                 )
             }
     ) {
-        Text(
-            modifier = Modifier.padding(top = 4.dp),
-            text = note.title,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Visual "Tape" or "Pin" element
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(12.dp)
+                    .background(Color.White.copy(alpha = 0.4f), RoundedCornerShape(2.dp))
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = note.title,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                maxLines = 6,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun GridBackground(scale: Float, offset: Offset) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val gridSize = 40.dp.toPx()
+        val scaledGridSize = gridSize * scale
+
+        // Calculate start positions based on offset to keep grid consistent during pan
+        val startX = (offset.x % scaledGridSize)
+        val startY = (offset.y % scaledGridSize)
+
+        for (x in startX.toInt()..size.width.toInt() step scaledGridSize.toInt()) {
+            drawLine(
+                color = Color.LightGray.copy(alpha = 0.2f),
+                start = Offset(x.toFloat(), 0f),
+                end = Offset(x.toFloat(), size.height),
+                strokeWidth = 1f
+            )
+        }
+        for (y in startY.toInt()..size.height.toInt() step scaledGridSize.toInt()) {
+            drawLine(
+                color = Color.LightGray.copy(alpha = 0.2f),
+                start = Offset(0f, y.toFloat()),
+                end = Offset(size.width, y.toFloat()),
+                strokeWidth = 1f
+            )
+        }
     }
 }
