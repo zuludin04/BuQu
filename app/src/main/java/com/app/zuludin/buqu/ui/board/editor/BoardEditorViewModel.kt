@@ -127,9 +127,9 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(notes = notes) }
     }
 
-    fun saveBoardAndCards(name: String) {
+    fun saveBoardAndCards(name: String, color: String = "000000") {
         viewModelScope.launch {
-            boardRepository.upsertBoard(boardId ?: currentBoardId, name, "000000")
+            boardRepository.upsertBoard(boardId ?: currentBoardId, name, color)
 
             val ropes = _uiState.value.ropes
             ropeRepository.upsertRopes(ropes)

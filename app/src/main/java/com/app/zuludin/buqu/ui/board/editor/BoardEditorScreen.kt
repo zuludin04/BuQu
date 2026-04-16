@@ -465,8 +465,8 @@ fun BoardEditorScreen(
     if (showBoardNameDialog) {
         BoardNameDialog(
             onDismiss = { showBoardNameDialog = !showBoardNameDialog },
-            onConfirm = { name ->
-                viewModel.saveBoardAndCards(name)
+            onConfirm = { name, color ->
+                viewModel.saveBoardAndCards(name, color)
                 showBoardNameDialog = !showBoardNameDialog
             }
         )
@@ -552,17 +552,24 @@ fun BoardEditorScreen(
 @Composable
 fun BoardNameDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
+    val colors = listOf(
+        "E1F5FE", "FFF9C4", "F1F8E9",
+        "FFEBEE", "F3E5F5", "EFEBE9"
+    )
+    var selectedColor by remember { mutableStateOf(colors[0]) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Save Board") },
         text = {
             Column {
-                Text("Please enter a name for this board.")
+                Text("Please enter a name and pick a color for this board.")
+                
                 Spacer(modifier = Modifier.height(16.dp))
+                
                 TextField(
                     value = name,
                     onValueChange = { name = it },
@@ -570,11 +577,38 @@ fun BoardNameDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Text("Board Theme", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    colors.forEach { color ->
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color("#${color}".toColorInt()))
+                                .border(
+                                    width = if (selectedColor == color) 3.dp else 1.dp,
+                                    color = if (selectedColor == color)
+                                        MaterialTheme.colorScheme.primary
+                                    else Color.LightGray.copy(alpha = 0.5f),
+                                    shape = CircleShape
+                                )
+                                .clickable { selectedColor = color }
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { if (name.isNotBlank()) onConfirm(name) },
+                onClick = { if (name.isNotBlank()) onConfirm(name, selectedColor) },
                 enabled = name.isNotBlank()
             ) {
                 Text("Save")
