@@ -886,6 +886,7 @@ fun DraggableCard(
 
     Box(
         modifier = Modifier
+            .widthIn(max = 180.dp)
             .onSizeChanged { onGetSize(it) }
             .offset {
                 IntOffset(
@@ -923,15 +924,17 @@ fun DraggableCard(
                     }
                 )
             }
-            .pointerInput(note.noteId) {
+            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
                 detectDragGestures(
                     onDragStart = { isDragging = true },
                     onDragEnd = { isDragging = false },
                     onDragCancel = { isDragging = false },
                     onDrag = { change, dragAmount ->
-                        change.consume()
-                        newOffset += dragAmount
-                        updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
+                        if (!isSelectionMode && !isConnectionMode) {
+                            change.consume()
+                            newOffset += dragAmount
+                            updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
+                        }
                     }
                 )
             }
