@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.BottomSheetDefaults
@@ -50,6 +51,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -124,6 +127,7 @@ fun BoardEditorScreen(
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
+    var showBoardNameDialog by remember { mutableStateOf(false) }
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -195,7 +199,8 @@ fun BoardEditorScreen(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = if (uiState.isSelectionMode) "${uiState.selectedNoteIds.size} Selected" else topAppBarTitle,
+                title = if (uiState.isSelectionMode) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
+                    ?: topAppBarTitle),
                 backButton = {
                     IconButton(
                         onClick = {
@@ -222,7 +227,13 @@ fun BoardEditorScreen(
                         )
                     } else {
                         IconButton(
-                            onClick = { viewModel.saveBoardAndCards("Hallo Board") },
+                            onClick = {
+                                if (uiState.board == null) {
+                                    showBoardNameDialog = true
+                                } else {
+                                    viewModel.saveBoardAndCards(uiState.board?.name ?: "Board")
+                                }
+                            },
                             content = { Icon(PhosphorCheck, null) }
                         )
                     }
@@ -450,6 +461,16 @@ fun BoardEditorScreen(
         }
     }
 
+    if (showBoardNameDialog) {
+        BoardNameDialog(
+            onDismiss = { showBoardNameDialog = !showBoardNameDialog },
+            onConfirm = { name ->
+                viewModel.saveBoardAndCards(name)
+                showBoardNameDialog = !showBoardNameDialog
+            }
+        )
+    }
+
     if (showConnectionSheet) {
         TheoryBottomDialog(
             source = uiState.sourceNote!!,
@@ -525,6 +546,45 @@ fun BoardEditorScreen(
             }
         }
     }
+}
+
+@Composable
+fun BoardNameDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Save Board") },
+        text = {
+            Column {
+                Text("Please enter a name for this board.")
+                Spacer(modifier = Modifier.height(16.dp))
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = { Text("Board Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (name.isNotBlank()) onConfirm(name) },
+                enabled = name.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
