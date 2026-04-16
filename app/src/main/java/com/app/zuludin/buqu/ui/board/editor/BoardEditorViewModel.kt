@@ -24,11 +24,11 @@ data class BoardEditorUiState(
     val board: Board? = null,
     val ropes: List<Rope> = emptyList(),
     val sourceNote: NoteCard? = null,
-    val targetNote: NoteCard? = null,
     val isSelectionMode: Boolean = false,
     val selectedNoteIds: List<String> = emptyList(),
     val deletedNotes: List<NoteCard> = emptyList(),
-    val deletedRopes: List<Rope> = emptyList()
+    val deletedRopes: List<Rope> = emptyList(),
+    val isConnectionMode: Boolean = false,
 )
 
 @HiltViewModel
@@ -262,5 +262,24 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         clearNoteIds()
+    }
+
+    fun toggleConnectionMode() {
+        val isConnectionMode = _uiState.value.isConnectionMode
+        _uiState.update { it.copy(isConnectionMode = !isConnectionMode) }
+    }
+
+    fun noteConnectMode(noteId: String) {
+        val notes = _uiState.value.notes
+
+        val source = _uiState.value.sourceNote
+        if (source == null) {
+            val note = notes.first { it.noteId == noteId }
+            _uiState.update { it.copy(sourceNote = note) }
+        } else {
+            val note = notes.first { it.noteId == noteId }
+            connectNoteWithRope(note)
+            _uiState.update { it.copy(sourceNote = null) }
+        }
     }
 }

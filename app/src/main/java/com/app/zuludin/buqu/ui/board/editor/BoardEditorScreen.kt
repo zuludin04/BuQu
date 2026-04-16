@@ -52,7 +52,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -308,9 +307,15 @@ fun BoardEditorScreen(
 //                    } else {
 //                        selectedNoteIds.add(id)
 //                    }
-                    viewModel.changeNoteSelectionStatus(id)
+                    if (uiState.isConnectionMode) {
+                        viewModel.noteConnectMode(id)
+                    }
+
+                    if (uiState.isSelectionMode) {
+                        viewModel.changeNoteSelectionStatus(id)
+                    }
                 },
-                isConnectionMode = isConnectionMode,
+                isConnectionMode = uiState.isConnectionMode,
                 onConnectCard = { note ->
 //                    if (sourceConnectionNote == null) {
 //                        sourceConnectionNote = note
@@ -347,12 +352,12 @@ fun BoardEditorScreen(
                     )
             ) {
                 IconButton(
-                    onClick = { isConnectionMode = !isConnectionMode },
+                    onClick = { viewModel.toggleConnectionMode() },
                     content = {
                         Icon(
                             imageVector = PhosphorLineSegments,
                             contentDescription = null,
-                            tint = if (isConnectionMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                 )
@@ -618,14 +623,14 @@ fun BoardEditor(
             .transformable(state = state)
     ) {
         yarns.forEach {
-            val target = notes.first { n -> n.noteId == it.targetNoteId }
-            val source = notes.first { n -> n.noteId == it.sourceNoteId }
+            val target = IntSize.Zero
+            val source = IntSize.Zero
 
             DraggableYarn(
                 initialRope = Offset(it.sourceX, it.sourceY),
                 targetRope = Offset(it.targetX, it.targetY),
-                sourceSize = source.size,
-                targetSize = target.size,
+                sourceSize = source,
+                targetSize = target,
             )
         }
 
@@ -639,7 +644,7 @@ fun BoardEditor(
                     onGetSize(size, index)
                 },
                 onSelect = { t, off ->
-                    if (isSelectionMode) {
+                    if (isSelectionMode || isConnectionMode) {
                         onSelectedCard(1, t.noteId)
                     } else {
                         selectedNote = t
