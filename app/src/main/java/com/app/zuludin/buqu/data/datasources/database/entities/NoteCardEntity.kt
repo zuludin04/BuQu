@@ -19,6 +19,9 @@ data class NoteCardEntity(
     @ColumnInfo("posY")
     var posY: Float,
 
+    @ColumnInfo("color")
+    var color: String,
+
     @ColumnInfo("boardId")
     var boardId: String
 )

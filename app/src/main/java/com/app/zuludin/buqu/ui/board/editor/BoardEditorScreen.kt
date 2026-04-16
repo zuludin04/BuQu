@@ -81,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.BuildConfig
@@ -105,7 +106,6 @@ import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.core.utils.createImageFile
 import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.core.utils.pxToDp
-import com.app.zuludin.buqu.domain.models.Note
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import java.text.DecimalFormat
@@ -190,9 +190,6 @@ fun BoardEditorScreen(
             }
         )
     }
-
-    var isConnectionMode by remember { mutableStateOf(false) }
-    var sourceConnectionNote by remember { mutableStateOf<Note?>(null) }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -294,24 +291,11 @@ fun BoardEditorScreen(
                 onDragNote = { noteId, x, y ->
                     viewModel.dragNoteCard(noteId, x, y)
                 },
-                onSelectNote = {
-                    showConnectionSheet = true
-                },
                 scale = scale,
                 offset = offset,
                 state = state,
                 isSelectionMode = uiState.isSelectionMode,
-                onSelectedCard = { index, id ->
-//                    val currentCard = cards[index]
-//                    val isSelected = !currentCard.isSelected
-//                    val card = currentCard.copy(isSelected = isSelected)
-//                    cards[index] = card
-//
-//                    if (selectedNoteIds.contains(id)) {
-//                        selectedNoteIds.remove(id)
-//                    } else {
-//                        selectedNoteIds.add(id)
-//                    }
+                onSelectedCard = { id ->
                     if (uiState.isConnectionMode) {
                         viewModel.noteConnectMode(id)
                     }
@@ -322,23 +306,6 @@ fun BoardEditorScreen(
                 },
                 isConnectionMode = uiState.isConnectionMode,
                 onConnectCard = { note ->
-//                    if (sourceConnectionNote == null) {
-//                        sourceConnectionNote = note
-//                    } else if (sourceConnectionNote?.id != note.id) {
-//                        val yarn = Yarn(
-//                            id = UUID.randomUUID().toString(),
-//                            sourceNoteId = sourceConnectionNote!!.id,
-//                            targetNoteId = note.id,
-//                            xSource = sourceConnectionNote!!.xPos,
-//                            ySource = sourceConnectionNote!!.yPos,
-//                            xTarget = note.xPos,
-//                            yTarget = note.yPos,
-//                            sourceSize = sourceConnectionNote!!.size,
-//                            targetSize = note.size
-//                        )
-//                        yarns.add(yarn)
-//                        sourceConnectionNote = null
-//                    }
                     viewModel.updateSourceNote(note)
                     showConnectionSheet = true
                 },
@@ -410,8 +377,8 @@ fun BoardEditorScreen(
         NoteInputDialog(
             onDismiss = { showAddNoteSheet = !showAddNoteSheet },
             inputText = noteText,
-            onConfirm = { content, _ ->
-                viewModel.addNote(content)
+            onConfirm = { content, color ->
+                viewModel.addNote(content, color)
                 showAddNoteSheet = !showAddNoteSheet
             }
         )
@@ -474,12 +441,12 @@ fun BoardEditorScreen(
 fun NoteInputDialog(
     inputText: String,
     onDismiss: () -> Unit,
-    onConfirm: (String, Color) -> Unit
+    onConfirm: (String, String) -> Unit
 ) {
     var text by remember { mutableStateOf(inputText) }
     val colors = listOf(
-        Color(0xFFE1F5FE), Color(0xFFFFF9C4), Color(0xFFF1F8E9),
-        Color(0xFFFFEBEE), Color(0xFFF3E5F5), Color(0xFFEFEBE9)
+        "E1F5FE", "FFF9C4", "F1F8E9",
+        "FFEBEE", "F3E5F5", "EFEBE9"
     )
     var selectedColor by remember { mutableStateOf(colors[0]) }
     val sheetState = rememberModalBottomSheetState()
@@ -551,7 +518,7 @@ fun NoteInputDialog(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(color)
+                            .background(Color("#${color}".toColorInt()))
                             .border(
                                 width = if (selectedColor == color) 3.dp else 1.dp,
                                 color = if (selectedColor == color)
@@ -610,14 +577,13 @@ fun BoardEditor(
     yarns: List<Rope>,
     onDragNote: (String, Float, Float) -> Unit,
     onGetSize: (IntSize, Int) -> Unit,
-    onSelectNote: (NoteCard) -> Unit,
     scale: Float,
     offset: Offset,
     state: TransformableState,
     isSelectionMode: Boolean,
     isConnectionMode: Boolean,
     onConnectCard: (NoteCard) -> Unit,
-    onSelectedCard: (Int, String) -> Unit
+    onSelectedCard: (String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -657,21 +623,12 @@ fun BoardEditor(
                 },
                 onSelect = { t, off ->
                     if (isSelectionMode || isConnectionMode) {
-                        onSelectedCard(1, t.noteId)
+                        onSelectedCard(t.noteId)
                     } else {
                         selectedNote = t
                         popupOffset = off
                         showMenu = true
                     }
-//                    if (isSelectionMode) {
-//                    onSelectedCard(index, n.noteId)
-//                    } else if (isConnectionMode) {
-//                    onConnectCard(t)
-//                    } else {
-//                        selectedTheory = t
-//                        popupOffset = off
-//                        showMenu = true
-//                    }
                 },
                 isSelectionMode = isSelectionMode,
                 isSelected = n.isSelected,
@@ -755,12 +712,13 @@ fun TheoryBottomDialog(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(potentialTargets) { target ->
+                        val noteColor = Color("#${target.color}".toColorInt())
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-//                                .background(target.color.copy(alpha = 0.3f))
-//                                .border(1.dp, target.color, RoundedCornerShape(16.dp))
+                                .background(noteColor.copy(alpha = 0.3f))
+                                .border(1.dp, noteColor, RoundedCornerShape(16.dp))
                                 .clickable {
                                     onDismiss(target)
                                 }
@@ -771,7 +729,7 @@ fun TheoryBottomDialog(
                                 modifier = Modifier
                                     .size(12.dp)
                                     .clip(CircleShape)
-//                                    .background(target.color)
+                                    .background(noteColor)
                                     .border(1.dp, Color.Black.copy(alpha = 0.1f), CircleShape)
                             )
 
@@ -859,7 +817,7 @@ fun DraggableCard(
                     scaleY = scaleValue
                 }
             }
-            .neumorphicShadow(backgroundColor = Color.LightGray)
+            .neumorphicShadow(backgroundColor = Color("#${note.color}".toColorInt()))
             .border(
                 width = if (isSelectionMode && isSelected) 3.dp else 0.dp,
                 color = if (isSelectionMode && isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "eeff68958eec8260e4d4bf2af4829fd0",
+    "identityHash": "ac4002a183474c681eb665996dd3bd1a",
     "entities": [
       {
         "tableName": "quote",
@@ -126,7 +126,7 @@
       },
       {
         "tableName": "note_card",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`noteId` TEXT NOT NULL, `title` TEXT NOT NULL, `posX` REAL NOT NULL, `posY` REAL NOT NULL, `boardId` TEXT NOT NULL, PRIMARY KEY(`noteId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`noteId` TEXT NOT NULL, `title` TEXT NOT NULL, `posX` REAL NOT NULL, `posY` REAL NOT NULL, `color` TEXT NOT NULL, `boardId` TEXT NOT NULL, PRIMARY KEY(`noteId`))",
         "fields": [
           {
             "fieldPath": "noteId",
@@ -150,6 +150,12 @@
             "fieldPath": "posY",
             "columnName": "posY",
             "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -210,7 +216,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eeff68958eec8260e4d4bf2af4829fd0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ac4002a183474c681eb665996dd3bd1a')"
     ]
   }
 }

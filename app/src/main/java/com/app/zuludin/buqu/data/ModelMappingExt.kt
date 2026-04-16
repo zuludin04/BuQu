@@ -65,7 +65,8 @@ fun NoteCard.toLocal() = NoteCardEntity(
     title = title,
     posX = posX,
     posY = posY,
-    boardId = boardId
+    boardId = boardId,
+    color = color
 )
 
 fun NoteCardEntity.toExternal() = NoteCard(
@@ -73,7 +74,8 @@ fun NoteCardEntity.toExternal() = NoteCard(
     title = title,
     posX = posX,
     posY = posY,
-    boardId = boardId
+    boardId = boardId,
+    color = color
 )
 
 @JvmName("externalToLocalNoteCard")

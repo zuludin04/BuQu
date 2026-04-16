@@ -92,13 +92,14 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun addNote(title: String) {
+    fun addNote(title: String, color: String) {
         val note = NoteCard(
             noteId = UUID.randomUUID().toString(),
             boardId = boardId ?: currentBoardId,
             title = title,
             posX = 100f,
             posY = 100f,
+            color = color
         )
         val notes = _uiState.value.notes.toMutableList()
         notes.add(note)
