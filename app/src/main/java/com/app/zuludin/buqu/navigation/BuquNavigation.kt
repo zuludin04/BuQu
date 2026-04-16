@@ -43,7 +43,7 @@ object BuquDestinations {
     const val SHARE_ROUTE =
         "${SHARE_SCREEN}?${SHARE_QUOTE_ARG}={${SHARE_QUOTE_ARG}}&${SHARE_AUTHOR_ARG}={${SHARE_AUTHOR_ARG}}&${SHARE_BOOK_ARG}={${SHARE_BOOK_ARG}}"
     const val BOARD_ROUTE = BOARD_SCREEN
-    const val BOARD_EDITOR_ROUTE = "${BOARD_EDITOR_SCREEN}/${BOARD_ID_ARG}={${BOARD_ID_ARG}}"
+    const val BOARD_EDITOR_ROUTE = "${BOARD_EDITOR_SCREEN}?${BOARD_ID_ARG}={${BOARD_ID_ARG}}"
 }
 
 class BuquNavigationActions(private val navController: NavController) {
@@ -62,7 +62,7 @@ class BuquNavigationActions(private val navController: NavController) {
     }
 
     fun navigateToBoardEditor(boardId: String?) {
-        navController.navigate(BuquDestinations.BOARD_EDITOR_ROUTE.let {
+        navController.navigate(BOARD_EDITOR_SCREEN.let {
             if (boardId != null) "$it?$BOARD_ID_ARG=$boardId" else it
         })
     }
