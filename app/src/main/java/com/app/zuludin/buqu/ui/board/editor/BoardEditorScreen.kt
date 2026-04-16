@@ -406,28 +406,36 @@ fun BoardEditorScreen(
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
                     .padding(bottom = 100.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(24.dp)
-                    )
             ) {
                 IconButton(
+                    modifier = Modifier.background(
+                        color = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary.copy(
+                            alpha = 0.9f
+                        ) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
+                    ),
                     onClick = { viewModel.toggleConnectionMode() },
                     content = {
                         Icon(
                             imageVector = PhosphorLineSegments,
                             contentDescription = null,
-                            tint = if (uiState.isConnectionMode) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (uiState.isConnectionMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                 )
                 IconButton(
+                    modifier = Modifier.background(
+                        color = if (uiState.isSelectionMode) MaterialTheme.colorScheme.tertiary.copy(
+                            alpha = 0.9f
+                        ) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
+                    ),
                     onClick = { viewModel.toggleSelectionModel() },
                     content = {
                         Icon(
                             imageVector = PhosphorSelectionAll,
                             contentDescription = null,
-                            tint = if (uiState.isSelectionMode) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (uiState.isSelectionMode) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
