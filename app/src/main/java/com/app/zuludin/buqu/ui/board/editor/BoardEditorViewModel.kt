@@ -156,7 +156,6 @@ class BoardEditorViewModel @Inject constructor(
 
     fun connectNoteWithRope(target: NoteCard) {
         val source = _uiState.value.sourceNote
-//        val target = _uiState.value.targetNote
 
         if (source != null) {
             val rope = Rope(
