@@ -30,6 +30,7 @@ data class BoardEditorUiState(
     val deletedRopes: List<Rope> = emptyList(),
     val isConnectionMode: Boolean = false,
     val errorConnectSameNote: Boolean = false,
+    val successSaveBoard: Boolean = false
 )
 
 @HiltViewModel
@@ -130,7 +131,12 @@ class BoardEditorViewModel @Inject constructor(
     fun saveBoardAndCards(name: String, color: String = "000000") {
         viewModelScope.launch {
             boardRepository.upsertBoard(boardId ?: currentBoardId, name, color)
-            _uiState.update { it.copy(board = Board(boardId ?: currentBoardId, name, color)) }
+            _uiState.update {
+                it.copy(
+                    board = Board(boardId ?: currentBoardId, name, color),
+                    successSaveBoard = true
+                )
+            }
 
             val ropes = _uiState.value.ropes
             ropeRepository.upsertRopes(ropes)
@@ -295,7 +301,7 @@ class BoardEditorViewModel @Inject constructor(
 
     fun snackbarMessageShown() {
         _uiState.update {
-            it.copy(errorConnectSameNote = false)
+            it.copy(errorConnectSameNote = false, successSaveBoard = false)
         }
     }
 }

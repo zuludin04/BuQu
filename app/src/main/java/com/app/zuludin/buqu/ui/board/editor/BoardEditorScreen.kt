@@ -460,6 +460,11 @@ fun BoardEditorScreen(
             scaffoldState.snackbarHostState.showSnackbar("Can't connect to same note")
             viewModel.snackbarMessageShown()
         }
+
+        if (uiState.successSaveBoard) {
+            scaffoldState.snackbarHostState.showSnackbar("Your board is saved")
+            viewModel.snackbarMessageShown()
+        }
     }
 
     if (showBoardNameDialog) {
