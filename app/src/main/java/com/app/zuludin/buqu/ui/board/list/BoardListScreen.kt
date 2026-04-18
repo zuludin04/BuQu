@@ -116,7 +116,6 @@ private fun BoardItem(
                 Icon(
                     imageVector = PhosphorChalkboardSimple,
                     contentDescription = null,
-                    tint = Color("#${board.color}".toColorInt()),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -129,11 +128,11 @@ private fun BoardItem(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "Thinking Space",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+//                Text(
+//                    text = "Thinking Space",
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                )
             }
         }
     }
