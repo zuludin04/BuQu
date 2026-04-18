@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.quote.upsert
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,14 +34,13 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
 import com.app.zuludin.buqu.core.compose.MediaFileScanner
+import com.app.zuludin.buqu.core.compose.SpeechToText
 import com.app.zuludin.buqu.core.compose.TitleInputField
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
-import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
-import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.domain.models.Quote
 
 @Suppress("DEPRECATION")
@@ -55,12 +53,6 @@ fun UpsertQuoteScreen(
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
-    val speechRecognizerLauncher =
-        rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
-            val result = it.toString()
-            viewModel.updateQuote(result.substring(1, result.length - 1))
-        })
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -103,11 +95,7 @@ fun UpsertQuoteScreen(
                     }
                 }
 
-                IconButton(onClick = {
-                    speechRecognizerLauncher.launch(Unit)
-                }) {
-                    Icon(PhosphorMicrophone, "Localized description")
-                }
+                SpeechToText { viewModel.updateQuote(it) }
 
                 MediaFileScanner(
                     imageVector = PhosphorAperture,

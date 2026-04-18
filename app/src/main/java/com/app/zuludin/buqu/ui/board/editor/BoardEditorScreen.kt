@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.board.editor
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -41,7 +40,6 @@ import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
-import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import kotlin.math.roundToInt
@@ -69,13 +67,6 @@ fun BoardEditorScreen(
     }
 
     var noteText by remember { mutableStateOf("") }
-
-    val speechRecognizerLauncher =
-        rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
-            val result = it.toString()
-            noteText = result.substring(1, result.length - 1)
-            showAddNoteSheet = true
-        })
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -119,11 +110,10 @@ fun BoardEditorScreen(
         },
         bottomBar = {
             BottomBarEditor(
-                onScanText = { text ->
+                onTextResult = { text ->
                     noteText = text
                     showAddNoteSheet = true
                 },
-                onSpeechToText = { speechRecognizerLauncher.launch(Unit) },
                 onAddNote = { showAddNoteSheet = true },
                 onOpenOverflowMenu = { showOverflowMenu = true },
                 overflowModifier = Modifier.onGloballyPositioned {
@@ -270,7 +260,7 @@ fun BoardEditorScreen(
                 )
                 OverflowMenuItem(
                     title = "Settings",
-                    onClick = { showOverflowMenu = false }
+                    onClick = { showOverflowMenu = !showOverflowMenu }
                 )
             }
         }

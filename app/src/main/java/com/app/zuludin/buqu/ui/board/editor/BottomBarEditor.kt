@@ -10,16 +10,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.app.zuludin.buqu.core.compose.MediaFileScanner
+import com.app.zuludin.buqu.core.compose.SpeechToText
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorDotsThreeVertical
 import com.app.zuludin.buqu.core.icons.PhosphorImage
-import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 
 @Composable
 fun BottomBarEditor(
-    onScanText: (String) -> Unit,
-    onSpeechToText: () -> Unit,
+    onTextResult: (String) -> Unit,
     onAddNote: () -> Unit,
     onOpenOverflowMenu: () -> Unit,
     @SuppressLint("ModifierParameter") overflowModifier: Modifier
@@ -29,17 +28,14 @@ fun BottomBarEditor(
             MediaFileScanner(
                 imageVector = PhosphorAperture,
                 isOpenCamera = true,
-                onTextSelected = { onScanText(it) }
+                onTextSelected = { onTextResult(it) }
             )
             MediaFileScanner(
                 imageVector = PhosphorImage,
                 isOpenCamera = false,
-                onTextSelected = { onScanText(it) }
+                onTextSelected = { onTextResult(it) }
             )
-            IconButton(
-                onClick = { onSpeechToText() },
-                content = { Icon(PhosphorMicrophone, null) }
-            )
+            SpeechToText { onTextResult(it) }
             IconButton(
                 modifier = overflowModifier,
                 onClick = { onOpenOverflowMenu() },
