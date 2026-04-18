@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.quote
+package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items

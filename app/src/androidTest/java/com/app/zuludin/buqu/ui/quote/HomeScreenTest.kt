@@ -12,6 +12,8 @@ import com.app.zuludin.buqu.HiltTestActivity
 import com.app.zuludin.buqu.core.theme.BuQuTheme
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
+import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
+import com.app.zuludin.buqu.ui.quote.list.QuoteViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.test.runTest
@@ -77,7 +79,7 @@ class HomeScreenTest {
         composeTestRule.setContent {
             BuQuTheme {
                 Surface {
-                    HomeScreen(
+                    QuoteScreen(
                         viewModel = QuoteViewModel(quoteRepo, categoryRepo),
                         onQuoteClick = {}
                     )

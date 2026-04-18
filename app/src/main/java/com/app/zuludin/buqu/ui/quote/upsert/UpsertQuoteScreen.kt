@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.upsertquote
+package com.app.zuludin.buqu.ui.quote.upsert
 
 import android.Manifest
 import android.content.pm.PackageManager

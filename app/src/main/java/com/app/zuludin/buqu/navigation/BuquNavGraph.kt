@@ -19,10 +19,10 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
-import com.app.zuludin.buqu.ui.quote.HomeScreen
+import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
 import com.app.zuludin.buqu.ui.share.ShareScreen
-import com.app.zuludin.buqu.ui.upsertquote.UpsertQuoteScreen
+import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
 
 @Composable
 fun BuquNavGraph(
@@ -39,7 +39,7 @@ fun BuquNavGraph(
         exitTransition = { fadeOut(tween(0)) }
     ) {
         composable(BuquDestinations.QUOTES_ROUTE) {
-            HomeScreen(
+            QuoteScreen(
                 onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
             )
         }

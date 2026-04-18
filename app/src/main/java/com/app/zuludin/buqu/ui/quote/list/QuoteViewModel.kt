@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.quote
+package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

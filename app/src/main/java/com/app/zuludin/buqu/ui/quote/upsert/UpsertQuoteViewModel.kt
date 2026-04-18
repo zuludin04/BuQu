@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.upsertquote
+package com.app.zuludin.buqu.ui.quote.upsert
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

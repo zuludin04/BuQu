@@ -37,7 +37,7 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorChalkboardSimple
 import com.app.zuludin.buqu.domain.models.Board
-import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
+import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
 
 @Composable
 fun BoardListScreen(

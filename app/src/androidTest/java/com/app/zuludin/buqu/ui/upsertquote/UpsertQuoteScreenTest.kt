@@ -19,6 +19,8 @@ import com.app.zuludin.buqu.HiltTestActivity
 import com.app.zuludin.buqu.core.theme.BuQuTheme
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
+import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
+import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi

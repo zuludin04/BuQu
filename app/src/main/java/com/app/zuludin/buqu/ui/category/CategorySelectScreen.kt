@@ -46,7 +46,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorGridFour
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.domain.models.Category
-import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
+import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

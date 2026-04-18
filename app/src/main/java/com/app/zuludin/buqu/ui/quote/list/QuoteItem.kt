@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.quote
+package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column

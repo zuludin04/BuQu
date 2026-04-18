@@ -7,6 +7,7 @@ import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
+import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

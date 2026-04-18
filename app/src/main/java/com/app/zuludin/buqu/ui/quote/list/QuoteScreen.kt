@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.quote
+package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +50,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun QuoteScreen(
     modifier: Modifier = Modifier,
     viewModel: QuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
