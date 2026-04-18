@@ -54,7 +54,6 @@ fun NoteCardComponent(
     onSelect: (NoteCard, Offset) -> Unit,
     onGetSize: (IntSize) -> Unit,
     isDraggable: Boolean = true,
-    isSelected: Boolean,
     isSelectionMode: Boolean,
     isConnectionMode: Boolean
 ) {
@@ -63,55 +62,50 @@ fun NoteCardComponent(
 
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
-    Box(
-        modifier = Modifier
-            .widthIn(max = 180.dp)
-            .onSizeChanged { onGetSize(it) }
-            .offset {
-                IntOffset(
-                    note.posX.roundToInt(), note.posY.roundToInt()
-                )
-            }
-            .graphicsLayer {
-                rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
+    Box(modifier = Modifier
+        .widthIn(max = 180.dp)
+        .onSizeChanged { onGetSize(it) }
+        .offset { IntOffset(note.posX.roundToInt(), note.posY.roundToInt()) }
+        .graphicsLayer {
+            rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
 
-                if (isDraggable) {
-                    val scaleValue =
-                        if (isDragging || (isSelectionMode && isSelected)) 1.15f else 1f
-                    scaleX = scaleValue
-                    scaleY = scaleValue
-                }
+            if (isDraggable) {
+                val scaleValue =
+                    if (isDragging || (isSelectionMode && note.isSelected)) 1.15f else 1f
+                scaleX = scaleValue
+                scaleY = scaleValue
             }
-            .neumorphicShadow(backgroundColor = Color("#${note.color}".toColorInt()))
-            .border(
-                width = if (isSelectionMode && isSelected) 3.dp else 0.dp,
-                color = if (isSelectionMode && isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(16.dp)
-            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
-                detectTapGestures(
-                    onTap = { tapOffset ->
-                        val absoluteTapPos = Offset(
-                            newOffset.x + tapOffset.x, newOffset.y + tapOffset.y
-                        )
-                        onSelect(note, absoluteTapPos)
-                        isDragging = false
-                    })
-            }
-            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
-                detectDragGestures(
-                    onDragStart = { isDragging = true },
-                    onDragEnd = { isDragging = false },
-                    onDragCancel = { isDragging = false },
-                    onDrag = { change, dragAmount ->
-                        if (!isSelectionMode && !isConnectionMode) {
-                            change.consume()
-                            newOffset += dragAmount
-                            updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
-                        }
-                    })
-            }) {
+        }
+        .neumorphicShadow(backgroundColor = Color("#${note.color}".toColorInt()))
+        .border(
+            width = if (isSelectionMode && note.isSelected) 3.dp else 0.dp,
+            color = if (isSelectionMode && note.isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+            shape = RoundedCornerShape(12.dp)
+        )
+        .padding(16.dp)
+        .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
+            detectTapGestures(
+                onTap = { tapOffset ->
+                    val absoluteTapPos = Offset(
+                        newOffset.x + tapOffset.x, newOffset.y + tapOffset.y
+                    )
+                    onSelect(note, absoluteTapPos)
+                    isDragging = false
+                })
+        }
+        .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
+            detectDragGestures(
+                onDragStart = { isDragging = true },
+                onDragEnd = { isDragging = false },
+                onDragCancel = { isDragging = false },
+                onDrag = { change, dragAmount ->
+                    if (!isSelectionMode && !isConnectionMode) {
+                        change.consume()
+                        newOffset += dragAmount
+                        updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
+                    }
+                })
+        }) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
@@ -192,9 +186,7 @@ fun GridBackgroundComponent(scale: Float, offset: Offset) {
 @Composable
 fun OverflowMenuItem(title: String, onClick: () -> Unit) {
     Surface(
-        color = MaterialTheme.colorScheme.background,
-        tonalElevation = 8.dp,
-        shadowElevation = 4.dp
+        color = MaterialTheme.colorScheme.background, tonalElevation = 8.dp, shadowElevation = 4.dp
     ) {
         Box(
             modifier = Modifier.clickable { onClick() }) {

@@ -297,7 +297,6 @@ fun BoardEditor(
                     }
                 },
                 isSelectionMode = isSelectionMode,
-                isSelected = n.isSelected,
                 isConnectionMode = isConnectionMode
             )
         }
