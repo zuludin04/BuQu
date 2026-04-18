@@ -43,6 +43,7 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorGridFour
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.ui.quote.TasksEmptyContent
@@ -86,7 +87,7 @@ fun CategorySelectScreen(
         }
     ) { paddingValues ->
         if (uiState.categories.isEmpty()) {
-            TasksEmptyContent()
+            TasksEmptyContent(icon = PhosphorGridFour, message = R.string.empty_category_message)
         } else {
             LazyColumn(modifier = Modifier.padding(paddingValues)) {
                 items(uiState.categories) { cat ->

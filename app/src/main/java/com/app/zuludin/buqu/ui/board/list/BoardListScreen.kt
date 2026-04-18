@@ -84,7 +84,7 @@ private fun BoardListContent(
             CircularProgressIndicator()
         }
     } else {
-        TasksEmptyContent()
+        TasksEmptyContent(icon = PhosphorChalkboardSimple, message = R.string.empty_board_message)
     }
 }
 

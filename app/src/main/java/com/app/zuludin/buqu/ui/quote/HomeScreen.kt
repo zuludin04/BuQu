@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.quote
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,8 +33,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,6 +43,7 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.NoteCard
 import com.app.zuludin.buqu.core.icons.PhosphorListDashes
+import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
 import kotlinx.coroutines.launch
@@ -124,7 +126,7 @@ private fun HomeContent(
         }
 
         if (quotes.isEmpty()) {
-            TasksEmptyContent()
+            TasksEmptyContent(icon = PhosphorNote, message = R.string.empty_quote_message)
         } else {
             val refreshScope = rememberCoroutineScope()
             val state = rememberPullRefreshState(
@@ -167,20 +169,20 @@ private fun HomeContent(
 }
 
 @Composable
-fun TasksEmptyContent(modifier: Modifier = Modifier) {
+fun TasksEmptyContent(modifier: Modifier = Modifier, icon: ImageVector, @StringRes message: Int) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_empty),
+            imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(96.dp),
             tint = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            stringResource(R.string.empty_quote_message),
+            stringResource(message),
             color = MaterialTheme.colorScheme.onBackground
         )
     }
