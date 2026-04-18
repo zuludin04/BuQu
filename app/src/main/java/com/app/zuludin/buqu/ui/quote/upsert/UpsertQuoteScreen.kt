@@ -1,11 +1,6 @@
 package com.app.zuludin.buqu.ui.quote.upsert
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,12 +20,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -38,15 +29,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
-import com.app.zuludin.buqu.core.compose.TextSelectionDialog
+import com.app.zuludin.buqu.core.compose.MediaFileScanner
 import com.app.zuludin.buqu.core.compose.TitleInputField
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
@@ -55,10 +43,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
-import com.app.zuludin.buqu.core.utils.createImageFile
-import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Quote
-import java.util.Objects
 
 @Suppress("DEPRECATION")
 @Composable
@@ -70,51 +55,11 @@ fun UpsertQuoteScreen(
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
-    val context = LocalContext.current
-
     val speechRecognizerLauncher =
         rememberLauncherForActivityResult(contract = SpeechRecognizerContract(), onResult = {
             val result = it.toString()
             viewModel.updateQuote(result.substring(1, result.length - 1))
         })
-
-    val file = remember { context.createImageFile() }
-    val uri = FileProvider.getUriForFile(
-        Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
-    )
-
-    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var showTextSelection by remember { mutableStateOf(false) }
-
-    val cameraLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                capturedBitmap = context.fixImageRotation(uri)
-                showTextSelection = true
-            }
-        }
-
-    if (showTextSelection && capturedBitmap != null) {
-        TextSelectionDialog(
-            bitmap = capturedBitmap!!,
-            onDismiss = { showTextSelection = !showTextSelection },
-            onTextSelected = { selectedText ->
-                viewModel.updateQuote(selectedText)
-                showTextSelection = !showTextSelection
-            }
-        )
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        if (it) {
-            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -164,17 +109,11 @@ fun UpsertQuoteScreen(
                     Icon(PhosphorMicrophone, "Localized description")
                 }
 
-                IconButton(onClick = {
-                    val permissionCheckResult =
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                        cameraLauncher.launch(uri)
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                }) {
-                    Icon(PhosphorAperture, "Localized description")
-                }
+                MediaFileScanner(
+                    imageVector = PhosphorAperture,
+                    isOpenCamera = true,
+                    onTextSelected = { viewModel.updateQuote(it) }
+                )
             }, floatingActionButton = {
                 FloatingActionButton(
                     modifier = Modifier.testTag("AddNewQuote"),

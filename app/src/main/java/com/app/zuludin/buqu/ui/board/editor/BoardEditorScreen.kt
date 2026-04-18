@@ -1,12 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -36,28 +30,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionOnScreen
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
-import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.utils.SpeechRecognizerContract
-import com.app.zuludin.buqu.core.utils.createImageFile
-import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
-import java.util.Objects
 import kotlin.math.roundToInt
 
 @Composable
@@ -90,55 +76,6 @@ fun BoardEditorScreen(
             noteText = result.substring(1, result.length - 1)
             showAddNoteSheet = true
         })
-
-    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var showTextSelection by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-
-    val file = remember { context.createImageFile() }
-    val uri = FileProvider.getUriForFile(
-        Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
-    )
-
-    val cameraLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                capturedBitmap = context.fixImageRotation(uri)
-                showTextSelection = true
-            }
-        }
-
-    val galleryLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { success ->
-            if (success != null) {
-                capturedBitmap = context.fixImageRotation(success)
-                showTextSelection = true
-            }
-        }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        if (it) {
-            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    if (showTextSelection && capturedBitmap != null) {
-        TextSelectionDialog(
-            bitmap = capturedBitmap!!,
-            onDismiss = { showTextSelection = !showTextSelection },
-            onTextSelected = { selectedText ->
-                noteText = selectedText
-                showTextSelection = !showTextSelection
-                showAddNoteSheet = true
-            }
-        )
-    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -182,22 +119,9 @@ fun BoardEditorScreen(
         },
         bottomBar = {
             BottomBarEditor(
-                onCameraScan = {
-                    val permissionCheckResult = ContextCompat.checkSelfPermission(
-                        context, Manifest.permission.CAMERA
-                    )
-                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                        cameraLauncher.launch(uri)
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                },
-                onGalleryScan = {
-                    galleryLauncher.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
-                    )
+                onScanText = { text ->
+                    noteText = text
+                    showAddNoteSheet = true
                 },
                 onSpeechToText = { speechRecognizerLauncher.launch(Unit) },
                 onAddNote = { showAddNoteSheet = true },
