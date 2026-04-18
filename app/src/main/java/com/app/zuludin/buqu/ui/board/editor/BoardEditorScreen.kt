@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.rememberScaffoldState
@@ -77,6 +78,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -191,8 +194,7 @@ fun BoardEditorScreen(
                 noteText = selectedText
                 showTextSelection = !showTextSelection
                 showAddNoteSheet = true
-            }
-        )
+            })
     }
 
     Scaffold(
@@ -201,108 +203,80 @@ fun BoardEditorScreen(
         topBar = {
             BuQuToolbar(
                 title = if (uiState.isSelectionMode) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
-                    ?: topAppBarTitle),
-                backButton = {
-                    IconButton(
-                        onClick = {
-                            if (uiState.isSelectionMode) {
-                                viewModel.toggleSelectionModel()
-                                viewModel.clearNoteIds()
-                            } else {
-                                onBack()
-                            }
-                        },
-                        content = {
-                            Icon(
-                                if (uiState.isSelectionMode) PhosphorX else PhosphorArrowLeft,
-                                null
-                            )
+                    ?: topAppBarTitle), backButton = {
+                    IconButton(onClick = {
+                        if (uiState.isSelectionMode) {
+                            viewModel.toggleSelectionModel()
+                            viewModel.clearNoteIds()
+                        } else {
+                            onBack()
                         }
-                    )
-                },
-                actions = {
+                    }, content = {
+                        Icon(
+                            if (uiState.isSelectionMode) PhosphorX else PhosphorArrowLeft, null
+                        )
+                    })
+                }, actions = {
                     if (uiState.isSelectionMode) {
                         IconButton(
                             onClick = { viewModel.deleteSelectedNotes() },
-                            content = { Icon(PhosphorTrash, null) }
-                        )
+                            content = { Icon(PhosphorTrash, null) })
                     } else {
-                        IconButton(
-                            onClick = {
-                                if (uiState.board == null) {
-                                    showBoardNameDialog = true
-                                } else {
-                                    viewModel.saveBoardAndCards(uiState.board?.name ?: "Board")
-                                }
-                            },
-                            content = { Icon(PhosphorCheck, null) }
-                        )
+                        IconButton(onClick = {
+                            if (uiState.board == null) {
+                                showBoardNameDialog = true
+                            } else {
+                                viewModel.saveBoardAndCards(uiState.board?.name ?: "Board")
+                            }
+                        }, content = { Icon(PhosphorCheck, null) })
                     }
-                }
-            )
+                })
         },
         bottomBar = {
-            BottomAppBar(
-                actions = {
-                    IconButton(
-                        onClick = {
-                            val permissionCheckResult =
-                                ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.CAMERA
-                                )
-                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                cameraLauncher.launch(uri)
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.CAMERA)
-                            }
-                        },
-                        content = { Icon(PhosphorAperture, null) }
+            BottomAppBar(actions = {
+                IconButton(onClick = {
+                    val permissionCheckResult = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.CAMERA
                     )
-                    IconButton(
-                        onClick = {
-                            galleryLauncher.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
-                            )
-                        },
-                        content = { Icon(PhosphorImage, null) }
+                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                        cameraLauncher.launch(uri)
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                }, content = { Icon(PhosphorAperture, null) })
+                IconButton(onClick = {
+                    galleryLauncher.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
                     )
-                    IconButton(
-                        onClick = { speechRecognizerLauncher.launch(Unit) },
-                        content = { Icon(PhosphorMicrophone, null) }
-                    )
-                    IconButton(
-                        modifier = Modifier.onGloballyPositioned {
-                            overflowMenuPosition = it.positionOnScreen()
-                        },
-                        onClick = {
-                            showOverflowMenu = true
-                        },
-                        content = { Icon(PhosphorDotsThreeVertical, null) }
-                    )
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-                        content = { Icon(PhosphorPlus, null) },
-                        onClick = { showAddNoteSheet = true },
-                    )
-                }
-            )
-        }
-    ) { paddingValues ->
+                }, content = { Icon(PhosphorImage, null) })
+                IconButton(
+                    onClick = { speechRecognizerLauncher.launch(Unit) },
+                    content = { Icon(PhosphorMicrophone, null) })
+                IconButton(modifier = Modifier.onGloballyPositioned {
+                    overflowMenuPosition = it.positionOnScreen()
+                }, onClick = {
+                    showOverflowMenu = true
+                }, content = { Icon(PhosphorDotsThreeVertical, null) })
+            }, floatingActionButton = {
+                FloatingActionButton(
+                    containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+                    content = { Icon(PhosphorPlus, null) },
+                    onClick = { showAddNoteSheet = true },
+                )
+            })
+        }) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .border(
                     width = if (uiState.isConnectionMode || uiState.isSelectionMode) 4.dp else 0.dp,
-                    color = if (uiState.isConnectionMode)
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    else if (uiState.isSelectionMode)
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+                    color = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.5f
+                    )
+                    else if (uiState.isSelectionMode) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
                     else Color.Transparent
                 )
         ) {
@@ -380,8 +354,7 @@ fun BoardEditorScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Surface(
-                        color = if (uiState.isConnectionMode)
-                            MaterialTheme.colorScheme.primary
+                        color = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.secondary,
                         shape = RoundedCornerShape(20.dp),
                         tonalElevation = 6.dp
@@ -402,8 +375,7 @@ fun BoardEditorScreen(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = if (uiState.isConnectionMode)
-                                "Tap two cards to link them"
+                            text = if (uiState.isConnectionMode) "Tap two cards to link them"
                             else "Tap cards to select/deselect",
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
@@ -441,16 +413,13 @@ fun BoardEditorScreen(
                             alpha = 0.9f
                         ) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
                         shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
-                    ),
-                    onClick = { viewModel.toggleSelectionModel() },
-                    content = {
+                    ), onClick = { viewModel.toggleSelectionModel() }, content = {
                         Icon(
                             imageVector = PhosphorSelectionAll,
                             contentDescription = null,
                             tint = if (uiState.isSelectionMode) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
-                )
+                    })
             }
         }
     }
@@ -473,22 +442,18 @@ fun BoardEditorScreen(
             onConfirm = { name, color ->
                 viewModel.saveBoardAndCards(name, color)
                 showBoardNameDialog = !showBoardNameDialog
-            }
-        )
+            })
     }
 
     if (showConnectionSheet) {
         TheoryBottomDialog(
-            source = uiState.sourceNote!!,
-            notes = uiState.notes,
-            onDismiss = {
+            source = uiState.sourceNote!!, notes = uiState.notes, onDismiss = {
                 showConnectionSheet = !showConnectionSheet
                 if (it != null) {
                     val note = uiState.notes.first { n -> n.noteId == it.noteId }
                     viewModel.connectNoteWithRope(note)
                 }
-            }
-        )
+            })
     }
 
     if (showAddNoteSheet) {
@@ -498,29 +463,22 @@ fun BoardEditorScreen(
             onConfirm = { content, color ->
                 viewModel.addNote(content, color)
                 showAddNoteSheet = !showAddNoteSheet
-            }
-        )
+            })
     }
 
     if (showOverflowMenu) {
         Popup(
             offset = IntOffset(
-                overflowMenuPosition.x.roundToInt() + 80,
-                overflowMenuPosition.y.roundToInt() - 180
-            ),
-            onDismissRequest = { showOverflowMenu = !showOverflowMenu }
-        ) {
+                overflowMenuPosition.x.roundToInt() + 80, overflowMenuPosition.y.roundToInt() - 180
+            ), onDismissRequest = { showOverflowMenu = !showOverflowMenu }) {
             Column(modifier = Modifier.widthIn(max = 120.dp)) {
                 Surface(
-                    color = Color.White,
-                    tonalElevation = 8.dp,
-                    shadowElevation = 4.dp
+                    color = Color.White, tonalElevation = 8.dp, shadowElevation = 4.dp
                 ) {
                     Box(
                         modifier = Modifier.clickable {
                             showOverflowMenu = !showOverflowMenu
-                        }
-                    ) {
+                        }) {
                         Text(
                             "Auto Layout",
                             Modifier
@@ -531,15 +489,12 @@ fun BoardEditorScreen(
                     }
                 }
                 Surface(
-                    color = Color.White,
-                    tonalElevation = 8.dp,
-                    shadowElevation = 4.dp
+                    color = Color.White, tonalElevation = 8.dp, shadowElevation = 4.dp
                 ) {
                     Box(
                         modifier = Modifier.clickable {
                             showOverflowMenu = false
-                        }
-                    ) {
+                        }) {
                         Text(
                             "Settings",
                             Modifier
@@ -556,88 +511,75 @@ fun BoardEditorScreen(
 
 @Composable
 fun BoardNameDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
+    onDismiss: () -> Unit, onConfirm: (String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     val colors = listOf(
-        "E1F5FE", "FFF9C4", "F1F8E9",
-        "FFEBEE", "F3E5F5", "EFEBE9"
+        "E1F5FE", "FFF9C4", "F1F8E9", "FFEBEE", "F3E5F5", "EFEBE9"
     )
     var selectedColor by remember { mutableStateOf(colors[0]) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Save Board") },
-        text = {
-            Column {
-                Text("Please enter a name and pick a color for this board.")
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = { Text("Board Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Text("Board Theme", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(12.dp))
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Save Board") }, text = {
+        Column {
+            Text("Please enter a name and pick a color for this board.")
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    colors.forEach { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Color("#${color}".toColorInt()))
-                                .border(
-                                    width = if (selectedColor == color) 3.dp else 1.dp,
-                                    color = if (selectedColor == color)
-                                        MaterialTheme.colorScheme.primary
-                                    else Color.LightGray.copy(alpha = 0.5f),
-                                    shape = CircleShape
-                                )
-                                .clickable { selectedColor = color }
-                        )
-                    }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text("Board Name") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text("Board Theme", style = MaterialTheme.typography.labelLarge)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                colors.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color("#${color}".toColorInt()))
+                            .border(
+                                width = if (selectedColor == color) 3.dp else 1.dp,
+                                color = if (selectedColor == color) MaterialTheme.colorScheme.primary
+                                else Color.LightGray.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            )
+                            .clickable { selectedColor = color })
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (name.isNotBlank()) onConfirm(name, selectedColor) },
-                enabled = name.isNotBlank()
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
         }
-    )
+    }, confirmButton = {
+        TextButton(
+            onClick = { if (name.isNotBlank()) onConfirm(name, selectedColor) },
+            enabled = name.isNotBlank()
+        ) {
+            Text("Save")
+        }
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteInputDialog(
-    inputText: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
+    inputText: String, onDismiss: () -> Unit, onConfirm: (String, String) -> Unit
 ) {
     var text by remember { mutableStateOf(inputText) }
     val colors = listOf(
-        "E1F5FE", "FFF9C4", "F1F8E9",
-        "FFEBEE", "F3E5F5", "EFEBE9"
+        "E1F5FE", "FFF9C4", "F1F8E9", "FFEBEE", "F3E5F5", "EFEBE9"
     )
     var selectedColor by remember { mutableStateOf(colors[0]) }
     val sheetState = rememberModalBottomSheetState()
@@ -645,8 +587,7 @@ fun NoteInputDialog(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() }
-    ) {
+        dragHandle = { BottomSheetDefaults.DragHandle() }) {
         Column(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
@@ -667,6 +608,10 @@ fun NoteInputDialog(
                 placeholder = { Text("What's on your mind?") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done,
+                    capitalization = KeyboardCapitalization.Sentences
+                ),
                 minLines = 3,
                 maxLines = 5,
                 trailingIcon = {
@@ -675,24 +620,17 @@ fun NoteInputDialog(
                             Icon(PhosphorXCircle, null)
                         }
                     }
-                }
-            )
+                })
 
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 InputHelperChip(
-                    label = "Voice",
-                    icon = PhosphorMicrophone,
-                    onClick = { }
-                )
+                    label = "Voice", icon = PhosphorMicrophone, onClick = { })
 
                 InputHelperChip(
-                    label = "Scan",
-                    icon = PhosphorAperture,
-                    onClick = { }
-                )
+                    label = "Scan", icon = PhosphorAperture, onClick = { })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -712,13 +650,11 @@ fun NoteInputDialog(
                             .background(Color("#${color}".toColorInt()))
                             .border(
                                 width = if (selectedColor == color) 3.dp else 1.dp,
-                                color = if (selectedColor == color)
-                                    MaterialTheme.colorScheme.primary
+                                color = if (selectedColor == color) MaterialTheme.colorScheme.primary
                                 else Color.LightGray.copy(alpha = 0.5f),
                                 shape = CircleShape
                             )
-                            .clickable { selectedColor = color }
-                    )
+                            .clickable { selectedColor = color })
                 }
             }
 
@@ -740,9 +676,7 @@ fun NoteInputDialog(
 
 @Composable
 fun InputHelperChip(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit
+    label: String, icon: ImageVector, onClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
@@ -784,10 +718,7 @@ fun BoardEditor(
         modifier = modifier
             .fillMaxSize()
             .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
+                scaleX = scale, scaleY = scale, translationX = offset.x, translationY = offset.y
             )
             .transformable(state = state)
     ) {
@@ -842,8 +773,7 @@ fun BoardEditor(
                             modifier = Modifier.clickable {
                                 onConnectCard(selectedNote!!)
                                 showMenu = false
-                            }
-                        ) {
+                            }) {
                             Text("Connect Note", Modifier.align(Alignment.Center))
                         }
                     }
@@ -856,9 +786,7 @@ fun BoardEditor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TheoryBottomDialog(
-    source: NoteCard,
-    notes: List<NoteCard>,
-    onDismiss: (NoteCard?) -> Unit
+    source: NoteCard, notes: List<NoteCard>, onDismiss: (NoteCard?) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     val potentialTargets = notes.filter { it.noteId != source.noteId }
@@ -913,9 +841,7 @@ fun TheoryBottomDialog(
                                 .clickable {
                                     onDismiss(target)
                                 }
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                                .padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(12.dp)
@@ -949,22 +875,15 @@ fun TheoryBottomDialog(
 
 @Composable
 fun DraggableYarn(
-    initialRope: Offset,
-    targetRope: Offset,
-    sourceSize: IntSize,
-    targetSize: IntSize
+    initialRope: Offset, targetRope: Offset, sourceSize: IntSize, targetSize: IntSize
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val startCenterOffset =
-            Offset(
-                sourceSize.width.pxToDp().toPx() / 2,
-                sourceSize.height.pxToDp().toPx() / 2
-            )
-        val targetCenterOffset =
-            Offset(
-                targetSize.width.pxToDp().toPx() / 2,
-                targetSize.height.pxToDp().toPx() / 2
-            )
+        val startCenterOffset = Offset(
+            sourceSize.width.pxToDp().toPx() / 2, sourceSize.height.pxToDp().toPx() / 2
+        )
+        val targetCenterOffset = Offset(
+            targetSize.width.pxToDp().toPx() / 2, targetSize.height.pxToDp().toPx() / 2
+        )
 
         drawLine(
             color = Color(0xFF7D5260),
@@ -998,8 +917,7 @@ fun DraggableCard(
             .onSizeChanged { onGetSize(it) }
             .offset {
                 IntOffset(
-                    note.posX.roundToInt(),
-                    note.posY.roundToInt()
+                    note.posX.roundToInt(), note.posY.roundToInt()
                 )
             }
             .graphicsLayer {
@@ -1024,13 +942,11 @@ fun DraggableCard(
                 detectTapGestures(
                     onTap = { tapOffset ->
                         val absoluteTapPos = Offset(
-                            newOffset.x + tapOffset.x,
-                            newOffset.y + tapOffset.y
+                            newOffset.x + tapOffset.x, newOffset.y + tapOffset.y
                         )
                         onSelect(note, absoluteTapPos)
                         isDragging = false
-                    }
-                )
+                    })
             }
             .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
                 detectDragGestures(
@@ -1043,10 +959,8 @@ fun DraggableCard(
                             newOffset += dragAmount
                             updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
                         }
-                    }
-                )
-            }
-    ) {
+                    })
+            }) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             // Visual "Tape" or "Pin" element
             Box(

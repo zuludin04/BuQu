@@ -175,7 +175,7 @@ class BoardEditorViewModel @Inject constructor(
             val ropes = _uiState.value.ropes.toMutableList()
             ropes.add(rope)
             _uiState.update {
-                it.copy(ropes = ropes)
+                it.copy(ropes = ropes, sourceNote = null)
             }
         }
     }
