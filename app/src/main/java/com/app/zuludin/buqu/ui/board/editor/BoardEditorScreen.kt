@@ -27,8 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -55,8 +53,6 @@ fun BoardEditorScreen(
 
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
-    var showOverflowMenu by remember { mutableStateOf(false) }
-    var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
     var showBoardNameDialog by remember { mutableStateOf(false) }
 
     var scale by remember { mutableFloatStateOf(1f) }
@@ -74,19 +70,23 @@ fun BoardEditorScreen(
         topBar = {
             BuQuToolbar(
                 title = if (uiState.isSelectionMode) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
-                    ?: topAppBarTitle), backButton = {
-                    IconButton(onClick = {
-                        if (uiState.isSelectionMode) {
-                            viewModel.toggleSelectionModel()
-                            viewModel.clearNoteIds()
-                        } else {
-                            onBack()
+                    ?: topAppBarTitle),
+                backButton = {
+                    IconButton(
+                        onClick = {
+                            if (uiState.isSelectionMode) {
+                                viewModel.toggleSelectionModel()
+                                viewModel.clearNoteIds()
+                            } else {
+                                onBack()
+                            }
+                        },
+                        content = {
+                            Icon(
+                                if (uiState.isSelectionMode) PhosphorX else PhosphorArrowLeft, null
+                            )
                         }
-                    }, content = {
-                        Icon(
-                            if (uiState.isSelectionMode) PhosphorX else PhosphorArrowLeft, null
-                        )
-                    })
+                    )
                 }, actions = {
                     if (uiState.isSelectionMode) {
                         IconButton(
@@ -115,10 +115,6 @@ fun BoardEditorScreen(
                     showAddNoteSheet = true
                 },
                 onAddNote = { showAddNoteSheet = true },
-                onOpenOverflowMenu = { showOverflowMenu = true },
-                overflowModifier = Modifier.onGloballyPositioned {
-                    overflowMenuPosition = it.positionOnScreen()
-                }
             )
         }
     ) { paddingValues ->
@@ -224,7 +220,9 @@ fun BoardEditorScreen(
 
     if (showConnectionSheet) {
         NoteConnectDialog(
-            source = uiState.sourceNote!!, notes = uiState.notes, onDismiss = {
+            source = uiState.sourceNote!!,
+            notes = uiState.notes,
+            onDismiss = {
                 showConnectionSheet = !showConnectionSheet
                 if (it != null) {
                     val note = uiState.notes.first { n -> n.noteId == it.noteId }
@@ -243,27 +241,6 @@ fun BoardEditorScreen(
                 showAddNoteSheet = !showAddNoteSheet
             }
         )
-    }
-
-    if (showOverflowMenu) {
-        Popup(
-            offset = IntOffset(
-                overflowMenuPosition.x.roundToInt() + 80,
-                overflowMenuPosition.y.roundToInt() - 180
-            ),
-            onDismissRequest = { showOverflowMenu = !showOverflowMenu }
-        ) {
-            Column(modifier = Modifier.widthIn(max = 120.dp)) {
-                OverflowMenuItem(
-                    title = "Auto Layout",
-                    onClick = { showOverflowMenu = !showOverflowMenu }
-                )
-                OverflowMenuItem(
-                    title = "Settings",
-                    onClick = { showOverflowMenu = !showOverflowMenu }
-                )
-            }
-        }
     }
 }
 
