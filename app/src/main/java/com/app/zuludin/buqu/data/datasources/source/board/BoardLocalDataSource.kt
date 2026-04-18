@@ -4,6 +4,7 @@ import com.app.zuludin.buqu.data.datasources.database.dao.BoardDao
 import com.app.zuludin.buqu.data.datasources.database.dao.NoteCardDao
 import com.app.zuludin.buqu.data.datasources.database.dao.RopeDao
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
@@ -18,6 +19,9 @@ class BoardLocalDataSource @Inject constructor(
     private val ropeDao: RopeDao
 ) : IBoardLocalDataSource {
     override fun getBoards(): Flow<List<BoardEntity>> = boardDao.observeAllBoards()
+
+    override fun getBoardTotalNote(): Flow<List<BoardTotalNoteEntity>> =
+        boardDao.observeBoardTotalNote()
 
     override suspend fun getBoardById(boardId: String): BoardEntity? = boardDao.getById(boardId)
 

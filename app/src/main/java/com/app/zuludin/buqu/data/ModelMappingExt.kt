@@ -2,6 +2,7 @@ package com.app.zuludin.buqu.data
 
 import androidx.compose.ui.unit.IntSize
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
@@ -58,8 +59,15 @@ fun BoardEntity.toExternal() = Board(
     color = color
 )
 
+fun BoardTotalNoteEntity.toExternal() = Board(
+    boardId = boardId,
+    name = name,
+    color = color,
+    totalNote = totalNote
+)
+
 @JvmName("localToExternalBoard")
-fun List<BoardEntity>.toExternal() = map(BoardEntity::toExternal)
+fun List<BoardTotalNoteEntity>.toExternal() = map(BoardTotalNoteEntity::toExternal)
 
 fun NoteCard.toLocal() = NoteCardEntity(
     noteId = noteId,

@@ -1,6 +1,7 @@
 package com.app.zuludin.buqu.data.datasources.source.board
 
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
@@ -8,6 +9,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface IBoardLocalDataSource {
     fun getBoards(): Flow<List<BoardEntity>>
+
+    fun getBoardTotalNote(): Flow<List<BoardTotalNoteEntity>>
 
     suspend fun getBoardById(boardId: String): BoardEntity?
 

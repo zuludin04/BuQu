@@ -20,7 +20,7 @@ class BoardRepository @Inject constructor(
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : IBoardRepository {
     override fun getBoards(): Flow<List<Board>> {
-        return localSource.getBoards().map { boards ->
+        return localSource.getBoardTotalNote().map { boards ->
             withContext(dispatcher) {
                 boards.toExternal()
             }
