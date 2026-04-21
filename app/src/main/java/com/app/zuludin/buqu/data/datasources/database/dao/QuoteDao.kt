@@ -14,6 +14,9 @@ interface QuoteDao {
     @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId")
     fun observeAllQuotes(): Flow<List<CategoryAndQuoteEntity>>
 
+    @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId")
+    suspend fun loadQuotes(): List<CategoryAndQuoteEntity>
+
     @Transaction
     @Query("SELECT * FROM quote INNER JOIN category ON quote.categoryId = category.categoryId WHERE quoteId = :quoteId")
     suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity?

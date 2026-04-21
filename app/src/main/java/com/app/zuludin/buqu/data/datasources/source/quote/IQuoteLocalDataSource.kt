@@ -6,7 +6,9 @@ import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
 import kotlinx.coroutines.flow.Flow
 
 interface IQuoteLocalDataSource {
-    fun getQuotes(): Flow<List<CategoryAndQuoteEntity>>
+    fun getQuotesCategory(): Flow<List<CategoryAndQuoteEntity>>
+
+    suspend fun loadQuotes(): List<CategoryAndQuoteEntity>
 
     suspend fun getQuotesByCategory(categoryId: String): List<CategoryAndQuoteEntity>
 

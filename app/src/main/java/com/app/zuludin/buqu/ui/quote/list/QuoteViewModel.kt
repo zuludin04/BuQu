@@ -34,7 +34,7 @@ class QuoteViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow<Category?>(null)
 
     private val baseState: Flow<QuoteUiState> = combine(
-        quoteRepository.getQuotes(),
+        quoteRepository.observeQuotes(),
         categoryRepository.getCategories()
     ) { quotes, categories ->
         QuoteUiState(quotes = quotes, categories = categories, isLoading = false)

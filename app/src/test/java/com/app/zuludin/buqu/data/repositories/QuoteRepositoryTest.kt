@@ -39,12 +39,12 @@ class QuoteRepositoryTest {
     }
 
     @Test
-    fun getQuotes_successLoadAllQuotes() = runTest {
+    fun observeQuotes_successLoadAllQuotes() = runTest {
         val quotes = DataDummy.generateQuoteDummy().map { it.toQuoteAndCategory() }
         val data = flow { emit(quotes) }
-        `when`(localSource.getQuotes()).thenReturn(data)
+        `when`(localSource.getQuotesCategory()).thenReturn(data)
 
-        val actual = repository.getQuotes().first()
+        val actual = repository.observeQuotes().first()
 
         assertNotNull(actual)
         assertTrue(actual.isNotEmpty())
@@ -64,7 +64,7 @@ class QuoteRepositoryTest {
     }
 
     @Test
-    fun getQuotesByCategory_successLoadQuotes() = runTest {
+    fun observeQuotesByCategory_successLoadQuotes() = runTest {
         val quotes = DataDummy.generateQuoteDummy().map { it.toQuoteAndCategory() }
         val filtered = quotes.filter { it.categoryId == "Category1" }
         `when`(localSource.getQuotesByCategory("Category1")).thenReturn(filtered)

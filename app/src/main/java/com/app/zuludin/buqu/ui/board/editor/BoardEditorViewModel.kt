@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.data.repositories.BoardRepository
 import com.app.zuludin.buqu.data.repositories.NoteCardRepository
+import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.data.repositories.RopeRepository
 import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.NoteCard
+import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +32,8 @@ data class BoardEditorUiState(
     val deletedRopes: List<Rope> = emptyList(),
     val isConnectionMode: Boolean = false,
     val errorConnectSameNote: Boolean = false,
-    val successSaveBoard: Boolean = false
+    val successSaveBoard: Boolean = false,
+    val quotes: List<Quote> = emptyList()
 )
 
 @HiltViewModel
@@ -38,6 +41,7 @@ class BoardEditorViewModel @Inject constructor(
     private val boardRepository: BoardRepository,
     private val noteRepository: NoteCardRepository,
     private val ropeRepository: RopeRepository,
+    private val quoteRepository: QuoteRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boardId: String? = savedStateHandle[BuquDestinationArgs.BOARD_ID_ARG]
@@ -53,6 +57,7 @@ class BoardEditorViewModel @Inject constructor(
         } else {
             currentBoardId = UUID.randomUUID().toString()
         }
+        loadQuotes()
     }
 
     fun loadData(boardId: String) {
@@ -93,13 +98,13 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun addNote(title: String, color: String) {
+    fun addNote(title: String, color: String, posX: Float = 100f, posY: Float = 100f) {
         val note = NoteCard(
             noteId = UUID.randomUUID().toString(),
             boardId = boardId ?: currentBoardId,
             title = title,
-            posX = 100f,
-            posY = 100f,
+            posX = posX,
+            posY = posY,
             color = color,
             size = IntSize.Zero
         )
@@ -301,6 +306,21 @@ class BoardEditorViewModel @Inject constructor(
     fun snackbarMessageShown() {
         _uiState.update {
             it.copy(errorConnectSameNote = false, successSaveBoard = false)
+        }
+    }
+
+    fun loadQuotes() {
+        viewModelScope.launch {
+            val quotes = quoteRepository.loadQuotes()
+            _uiState.update { it.copy(quotes = quotes) }
+        }
+    }
+
+    fun importQuotes() {
+        val quotes = _uiState.value.quotes
+        quotes.forEachIndexed { i, q ->
+            val space = (i + 1) * 250f
+            addNote(q.quote, q.color, posX = space)
         }
     }
 }

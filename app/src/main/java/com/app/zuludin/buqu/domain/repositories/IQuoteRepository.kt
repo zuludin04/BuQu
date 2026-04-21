@@ -4,7 +4,9 @@ import com.app.zuludin.buqu.domain.models.Quote
 import kotlinx.coroutines.flow.Flow
 
 interface IQuoteRepository {
-    fun getQuotes(): Flow<List<Quote>>
+    fun observeQuotes(): Flow<List<Quote>>
+
+    suspend fun loadQuotes(): List<Quote>
 
     suspend fun getQuoteById(quoteId: String): Quote?
 

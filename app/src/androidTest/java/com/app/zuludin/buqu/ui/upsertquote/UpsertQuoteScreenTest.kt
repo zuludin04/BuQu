@@ -95,7 +95,7 @@ class UpsertQuoteScreenTest {
 
         composeTestRule.onNodeWithText("Make sure to fill all forms").assertIsNotDisplayed()
 
-        val quote = quoteRepo.getQuotes().first()
+        val quote = quoteRepo.observeQuotes().first()
         assertNotNull(quote)
         assertTrue(quote.isNotEmpty())
         assertEquals("Hallo", quote[0].quote)

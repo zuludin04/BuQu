@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
+import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.domain.models.NoteCard
@@ -54,6 +55,7 @@ fun BoardEditorScreen(
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showBoardNameDialog by remember { mutableStateOf(false) }
+    var showImportQuotesDialog by remember { mutableStateOf(false) }
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -94,6 +96,10 @@ fun BoardEditorScreen(
                             content = { Icon(PhosphorTrash, null) }
                         )
                     } else {
+                        IconButton(
+                            onClick = { showImportQuotesDialog = true },
+                            content = { Icon(PhosphorNote, null) }
+                        )
                         IconButton(
                             onClick = {
                                 if (uiState.board == null) {
@@ -239,6 +245,17 @@ fun BoardEditorScreen(
             onConfirm = { content, color ->
                 viewModel.addNote(content, color)
                 showAddNoteSheet = !showAddNoteSheet
+            }
+        )
+    }
+
+    if (showImportQuotesDialog) {
+        ImportQuotesDialog(
+            quotes = uiState.quotes,
+            onDismiss = { showImportQuotesDialog = !showImportQuotesDialog },
+            onImportQuotes = {
+                viewModel.importQuotes()
+                showImportQuotesDialog = !showImportQuotesDialog
             }
         )
     }

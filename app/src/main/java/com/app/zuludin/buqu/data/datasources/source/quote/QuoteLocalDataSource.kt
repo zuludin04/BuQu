@@ -15,7 +15,10 @@ class QuoteLocalDataSource @Inject constructor(
     private val categoryDao: CategoryDao
 ) : IQuoteLocalDataSource {
 
-    override fun getQuotes(): Flow<List<CategoryAndQuoteEntity>> = quoteDao.observeAllQuotes()
+    override fun getQuotesCategory(): Flow<List<CategoryAndQuoteEntity>> =
+        quoteDao.observeAllQuotes()
+
+    override suspend fun loadQuotes(): List<CategoryAndQuoteEntity> = quoteDao.loadQuotes()
 
     override suspend fun getQuotesByCategory(categoryId: String): List<CategoryAndQuoteEntity> =
         quoteDao.quoteByCategory(categoryId)

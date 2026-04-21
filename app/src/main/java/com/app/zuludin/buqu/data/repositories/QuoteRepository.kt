@@ -19,12 +19,16 @@ class QuoteRepository @Inject constructor(
     private val localSource: QuoteLocalDataSource,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : IQuoteRepository {
-    override fun getQuotes(): Flow<List<Quote>> {
-        return localSource.getQuotes().map { quotes ->
+    override fun observeQuotes(): Flow<List<Quote>> {
+        return localSource.getQuotesCategory().map { quotes ->
             withContext(dispatcher) {
                 quotes.toExternal()
             }
         }
+    }
+
+    override suspend fun loadQuotes(): List<Quote> {
+        return localSource.loadQuotes().toExternal()
     }
 
     override suspend fun getQuoteById(quoteId: String): Quote? {

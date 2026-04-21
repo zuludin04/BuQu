@@ -52,6 +52,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.NoteCard
+import com.app.zuludin.buqu.domain.models.Quote
 
 @Composable
 fun BoardNameDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
@@ -305,6 +306,90 @@ fun NoteConnectDialog(source: NoteCard, notes: List<NoteCard>, onDismiss: (NoteC
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ImportQuotesDialog(
+    quotes: List<Quote>,
+    onDismiss: (Quote?) -> Unit,
+    onImportQuotes: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss(null) },
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "Import Quotes",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(quotes) { quote ->
+                    val color = Color("#${quote.color}".toColorInt())
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(color.copy(alpha = 0.3f))
+                            .border(1.dp, color, RoundedCornerShape(16.dp))
+                            .clickable {
+                                onDismiss(quote)
+                            }
+                            .padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .border(1.dp, Color.Black.copy(alpha = 0.1f), CircleShape)
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Text(
+                            text = quote.quote,
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Icon(
+                            imageVector = PhosphorLinkBreak,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = { onImportQuotes() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Text("Import Notes", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
