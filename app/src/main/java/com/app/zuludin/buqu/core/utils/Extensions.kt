@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -70,15 +71,20 @@ fun Context.saveImageToGallery(bitmap: Bitmap, filename: String): Uri? {
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "BuQu")
+                put(
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    Environment.DIRECTORY_PICTURES + File.separator + "BuQu"
+                )
             }
             uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             outputStream = uri?.let { resolver.openOutputStream(it) }
         } else {
-            val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString()
+            val imagesDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                    .toString()
             val file = File(imagesDir, filename)
             outputStream = FileOutputStream(file)
-            
+
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.DATA, file.absolutePath)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/png")
@@ -89,7 +95,7 @@ fun Context.saveImageToGallery(bitmap: Bitmap, filename: String): Uri? {
         outputStream?.use {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
-        
+
         return uri
     } catch (e: Exception) {
         toast("Failed to save image: ${e.message}")
@@ -146,3 +152,11 @@ fun Context.fixImageRotation(uri: Uri): Bitmap? {
 }
 
 fun Int.pxToDp(): Dp = (this / Resources.getSystem().displayMetrics.density).dp
+
+fun Color.darken(factor: Float = 0.8f): Color {
+    return this.copy(
+        red = red * factor,
+        green = green * factor,
+        blue = blue * factor
+    )
+}

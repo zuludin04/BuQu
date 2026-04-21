@@ -222,6 +222,12 @@ class BoardEditorViewModel @Inject constructor(
     fun toggleSelectionModel() {
         val isSelection = _uiState.value.isSelectionMode
         _uiState.update { it.copy(isSelectionMode = !isSelection, isConnectionMode = false) }
+        if (isSelection) {
+            resetSelectedNotes()
+            val noteIds = _uiState.value.selectedNoteIds.toMutableList()
+            noteIds.clear()
+            _uiState.update { it.copy(selectedNoteIds = noteIds) }
+        }
     }
 
     fun changeNoteSelectionStatus(noteId: String) {
@@ -283,6 +289,7 @@ class BoardEditorViewModel @Inject constructor(
     fun toggleConnectionMode() {
         val isConnectionMode = _uiState.value.isConnectionMode
         _uiState.update { it.copy(isConnectionMode = !isConnectionMode, isSelectionMode = false) }
+        if (isConnectionMode) resetSelectedNotes()
     }
 
     fun noteConnectMode(noteId: String) {
@@ -290,8 +297,10 @@ class BoardEditorViewModel @Inject constructor(
 
         val source = _uiState.value.sourceNote
         if (source == null) {
-            val note = notes.first { it.noteId == noteId }
-            _uiState.update { it.copy(sourceNote = note) }
+            val note = notes.first { it.noteId == noteId }.copy(isSelected = true)
+            val notes = _uiState.value.notes.toMutableList()
+            notes[notes.indexOfFirst { it.noteId == note.noteId }] = note
+            _uiState.update { it.copy(sourceNote = note, notes = notes) }
         } else {
             if (noteId == source.noteId) {
                 _uiState.update { it.copy(errorConnectSameNote = true) }
@@ -299,6 +308,7 @@ class BoardEditorViewModel @Inject constructor(
                 val note = notes.first { it.noteId == noteId }
                 connectNoteWithRope(note)
                 _uiState.update { it.copy(sourceNote = null) }
+                resetSelectedNotes()
             }
         }
     }
@@ -321,6 +331,17 @@ class BoardEditorViewModel @Inject constructor(
         quotes.forEachIndexed { i, q ->
             val space = (i + 1) * 250f
             addNote(q.quote, q.color, posX = space)
+        }
+    }
+
+    fun resetSelectedNotes() {
+        val notes = _uiState.value.notes.toMutableList()
+        notes.forEachIndexed { index, note ->
+            val newNote = note.copy(isSelected = false)
+            notes[index] = newNote
+        }
+        _uiState.update {
+            it.copy(notes = notes)
         }
     }
 }

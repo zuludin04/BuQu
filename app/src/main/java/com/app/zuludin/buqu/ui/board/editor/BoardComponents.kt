@@ -2,7 +2,6 @@ package com.app.zuludin.buqu.ui.board.editor
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
+import com.app.zuludin.buqu.core.utils.darken
 import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
@@ -62,50 +62,55 @@ fun NoteCardComponent(
 
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
-    Box(modifier = Modifier
-        .widthIn(max = 180.dp)
-        .onSizeChanged { onGetSize(it) }
-        .offset { IntOffset(note.posX.roundToInt(), note.posY.roundToInt()) }
-        .graphicsLayer {
-            rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
+    val backgroundColor = if (isSelectionMode || isConnectionMode) {
+        Color("#${note.color}".toColorInt()).darken(if (note.isSelected) 1f else 0.6f)
+    } else {
+        Color("#${note.color}".toColorInt())
+    }
 
-            if (isDraggable) {
-                val scaleValue =
-                    if (isDragging || (isSelectionMode && note.isSelected)) 1.15f else 1f
-                scaleX = scaleValue
-                scaleY = scaleValue
+    Box(
+        modifier = Modifier
+            .widthIn(max = 180.dp)
+            .onSizeChanged { onGetSize(it) }
+            .offset { IntOffset(note.posX.roundToInt(), note.posY.roundToInt()) }
+            .graphicsLayer {
+                rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
+
+                if (isDraggable) {
+                    val scaleValue =
+                        if (isDragging || ((isSelectionMode || isConnectionMode) && note.isSelected)) 1.15f else 1f
+                    scaleX = scaleValue
+                    scaleY = scaleValue
+                }
             }
-        }
-        .neumorphicShadow(backgroundColor = Color("#${note.color}".toColorInt()))
-        .border(
-            width = if (isSelectionMode && note.isSelected) 3.dp else 0.dp,
-            color = if (isSelectionMode && note.isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-            shape = RoundedCornerShape(12.dp)
-        )
-        .padding(16.dp)
-        .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
-            detectTapGestures(
-                onTap = { tapOffset ->
-                    val absoluteTapPos = Offset(
-                        newOffset.x + tapOffset.x, newOffset.y + tapOffset.y
-                    )
-                    onSelect(note, absoluteTapPos)
-                    isDragging = false
-                })
-        }
-        .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
-            detectDragGestures(
-                onDragStart = { isDragging = true },
-                onDragEnd = { isDragging = false },
-                onDragCancel = { isDragging = false },
-                onDrag = { change, dragAmount ->
-                    if (!isSelectionMode && !isConnectionMode) {
-                        change.consume()
-                        newOffset += dragAmount
-                        updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
+            .neumorphicShadow(backgroundColor = backgroundColor)
+            .padding(16.dp)
+            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
+                detectTapGestures(
+                    onTap = { tapOffset ->
+                        val absoluteTapPos = Offset(
+                            newOffset.x + tapOffset.x, newOffset.y + tapOffset.y
+                        )
+                        onSelect(note, absoluteTapPos)
+                        isDragging = false
                     }
-                })
-        }) {
+                )
+            }
+            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
+                detectDragGestures(
+                    onDragStart = { isDragging = true },
+                    onDragEnd = { isDragging = false },
+                    onDragCancel = { isDragging = false },
+                    onDrag = { change, dragAmount ->
+                        if (!isSelectionMode && !isConnectionMode) {
+                            change.consume()
+                            newOffset += dragAmount
+                            updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
+                        }
+                    }
+                )
+            }
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
