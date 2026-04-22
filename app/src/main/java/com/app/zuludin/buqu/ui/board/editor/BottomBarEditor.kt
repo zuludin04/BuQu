@@ -32,6 +32,7 @@ import kotlin.math.roundToInt
 fun BottomBarEditor(
     onTextResult: (String) -> Unit,
     onAddNote: () -> Unit,
+    onSaveImage: (String) -> Unit
 ) {
     var showOverflowMenu by remember { mutableStateOf(false) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
@@ -41,12 +42,14 @@ fun BottomBarEditor(
             MediaFileScanner(
                 imageVector = PhosphorAperture,
                 isOpenCamera = true,
-                onTextSelected = { onTextResult(it) }
+                onTextSelected = { onTextResult(it) },
+                onSaveImage = onSaveImage
             )
             MediaFileScanner(
                 imageVector = PhosphorImage,
                 isOpenCamera = false,
-                onTextSelected = { onTextResult(it) }
+                onTextSelected = { onTextResult(it) },
+                onSaveImage = onSaveImage
             )
             SpeechToText { onTextResult(it) }
             IconButton(

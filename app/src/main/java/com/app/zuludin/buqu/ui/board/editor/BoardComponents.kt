@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,11 +42,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
 import com.app.zuludin.buqu.core.utils.darken
 import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
+import java.io.File
 import kotlin.math.roundToInt
 
 @Composable
@@ -67,6 +72,7 @@ fun NoteCardComponent(
     } else {
         Color("#${note.color}".toColorInt())
     }
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -122,15 +128,38 @@ fun NoteCardComponent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = note.title,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                maxLines = 6,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (note.image != "") {
+                // Use a Surface to provide a clear boundary for the image
+                val file = File(note.image)
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp), // Provide a fixed height for images
+                    shape = RoundedCornerShape(4.dp),
+                    color = Color.Transparent
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(file) // Ensure note.image is a clean absolute path
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Note Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            } else {
+                Text(
+                    text = note.title,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    maxLines = 6,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

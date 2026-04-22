@@ -29,5 +29,8 @@ data class NoteCardEntity(
     var height: Int,
 
     @ColumnInfo("boardId")
-    var boardId: String
+    var boardId: String,
+
+    @ColumnInfo("image")
+    var image: String
 )

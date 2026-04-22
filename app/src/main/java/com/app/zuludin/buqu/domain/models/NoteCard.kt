@@ -11,4 +11,5 @@ data class NoteCard(
     val size: IntSize,
     val isSelected: Boolean = false,
     val color: String,
+    val image: String
 )

@@ -103,7 +103,13 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun addNote(title: String, color: String, posX: Float = 100f, posY: Float = 100f) {
+    fun addNote(
+        title: String,
+        image: String,
+        color: String,
+        posX: Float = 100f,
+        posY: Float = 100f
+    ) {
         val note = NoteCard(
             noteId = UUID.randomUUID().toString(),
             boardId = boardId ?: currentBoardId,
@@ -111,7 +117,8 @@ class BoardEditorViewModel @Inject constructor(
             posX = posX,
             posY = posY,
             color = color,
-            size = IntSize.Zero
+            size = IntSize.Zero,
+            image = image
         )
         val notes = _uiState.value.notes.toMutableList()
         notes.add(note)
@@ -342,7 +349,7 @@ class BoardEditorViewModel @Inject constructor(
         val selectedQuotes = _uiState.value.quotes.filter { it.isSelected }
         selectedQuotes.forEachIndexed { i, q ->
             val space = (i + 1) * 250f
-            addNote(q.quote, q.color, posX = space)
+            addNote(q.quote, "", q.color, posX = space)
         }
 
         val quotes = _uiState.value.quotes.toMutableList()

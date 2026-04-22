@@ -77,7 +77,8 @@ fun NoteCard.toLocal() = NoteCardEntity(
     boardId = boardId,
     color = color,
     width = size.width,
-    height = size.height
+    height = size.height,
+    image = image
 )
 
 fun NoteCardEntity.toExternal() = NoteCard(
@@ -87,7 +88,8 @@ fun NoteCardEntity.toExternal() = NoteCard(
     posY = posY,
     boardId = boardId,
     color = color,
-    size = IntSize(width, height)
+    size = IntSize(width, height),
+    image = image
 )
 
 @JvmName("externalToLocalNoteCard")
