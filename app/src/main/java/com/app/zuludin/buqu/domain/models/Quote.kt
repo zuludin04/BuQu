@@ -8,5 +8,6 @@ data class Quote(
     val page: Int,
     val categoryId: String,
     val color: String = "",
-    val category: String = ""
+    val category: String = "",
+    val isSelected: Boolean = false
 )

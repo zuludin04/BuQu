@@ -250,9 +250,10 @@ fun BoardEditorScreen(
     }
 
     if (showImportQuotesDialog) {
-        ImportQuotesDialog(
+        QuoteImportDialog(
             quotes = uiState.quotes,
             onDismiss = { showImportQuotesDialog = !showImportQuotesDialog },
+            onQuoteSelected = { viewModel.selectImportQuote(it.quoteId) },
             onImportQuotes = {
                 viewModel.importQuotes()
                 showImportQuotesDialog = !showImportQuotesDialog

@@ -319,7 +319,7 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun loadQuotes() {
+    private fun loadQuotes() {
         viewModelScope.launch {
             val quotes = quoteRepository.loadQuotes()
             _uiState.update { it.copy(quotes = quotes) }
@@ -327,11 +327,18 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     fun importQuotes() {
-        val quotes = _uiState.value.quotes
-        quotes.forEachIndexed { i, q ->
+        val selectedQuotes = _uiState.value.quotes.filter { it.isSelected }
+        selectedQuotes.forEachIndexed { i, q ->
             val space = (i + 1) * 250f
             addNote(q.quote, q.color, posX = space)
         }
+
+        val quotes = _uiState.value.quotes.toMutableList()
+        quotes.forEachIndexed { index, quote ->
+            val newQuote = quote.copy(isSelected = false)
+            quotes[index] = newQuote
+        }
+        _uiState.update { it.copy(quotes = quotes) }
     }
 
     fun resetSelectedNotes() {
@@ -343,5 +350,13 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update {
             it.copy(notes = notes)
         }
+    }
+
+    fun selectImportQuote(quoteId: String) {
+        val quotes = _uiState.value.quotes.toMutableList()
+        val quote = quotes.first { it.quoteId == quoteId }
+        val isSelected = quote.isSelected
+        quotes[quotes.indexOf(quote)] = quote.copy(isSelected = !isSelected)
+        _uiState.update { it.copy(quotes = quotes) }
     }
 }

@@ -1,19 +1,23 @@
 package com.app.zuludin.buqu.ui.board.editor
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,12 +25,19 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -40,16 +51,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.toColorInt
 import com.app.zuludin.buqu.core.compose.InputHelperChip
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
+import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
+import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
@@ -313,83 +330,164 @@ fun NoteConnectDialog(source: NoteCard, notes: List<NoteCard>, onDismiss: (NoteC
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImportQuotesDialog(
+fun QuoteImportDialog(
+    onDismiss: () -> Unit,
+    onQuoteSelected: (Quote) -> Unit,
     quotes: List<Quote>,
-    onDismiss: (Quote?) -> Unit,
     onImportQuotes: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    var searchQuery by remember { mutableStateOf("") }
+    var active by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
-        onDismissRequest = { onDismiss(null) },
-        sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-        containerColor = MaterialTheme.colorScheme.surface,
+    val categories = listOf("Inspiration", "Tech", "Life", "Philosophy")
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+
+    val filteredQuotes = quotes.filter { quote ->
+        val matchesSearch = quote.quote.contains(searchQuery, ignoreCase = true) ||
+                quote.author.contains(searchQuery, ignoreCase = true)
+        val matchesCategory = selectedCategory == null || quote.category == selectedCategory
+        matchesSearch && matchesCategory
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp)
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            Text(
-                text = "Import Quotes",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(quotes) { quote ->
-                    val color = Color("#${quote.color}".toColorInt())
-                    Row(
+            Scaffold(
+                topBar = {
+                    SearchBar(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(color.copy(alpha = 0.3f))
-                            .border(1.dp, color, RoundedCornerShape(16.dp))
-                            .clickable {
-                                onDismiss(quote)
+                            .padding(horizontal = if (active) 0.dp else 16.dp),
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        onSearch = { active = false },
+                        active = active,
+                        onActiveChange = { active = it },
+                        placeholder = { Text("Search by quote or author...") },
+                        leadingIcon = {
+                            IconButton(onClick = onDismiss) {
+                                Icon(PhosphorArrowLeft, contentDescription = null)
                             }
-                            .padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(PhosphorTrash, contentDescription = null)
+                                }
+                            }
+                        }
+                    ) {}
+                },
+                bottomBar = {
+                    Surface(tonalElevation = 8.dp) {
+                        Button(
+                            onClick = { onImportQuotes() },
                             modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(1.dp, Color.Black.copy(alpha = 0.1f), CircleShape)
-                        )
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Import Selected Quote")
+                        }
+                    }
+                }
+            ) { paddingValues ->
+                Column(modifier = Modifier.padding(paddingValues)) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(categories) { category ->
+                            FilterChip(
+                                selected = selectedCategory == category,
+                                onClick = {
+                                    selectedCategory =
+                                        if (selectedCategory == category) null else category
+                                },
+                                label = { Text(category) },
+                                leadingIcon = if (selectedCategory == category) {
+                                    {
+                                        Icon(
+                                            PhosphorCheck,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                } else null
+                            )
+                        }
+                    }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                    Divider()
 
-                        Text(
-                            text = quote.quote,
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        Icon(
-                            imageVector = PhosphorLinkBreak,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(filteredQuotes) { quote ->
+                            QuoteImportItem(
+                                quote = quote,
+                                onClick = { onQuoteSelected(quote) }
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Button(
-                onClick = { onImportQuotes() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+@Composable
+fun QuoteImportItem(quote: Quote, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        border = if (quote.isSelected) BorderStroke(
+            2.dp,
+            MaterialTheme.colorScheme.primary
+        ) else null,
+        colors = CardDefaults.cardColors(
+            containerColor = if (quote.isSelected)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "\"${quote.quote}\"",
+                style = MaterialTheme.typography.bodyLarge,
+                fontStyle = FontStyle.Italic
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Import Notes", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "${quote.author} - ${quote.book}",
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = quote.category,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
