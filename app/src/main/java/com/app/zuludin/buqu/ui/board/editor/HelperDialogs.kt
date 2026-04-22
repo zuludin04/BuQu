@@ -366,9 +366,9 @@ fun QuoteImportDialog(
                             .padding(horizontal = if (active) 0.dp else 16.dp),
                         query = searchQuery,
                         onQueryChange = { searchQuery = it },
-                        onSearch = { active = false },
-                        active = active,
-                        onActiveChange = { active = it },
+                        onSearch = { },
+                        active = false,
+                        onActiveChange = { },
                         placeholder = { Text("Search by quote or author...") },
                         leadingIcon = {
                             IconButton(onClick = onDismiss) {
