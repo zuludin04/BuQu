@@ -147,7 +147,7 @@ class UpsertQuoteViewModel @Inject constructor(
 
     private fun loadCategories() {
         viewModelScope.launch {
-            categoryRepository.getCategories().first().let { categories ->
+            categoryRepository.observeCategories().first().let { categories ->
                 _uiState.update {
                     it.copy(categories = categories)
                 }

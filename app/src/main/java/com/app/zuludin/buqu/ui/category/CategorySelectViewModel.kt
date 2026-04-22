@@ -28,7 +28,7 @@ data class CategoriesUiState(
 class CategorySelectViewModel @Inject constructor(
     private val repository: CategoryRepository
 ) : ViewModel() {
-    private val _categories = repository.getCategories().map { Async.Success(it) }
+    private val _categories = repository.observeCategories().map { Async.Success(it) }
         .catch<Async<List<Category>>> { emit(Async.Error("Error Loading Categories")) }
     private val _selectedCategory = MutableStateFlow(Category("", "", colors[0], ""))
 

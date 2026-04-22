@@ -5,10 +5,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.data.repositories.BoardRepository
+import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.NoteCardRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.data.repositories.RopeRepository
 import com.app.zuludin.buqu.domain.models.Board
+import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.models.Rope
@@ -33,7 +35,8 @@ data class BoardEditorUiState(
     val isConnectionMode: Boolean = false,
     val errorConnectSameNote: Boolean = false,
     val successSaveBoard: Boolean = false,
-    val quotes: List<Quote> = emptyList()
+    val quotes: List<Quote> = emptyList(),
+    val categories: List<Category> = emptyList()
 )
 
 @HiltViewModel
@@ -42,6 +45,7 @@ class BoardEditorViewModel @Inject constructor(
     private val noteRepository: NoteCardRepository,
     private val ropeRepository: RopeRepository,
     private val quoteRepository: QuoteRepository,
+    private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boardId: String? = savedStateHandle[BuquDestinationArgs.BOARD_ID_ARG]
@@ -58,6 +62,7 @@ class BoardEditorViewModel @Inject constructor(
             currentBoardId = UUID.randomUUID().toString()
         }
         loadQuotes()
+        loadCategories()
     }
 
     fun loadData(boardId: String) {
@@ -326,6 +331,13 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
+    private fun loadCategories() {
+        viewModelScope.launch {
+            val categories = categoryRepository.getCategories()
+            _uiState.update { it.copy(categories = categories) }
+        }
+    }
+
     fun importQuotes() {
         val selectedQuotes = _uiState.value.quotes.filter { it.isSelected }
         selectedQuotes.forEachIndexed { i, q ->
@@ -357,6 +369,11 @@ class BoardEditorViewModel @Inject constructor(
         val quote = quotes.first { it.quoteId == quoteId }
         val isSelected = quote.isSelected
         quotes[quotes.indexOf(quote)] = quote.copy(isSelected = !isSelected)
+        _uiState.update { it.copy(quotes = quotes) }
+    }
+
+    fun filterQuotesByCategory(categoryId: String?) {
+        val quotes = _uiState.value.quotes.toMutableList()
         _uiState.update { it.copy(quotes = quotes) }
     }
 }

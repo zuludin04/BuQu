@@ -100,15 +100,15 @@ class QuoteLocalDataSourceTest {
     }
 
     @Test
-    fun getCategories_emptyCategoriesFromDatabase() = runTest {
+    fun observeCategories_emptyCategoriesFromDatabase() = runTest {
         categoryDao.deleteCategories()
-        val categories = localSource.getCategories().first()
+        val categories = localSource.observeCategories().first()
         assertTrue(categories.isEmpty())
     }
 
     @Test
-    fun getCategories_requestAllCategoriesFromDatabase() = runTest {
-        val categories = localSource.getCategories().first()
+    fun observeCategories_requestAllCategoriesFromDatabase() = runTest {
+        val categories = localSource.observeCategories().first()
         assertTrue(categories.isNotEmpty())
         assertEquals(localCategories, categories)
         assertEquals(localCategories.size, categories.size)
@@ -141,10 +141,10 @@ class QuoteLocalDataSourceTest {
 
     @Test
     fun deleteCategory_successDeleteCategoryFromDatabase() = runTest {
-        val initial = localSource.getCategories().first()
+        val initial = localSource.observeCategories().first()
         localSource.deleteCategory(initial[0].categoryId)
 
-        val afterDelete = localSource.getCategories().first()
+        val afterDelete = localSource.observeCategories().first()
 
         assertEquals(afterDelete.size, initial.size - 1)
     }
@@ -152,7 +152,7 @@ class QuoteLocalDataSourceTest {
     @Test
     fun deleteCategories_removeAllCategoriesFromDatabase() = runTest {
         localSource.deleteCategories()
-        val categories = localSource.getCategories().first()
+        val categories = localSource.observeCategories().first()
         assertTrue(categories.isEmpty())
     }
 }

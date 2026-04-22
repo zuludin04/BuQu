@@ -4,7 +4,9 @@ import com.app.zuludin.buqu.domain.models.Category
 import kotlinx.coroutines.flow.Flow
 
 interface ICategoryRepository {
-    fun getCategories(): Flow<List<Category>>
+    fun observeCategories(): Flow<List<Category>>
+
+    suspend fun getCategories(): List<Category>
 
     suspend fun getCategoryById(categoryId: String): Category?
 

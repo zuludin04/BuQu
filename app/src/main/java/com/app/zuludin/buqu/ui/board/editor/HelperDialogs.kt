@@ -68,6 +68,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
+import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
 
@@ -333,19 +334,19 @@ fun NoteConnectDialog(source: NoteCard, notes: List<NoteCard>, onDismiss: (NoteC
 fun QuoteImportDialog(
     onDismiss: () -> Unit,
     onQuoteSelected: (Quote) -> Unit,
+    onImportQuotes: () -> Unit,
     quotes: List<Quote>,
-    onImportQuotes: () -> Unit
+    categories: List<Category>
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
 
-    val categories = listOf("Inspiration", "Tech", "Life", "Philosophy")
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
     val filteredQuotes = quotes.filter { quote ->
         val matchesSearch = quote.quote.contains(searchQuery, ignoreCase = true) ||
                 quote.author.contains(searchQuery, ignoreCase = true)
-        val matchesCategory = selectedCategory == null || quote.category == selectedCategory
+        val matchesCategory = selectedCategory == null || quote.categoryId == selectedCategory
         matchesSearch && matchesCategory
     }
 
@@ -408,13 +409,13 @@ fun QuoteImportDialog(
                     ) {
                         items(categories) { category ->
                             FilterChip(
-                                selected = selectedCategory == category,
+                                selected = selectedCategory == category.categoryId,
                                 onClick = {
                                     selectedCategory =
-                                        if (selectedCategory == category) null else category
+                                        if (selectedCategory == category.categoryId) null else category.categoryId
                                 },
-                                label = { Text(category) },
-                                leadingIcon = if (selectedCategory == category) {
+                                label = { Text(category.name) },
+                                leadingIcon = if (selectedCategory == category.categoryId) {
                                     {
                                         Icon(
                                             PhosphorCheck,

@@ -18,7 +18,9 @@ interface IQuoteLocalDataSource {
 
     suspend fun deleteQuote(quoteId: String)
 
-    fun getCategories(): Flow<List<CategoryEntity>>
+    fun observeCategories(): Flow<List<CategoryEntity>>
+
+    suspend fun getCategories(): List<CategoryEntity>
 
     suspend fun getCategoryById(categoryId: String): CategoryEntity?
 

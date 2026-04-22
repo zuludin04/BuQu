@@ -20,12 +20,16 @@ class CategoryRepository @Inject constructor(
     private val localSource: QuoteLocalDataSource,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ICategoryRepository {
-    override fun getCategories(): Flow<List<Category>> {
-        return localSource.getCategories().map { categories ->
+    override fun observeCategories(): Flow<List<Category>> {
+        return localSource.observeCategories().map { categories ->
             withContext(dispatcher) {
                 categories.toExternal()
             }
         }
+    }
+
+    override suspend fun getCategories(): List<Category> {
+        return localSource.getCategories().toExternal()
     }
 
     override suspend fun getCategoryById(categoryId: String): Category? {

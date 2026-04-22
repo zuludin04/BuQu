@@ -30,7 +30,10 @@ class QuoteLocalDataSource @Inject constructor(
 
     override suspend fun deleteQuote(quoteId: String) = quoteDao.deleteById(quoteId)
 
-    override fun getCategories(): Flow<List<CategoryEntity>> = categoryDao.observeAllCategories()
+    override fun observeCategories(): Flow<List<CategoryEntity>> =
+        categoryDao.observeAllCategories()
+
+    override suspend fun getCategories(): List<CategoryEntity> = categoryDao.getAllCategories()
 
     override suspend fun getCategoryById(categoryId: String): CategoryEntity? =
         categoryDao.getById(categoryId)

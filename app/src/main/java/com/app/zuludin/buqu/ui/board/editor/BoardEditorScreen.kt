@@ -257,7 +257,8 @@ fun BoardEditorScreen(
             onImportQuotes = {
                 viewModel.importQuotes()
                 showImportQuotesDialog = !showImportQuotesDialog
-            }
+            },
+            categories = uiState.categories
         )
     }
 }

@@ -38,12 +38,12 @@ class CategoryRepositoryTest {
     }
 
     @Test
-    fun getCategories_successLoadCategories() = runTest {
+    fun observeCategories_successLoadCategories() = runTest {
         val categories = DataDummy.generateCategoryDummy()
         val data = flow { emit(categories) }
-        `when`(localSource.getCategories()).thenReturn(data)
+        `when`(localSource.observeCategories()).thenReturn(data)
 
-        val actual = repository.getCategories().first()
+        val actual = repository.observeCategories().first()
 
         assertNotNull(actual)
         assertTrue(actual.isNotEmpty())
