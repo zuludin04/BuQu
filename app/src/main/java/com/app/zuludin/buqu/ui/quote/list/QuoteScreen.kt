@@ -119,7 +119,7 @@ private fun HomeContent(
     Column(modifier = modifier) {
         if (selectedCategory != null) {
             QuoteCategoryChips(
-                backgroundColor = selectedCategory.color,
+                backgroundColor = "#${selectedCategory.color}",
                 name = selectedCategory.name,
                 onClearChip = { onSelectCategory(null) }
             )
