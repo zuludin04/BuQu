@@ -371,9 +371,4 @@ class BoardEditorViewModel @Inject constructor(
         quotes[quotes.indexOf(quote)] = quote.copy(isSelected = !isSelected)
         _uiState.update { it.copy(quotes = quotes) }
     }
-
-    fun filterQuotesByCategory(categoryId: String?) {
-        val quotes = _uiState.value.quotes.toMutableList()
-        _uiState.update { it.copy(quotes = quotes) }
-    }
 }
