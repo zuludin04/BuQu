@@ -60,17 +60,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.toColorInt
+import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.InputHelperChip
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
+import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
+import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
 
 @Composable
 fun BoardNameDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
@@ -430,16 +433,20 @@ fun QuoteImportDialog(
 
                     Divider()
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(filteredQuotes) { quote ->
-                            QuoteImportItem(
-                                quote = quote,
-                                onClick = { onQuoteSelected(quote) }
-                            )
+                    if (filteredQuotes.isEmpty()) {
+                        TasksEmptyContent(icon = PhosphorNote, message = R.string.note_not_found)
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(filteredQuotes) { quote ->
+                                QuoteImportItem(
+                                    quote = quote,
+                                    onClick = { onQuoteSelected(quote) }
+                                )
+                            }
                         }
                     }
                 }

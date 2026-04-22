@@ -7,6 +7,7 @@
     <string name="settings">Settings</string>
     <string name="insert_quote">Insert Quote</string>
     <string name="empty_quote_message">Save Your Quote</string>
+    <string name="note_not_found">Note Not Found</string>
     <string name="empty_board_message">Create Your First Board</string>
     <string name="empty_category_message">Add New Category</string>
     <string name="general">General</string>
