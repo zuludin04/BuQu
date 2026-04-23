@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 @Composable
 fun BoardEditorScreen(
@@ -65,6 +67,8 @@ fun BoardEditorScreen(
     }
 
     var noteText by remember { mutableStateOf("") }
+
+    var boardSize by remember { mutableStateOf(IntSize.Zero) }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -121,7 +125,24 @@ fun BoardEditorScreen(
                     showAddNoteSheet = true
                 },
                 onAddNote = { showAddNoteSheet = true },
-                onSaveImage = { path, color -> viewModel.addNote("", path, color) }
+                onSaveImage = { path, color ->
+                    val random = Random.Default
+                    val minX = boardSize.width * 0.2f
+                    val maxX = boardSize.width * 0.6f
+                    val minY = boardSize.height * 0.2f
+                    val maxY = boardSize.height * 0.6f
+
+                    val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble()).toFloat() else minX
+                    val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble()).toFloat() else minY
+
+                    viewModel.addNote(
+                        title = "",
+                        image = path,
+                        color = color,
+                        posX = (rx - offset.x) / scale,
+                        posY = (ry - offset.y) / scale
+                    )
+                }
             )
         }
     ) { paddingValues ->
@@ -129,6 +150,7 @@ fun BoardEditorScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .onSizeChanged { boardSize = it }
                 .border(
                     width = if (uiState.isConnectionMode || uiState.isSelectionMode) 4.dp else 0.dp,
                     color = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary.copy(
@@ -244,7 +266,22 @@ fun BoardEditorScreen(
             onDismiss = { showAddNoteSheet = !showAddNoteSheet },
             inputText = noteText,
             onConfirm = { content, color ->
-                viewModel.addNote(content, "", color)
+                val random = Random.Default
+                val minX = boardSize.width * 0.2f
+                val maxX = boardSize.width * 0.6f
+                val minY = boardSize.height * 0.2f
+                val maxY = boardSize.height * 0.6f
+
+                val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble()).toFloat() else minX
+                val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble()).toFloat() else minY
+
+                viewModel.addNote(
+                    title = content,
+                    image = "",
+                    color = color,
+                    posX = (rx - offset.x) / scale,
+                    posY = (ry - offset.y) / scale
+                )
                 showAddNoteSheet = !showAddNoteSheet
             }
         )

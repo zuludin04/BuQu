@@ -107,15 +107,18 @@ class BoardEditorViewModel @Inject constructor(
         title: String,
         image: String,
         color: String,
-        posX: Float = 100f,
-        posY: Float = 100f
+        posX: Float? = null,
+        posY: Float? = null
     ) {
+        val randomX = (100..600).random().toFloat()
+        val randomY = (100..1000).random().toFloat()
+
         val note = NoteCard(
             noteId = UUID.randomUUID().toString(),
             boardId = boardId ?: currentBoardId,
             title = title,
-            posX = posX,
-            posY = posY,
+            posX = posX ?: randomX,
+            posY = posY ?: randomY,
             color = color,
             size = IntSize.Zero,
             image = image
