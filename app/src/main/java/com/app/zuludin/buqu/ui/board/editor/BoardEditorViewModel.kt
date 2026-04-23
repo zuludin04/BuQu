@@ -193,8 +193,17 @@ class BoardEditorViewModel @Inject constructor(
 
             val ropes = _uiState.value.ropes.toMutableList()
             ropes.add(rope)
+
+            val notes = _uiState.value.notes.map {
+                if (it.noteId == source.noteId || it.noteId == target.noteId) {
+                    it.copy(isConnected = true)
+                } else {
+                    it
+                }
+            }
+
             _uiState.update {
-                it.copy(ropes = ropes, sourceNote = null)
+                it.copy(ropes = ropes, notes = notes, sourceNote = null)
             }
         }
     }
@@ -266,13 +275,14 @@ class BoardEditorViewModel @Inject constructor(
         val noteIds = _uiState.value.selectedNoteIds.toMutableList()
         noteIds.clear()
 
-        val notes = _uiState.value.notes.toMutableList()
-        notes.forEach {
-            val newNote = it.copy(isSelected = false)
-            notes[notes.indexOf(it)] = newNote
+        val ropes = _uiState.value.ropes
+        val notes = _uiState.value.notes.map { note ->
+            val hasRope =
+                ropes.any { it.sourceNoteId == note.noteId || it.targetNoteId == note.noteId }
+            note.copy(isSelected = false, isConnected = hasRope)
         }
 
-        _uiState.update { it.copy(selectedNoteIds = noteIds) }
+        _uiState.update { it.copy(notes = notes, selectedNoteIds = noteIds) }
     }
 
     fun deleteSelectedNotes() {
@@ -312,18 +322,26 @@ class BoardEditorViewModel @Inject constructor(
 
         val source = _uiState.value.sourceNote
         if (source == null) {
-            val note = notes.first { it.noteId == noteId }.copy(isSelected = true)
-            val notes = _uiState.value.notes.toMutableList()
-            notes[notes.indexOfFirst { it.noteId == note.noteId }] = note
-            _uiState.update { it.copy(sourceNote = note, notes = notes) }
+            val note = notes.first { it.noteId == noteId }.copy(isConnected = true)
+            val updatedNotes = _uiState.value.notes.toMutableList()
+            updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
+            _uiState.update { it.copy(sourceNote = note, notes = updatedNotes) }
         } else {
             if (noteId == source.noteId) {
-                _uiState.update { it.copy(errorConnectSameNote = true) }
+                val note = notes.first { it.noteId == noteId }.copy(isConnected = false)
+                val updatedNotes = _uiState.value.notes.toMutableList()
+                updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
+                _uiState.update {
+                    it.copy(
+                        errorConnectSameNote = true,
+                        sourceNote = null,
+                        notes = updatedNotes
+                    )
+                }
             } else {
                 val note = notes.first { it.noteId == noteId }
                 connectNoteWithRope(note)
                 _uiState.update { it.copy(sourceNote = null) }
-                resetSelectedNotes()
             }
         }
     }
@@ -364,13 +382,14 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     fun resetSelectedNotes() {
-        val notes = _uiState.value.notes.toMutableList()
-        notes.forEachIndexed { index, note ->
-            val newNote = note.copy(isSelected = false)
-            notes[index] = newNote
+        val ropes = _uiState.value.ropes
+        val notes = _uiState.value.notes.map { note ->
+            val hasRope =
+                ropes.any { it.sourceNoteId == note.noteId || it.targetNoteId == note.noteId }
+            note.copy(isSelected = false, isConnected = hasRope)
         }
         _uiState.update {
-            it.copy(notes = notes)
+            it.copy(notes = notes, sourceNote = null)
         }
     }
 

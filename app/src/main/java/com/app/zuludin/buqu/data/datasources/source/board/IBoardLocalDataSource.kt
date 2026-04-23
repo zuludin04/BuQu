@@ -2,6 +2,7 @@ package com.app.zuludin.buqu.data.datasources.source.board
 
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedNoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
@@ -22,7 +23,7 @@ interface IBoardLocalDataSource {
 
     suspend fun deleteNote(noteId: String)
 
-    suspend fun getNotesByBoard(boardId: String): List<NoteCardEntity>
+    suspend fun getNotesByBoard(boardId: String): List<ConnectedNoteCardEntity>
 
     suspend fun upsertRopes(ropes: List<RopeEntity>)
 

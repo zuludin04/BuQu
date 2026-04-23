@@ -68,7 +68,7 @@ fun NoteCardComponent(
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
     val backgroundColor = if (isSelectionMode || isConnectionMode) {
-        Color("#${note.color}".toColorInt()).darken(if (note.isSelected) 1f else 0.6f)
+        Color("#${note.color}".toColorInt()).darken(if (note.isSelected || note.isConnected) 1f else 0.6f)
     } else {
         Color("#${note.color}".toColorInt())
     }
@@ -84,7 +84,7 @@ fun NoteCardComponent(
 
                 if (isDraggable) {
                     val scaleValue =
-                        if (isDragging || ((isSelectionMode || isConnectionMode) && note.isSelected)) 1.15f else 1f
+                        if (isDragging || (isSelectionMode && note.isSelected)) 1.15f else 1f
                     scaleX = scaleValue
                     scaleY = scaleValue
                 }
@@ -129,19 +129,18 @@ fun NoteCardComponent(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (note.image != "") {
-                // Use a Surface to provide a clear boundary for the image
                 val file = File(note.image)
 
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp), // Provide a fixed height for images
+                        .height(140.dp),
                     shape = RoundedCornerShape(4.dp),
                     color = Color.Transparent
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(file) // Ensure note.image is a clean absolute path
+                            .data(file)
                             .crossfade(true)
                             .build(),
                         contentDescription = "Note Image",

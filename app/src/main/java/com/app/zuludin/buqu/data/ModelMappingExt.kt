@@ -5,6 +5,7 @@ import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedNoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
@@ -83,7 +84,7 @@ fun NoteCard.toLocal() = NoteCardEntity(
     image = image
 )
 
-fun NoteCardEntity.toExternal() = NoteCard(
+fun ConnectedNoteCardEntity.toExternal() = NoteCard(
     noteId = noteId,
     title = title,
     posX = posX,
@@ -91,7 +92,8 @@ fun NoteCardEntity.toExternal() = NoteCard(
     boardId = boardId,
     color = color,
     size = IntSize(width, height),
-    image = image
+    image = image,
+    isConnected = isConnected == 1
 )
 
 @JvmName("externalToLocalNoteCard")

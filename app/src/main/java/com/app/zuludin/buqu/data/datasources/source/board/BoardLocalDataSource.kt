@@ -5,6 +5,7 @@ import com.app.zuludin.buqu.data.datasources.database.dao.NoteCardDao
 import com.app.zuludin.buqu.data.datasources.database.dao.RopeDao
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedNoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedRopeEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
@@ -33,7 +34,7 @@ class BoardLocalDataSource @Inject constructor(
 
     override suspend fun deleteNote(noteId: String) = noteCardDao.deleteById(noteId)
 
-    override suspend fun getNotesByBoard(boardId: String): List<NoteCardEntity> =
+    override suspend fun getNotesByBoard(boardId: String): List<ConnectedNoteCardEntity> =
         noteCardDao.getNotesByBoard(boardId)
 
     override suspend fun upsertRopes(ropes: List<RopeEntity>) = ropeDao.upsert(ropes)
