@@ -22,7 +22,8 @@ fun Quote.toLocal() =
         author = author,
         book = book,
         page = page,
-        categoryId = categoryId
+        categoryId = categoryId,
+        image = image
     )
 
 fun CategoryAndQuoteEntity.toExternal() =
@@ -34,7 +35,8 @@ fun CategoryAndQuoteEntity.toExternal() =
         page,
         categoryId,
         color,
-        name
+        name,
+        image = image
     )
 
 @JvmName("localToExternalQuote")

@@ -21,6 +21,9 @@ data class CategoryAndQuoteEntity(
     @ColumnInfo(name = "categoryId")
     var categoryId: String,
 
+    @ColumnInfo(name = "image")
+    var image: String,
+
     @ColumnInfo(name = "name")
     var name: String,
 

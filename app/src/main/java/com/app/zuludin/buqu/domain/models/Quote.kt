@@ -9,5 +9,6 @@ data class Quote(
     val categoryId: String,
     val color: String = "",
     val category: String = "",
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    val image: String = ""
 )

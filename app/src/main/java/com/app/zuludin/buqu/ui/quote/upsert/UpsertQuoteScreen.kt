@@ -3,8 +3,11 @@ package com.app.zuludin.buqu.ui.quote.upsert
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
@@ -16,11 +19,14 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -30,6 +36,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
@@ -42,6 +50,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.domain.models.Quote
+import java.io.File
 
 @Suppress("DEPRECATION")
 @Composable
@@ -101,7 +110,7 @@ fun UpsertQuoteScreen(
                     imageVector = PhosphorAperture,
                     isOpenCamera = true,
                     onTextSelected = { viewModel.updateQuote(it) },
-                    onSaveImage = { _, _ -> }
+                    onSaveImage = { path, _ -> viewModel.updateImage(path) }
                 )
             }, floatingActionButton = {
                 FloatingActionButton(
@@ -121,6 +130,28 @@ fun UpsertQuoteScreen(
                 .padding(horizontal = 16.dp)
         ) {
             val focusManager = LocalFocusManager.current
+            val context = LocalContext.current
+
+            if (uiState.image.isNotEmpty()) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp)
+                        .aspectRatio(16f / 9f),
+                    shape = RoundedCornerShape(8.dp),
+                    tonalElevation = 2.dp
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(File(uiState.image))
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Quote Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
 
             TitleInputField(
                 modifier = Modifier.fillMaxWidth(),

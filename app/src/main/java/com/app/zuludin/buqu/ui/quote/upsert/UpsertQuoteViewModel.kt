@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.quote.upsert
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,7 @@ data class UpsertQuoteUiState(
     val book: String = "",
     val page: String = "",
     val author: String = "",
+    val image: String = "",
     val category: Category = Category(
         categoryId = "a76c5015-34c7-4a54-bdfb-c5ed2010b7c9",
         name = "Motivation",
@@ -51,18 +53,16 @@ class UpsertQuoteViewModel @Inject constructor(
 
     fun saveQuote() = viewModelScope.launch {
         val state = uiState.value
-        if (state.quote.isNotEmpty() &&
-            state.book.isNotEmpty() &&
-            state.author.isNotEmpty() &&
-            state.page.isNotEmpty()
-        ) {
+        if (state.quote.isNotEmpty() || state.image.isNotEmpty()) {
+            Log.d("SAVE_IMAGE", state.image)
             quoteRepository.upsertQuote(
                 quoteId = quoteId,
                 quote = state.quote,
                 book = state.book,
                 author = state.author,
-                page = state.page.toInt(),
-                categoryId = state.category.categoryId
+                page = if (state.page.isEmpty()) 0 else state.page.toInt(),
+                categoryId = state.category.categoryId,
+                image = state.image
             )
             _uiState.update {
                 it.copy(isQuoteSaved = true, isError = false)
@@ -107,6 +107,12 @@ class UpsertQuoteViewModel @Inject constructor(
         }
     }
 
+    fun updateImage(newImage: String) {
+        _uiState.update {
+            it.copy(image = newImage)
+        }
+    }
+
     fun updateCategory(category: Category) {
         _uiState.update {
             it.copy(
@@ -125,12 +131,14 @@ class UpsertQuoteViewModel @Inject constructor(
         viewModelScope.launch {
             quoteRepository.getQuoteById(quoteId).let { quote ->
                 if (quote != null) {
+                    Log.d("IMAGE_QUOTE", quote.image)
                     _uiState.update {
                         it.copy(
                             quote = quote.quote,
                             book = quote.book,
                             page = quote.page.toString(),
                             author = quote.author,
+                            image = quote.image,
                             category = Category(
                                 categoryId = quote.categoryId,
                                 name = quote.category,

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "36c3f4cc37342a652a98e4f75e0a9d05",
+    "identityHash": "1805ece5ecd70871cc849c02e48486da",
     "entities": [
       {
         "tableName": "quote",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`quoteId` TEXT NOT NULL, `quote` TEXT NOT NULL, `author` TEXT NOT NULL, `book` TEXT NOT NULL, `page` INTEGER NOT NULL, `categoryId` TEXT NOT NULL, PRIMARY KEY(`quoteId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`quoteId` TEXT NOT NULL, `quote` TEXT NOT NULL, `author` TEXT NOT NULL, `book` TEXT NOT NULL, `page` INTEGER NOT NULL, `categoryId` TEXT NOT NULL, `image` TEXT NOT NULL, PRIMARY KEY(`quoteId`))",
         "fields": [
           {
             "fieldPath": "quoteId",
@@ -41,6 +41,12 @@
           {
             "fieldPath": "categoryId",
             "columnName": "categoryId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "image",
+            "columnName": "image",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -234,7 +240,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '36c3f4cc37342a652a98e4f75e0a9d05')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1805ece5ecd70871cc849c02e48486da')"
     ]
   }
 }
