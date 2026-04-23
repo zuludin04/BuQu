@@ -32,7 +32,7 @@ import kotlin.math.roundToInt
 fun BottomBarEditor(
     onTextResult: (String) -> Unit,
     onAddNote: () -> Unit,
-    onSaveImage: (String) -> Unit
+    onSaveImage: (String, String) -> Unit
 ) {
     var showOverflowMenu by remember { mutableStateOf(false) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }

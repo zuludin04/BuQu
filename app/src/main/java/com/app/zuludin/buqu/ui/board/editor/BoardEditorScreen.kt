@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
@@ -122,7 +121,7 @@ fun BoardEditorScreen(
                     showAddNoteSheet = true
                 },
                 onAddNote = { showAddNoteSheet = true },
-                onSaveImage = { viewModel.addNote("", it, colors[0]) }
+                onSaveImage = { path, color -> viewModel.addNote("", path, color) }
             )
         }
     ) { paddingValues ->

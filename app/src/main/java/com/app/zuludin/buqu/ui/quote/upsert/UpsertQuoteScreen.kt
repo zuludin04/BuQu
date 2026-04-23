@@ -101,7 +101,7 @@ fun UpsertQuoteScreen(
                     imageVector = PhosphorAperture,
                     isOpenCamera = true,
                     onTextSelected = { viewModel.updateQuote(it) },
-                    onSaveImage = {}
+                    onSaveImage = { _, _ -> }
                 )
             }, floatingActionButton = {
                 FloatingActionButton(
