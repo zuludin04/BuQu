@@ -15,23 +15,28 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class QuoteUiState(
     val quotes: List<Quote> = emptyList(),
     val categories: List<Category> = emptyList(),
     val selectedCategory: Category? = null,
+    val selectedAuthor: String? = null,
+    val selectedBook: String? = null,
+    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val userMessage: String? = null
 )
 
 @HiltViewModel
 class QuoteViewModel @Inject constructor(
-    private val quoteRepository: QuoteRepository,
+    quoteRepository: QuoteRepository,
     categoryRepository: CategoryRepository
 ) : ViewModel() {
     private val _selectedCategory = MutableStateFlow<Category?>(null)
+    private val _selectedAuthor = MutableStateFlow<String?>(null)
+    private val _selectedBook = MutableStateFlow<String?>(null)
+    private val _searchQuery = MutableStateFlow("")
 
     private val baseState: Flow<QuoteUiState> = combine(
         quoteRepository.observeQuotes(),
@@ -45,12 +50,18 @@ class QuoteViewModel @Inject constructor(
     val uiState: StateFlow<QuoteUiState> =
         combine(
             baseState,
-            _selectedCategory
-        ) { state, cat ->
-            val filteredQuotes = filterQuote(state.quotes, cat)
+            _selectedCategory,
+            _selectedAuthor,
+            _selectedBook,
+            _searchQuery
+        ) { state, cat, author, book, query ->
+            val filteredQuotes = filterQuote(state.quotes, cat, author, book, query)
             state.copy(
                 quotes = filteredQuotes,
                 selectedCategory = cat,
+                selectedAuthor = author,
+                selectedBook = book,
+                searchQuery = query,
                 isLoading = false
             )
         }
@@ -64,18 +75,35 @@ class QuoteViewModel @Inject constructor(
         _selectedCategory.value = category
     }
 
-    private fun filterQuote(quotes: List<Quote>, category: Category?): List<Quote> {
-        val quotesToShow = ArrayList<Quote>()
+    fun filterByAuthor(author: String?) {
+        _selectedAuthor.value = author
+    }
 
-        if (category == null) {
-            quotesToShow.addAll(quotes)
-        } else {
-            viewModelScope.launch {
-                val filter = quoteRepository.getQuotesByCategory(category.categoryId)
-                quotesToShow.addAll(filter)
-            }
+    fun filterByBook(book: String?) {
+        _selectedBook.value = book
+    }
+
+    fun searchQuotes(query: String) {
+        _searchQuery.value = query
+    }
+
+    private fun filterQuote(
+        quotes: List<Quote>,
+        category: Category?,
+        author: String?,
+        book: String?,
+        query: String
+    ): List<Quote> {
+        return quotes.filter { quote ->
+            val matchesCategory = category == null || quote.categoryId == category.categoryId
+            val matchesAuthor = author == null || quote.author == author
+            val matchesBook = book == null || quote.book == book
+            val matchesQuery = query.isEmpty() ||
+                    quote.quote.contains(query, ignoreCase = true) ||
+                    quote.author.contains(query, ignoreCase = true) ||
+                    quote.book.contains(query, ignoreCase = true)
+
+            matchesCategory && matchesAuthor && matchesBook && matchesQuery
         }
-
-        return quotesToShow
     }
 }

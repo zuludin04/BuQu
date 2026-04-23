@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -23,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -33,10 +38,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
@@ -66,14 +73,29 @@ fun QuoteScreen(
         modifier = modifier.fillMaxSize(),
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
-            BuQuToolbar(
-                title = stringResource(R.string.app_name),
-                actions = {
-                    IconButton(onClick = { showFilterSheet = !showFilterSheet }) {
-                        Icon(PhosphorListDashes, null)
+            Column {
+                BuQuToolbar(
+                    title = stringResource(R.string.app_name),
+                    actions = {
+                        IconButton(onClick = { showFilterSheet = !showFilterSheet }) {
+                            Icon(PhosphorListDashes, null)
+                        }
                     }
-                }
-            )
+                )
+
+                SearchBar(
+                    query = uiState.searchQuery,
+                    onQueryChange = { viewModel.searchQuotes(it) },
+                    onSearch = { viewModel.searchQuotes(it) },
+                    active = false,
+                    onActiveChange = {},
+                    placeholder = { Text("Search quotes, authors, or books") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {}
+            }
         },
     ) { paddingValues ->
         Column(
@@ -84,10 +106,19 @@ fun QuoteScreen(
             HomeContent(
                 quotes = uiState.quotes,
                 selectedCategory = uiState.selectedCategory,
+                selectedAuthor = uiState.selectedAuthor,
+                selectedBook = uiState.selectedBook,
                 onQuoteClick = onQuoteClick,
                 onSelectCategory = { viewModel.filterQuotes(it) },
+                onSelectAuthor = { viewModel.filterByAuthor(it) },
+                onSelectBook = { viewModel.filterByBook(it) },
                 isLoading = uiState.isLoading,
-                onRefresh = { viewModel.filterQuotes(null) }
+                onRefresh = {
+                    viewModel.filterQuotes(null)
+                    viewModel.filterByAuthor(null)
+                    viewModel.filterByBook(null)
+                    viewModel.searchQuotes("")
+                }
             )
 
             if (showFilterSheet) {
@@ -95,34 +126,76 @@ fun QuoteScreen(
                     onDismissRequest = { showFilterSheet = false },
                     sheetState = sheetState
                 ) {
-                    QuoteFilterSheet(uiState.categories) {
-                        showFilterSheet = false
-                        viewModel.filterQuotes(it)
-                    }
+                    QuoteFilterSheet(
+                        categories = uiState.categories,
+                        authors = uiState.quotes.map { it.author }.distinct()
+                            .filter { it.isNotBlank() },
+                        books = uiState.quotes.map { it.book }.distinct()
+                            .filter { it.isNotBlank() },
+                        onSelectCategory = {
+                            showFilterSheet = false
+                            viewModel.filterQuotes(it)
+                        },
+                        onSelectAuthor = {
+                            showFilterSheet = false
+                            viewModel.filterByAuthor(it)
+                        },
+                        onSelectBook = {
+                            showFilterSheet = false
+                            viewModel.filterByBook(it)
+                        }
+                    )
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterialApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class
+)
 @Composable
 private fun HomeContent(
     modifier: Modifier = Modifier,
     quotes: List<Quote>,
     selectedCategory: Category?,
+    selectedAuthor: String?,
+    selectedBook: String?,
     onSelectCategory: (Category?) -> Unit,
+    onSelectAuthor: (String?) -> Unit,
+    onSelectBook: (String?) -> Unit,
     onQuoteClick: (String) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit
 ) {
     Column(modifier = modifier) {
-        if (selectedCategory != null) {
-            QuoteCategoryChips(
-                backgroundColor = "#${selectedCategory.color}",
-                name = selectedCategory.name,
-                onClearChip = { onSelectCategory(null) }
-            )
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+        ) {
+            if (selectedCategory != null) {
+                QuoteFilterChip(
+                    text = selectedCategory.name,
+                    onClear = { onSelectCategory(null) },
+                    backgroundColor = Color("#${selectedCategory.color}".toColorInt()),
+                    contentColor = Color.White
+                )
+            }
+            if (selectedAuthor != null) {
+                QuoteFilterChip(
+                    text = "Author: $selectedAuthor",
+                    onClear = { onSelectAuthor(null) }
+                )
+            }
+            if (selectedBook != null) {
+                QuoteFilterChip(
+                    text = "Book: $selectedBook",
+                    onClear = { onSelectBook(null) }
+                )
+            }
         }
 
         if (quotes.isEmpty()) {

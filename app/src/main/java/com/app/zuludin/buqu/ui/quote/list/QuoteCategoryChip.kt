@@ -15,23 +15,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
 
 @Composable
-fun QuoteCategoryChips(backgroundColor: String, name: String, onClearChip: () -> Unit) {
+fun QuoteFilterChip(
+    text: String,
+    onClear: () -> Unit,
+    backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer
+) {
     Surface(
         modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
         shadowElevation = 3.dp,
-        color = Color(backgroundColor.toColorInt()),
+        color = backgroundColor,
         shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier.padding(start = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(name, color = Color.White)
-            IconButton(onClick = onClearChip) {
-                Icon(Icons.Filled.Clear, null, tint = Color.White)
+            Text(text, color = contentColor)
+            IconButton(onClick = onClear) {
+                Icon(Icons.Filled.Clear, null, tint = contentColor)
             }
         }
     }
@@ -39,9 +43,9 @@ fun QuoteCategoryChips(backgroundColor: String, name: String, onClearChip: () ->
 
 @Preview
 @Composable
-private fun QuoteCategoryChipsPreview() {
-    QuoteCategoryChips(
-        name = "Motivation",
-        backgroundColor = "#E91E63",
-    ) {}
+private fun QuoteFilterChipPreview() {
+    QuoteFilterChip(
+        text = "Motivation",
+        onClear = {}
+    )
 }
