@@ -58,6 +58,7 @@ fun BoardEditorScreen(
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showBoardNameDialog by remember { mutableStateOf(false) }
     var showImportQuotesDialog by remember { mutableStateOf(false) }
+    var isUpdateNote by remember { mutableStateOf(false) }
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -66,7 +67,7 @@ fun BoardEditorScreen(
         offset += offsetChange
     }
 
-    var noteText by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf<NoteCard?>(null) }
 
     var boardSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -121,7 +122,19 @@ fun BoardEditorScreen(
         bottomBar = {
             BottomBarEditor(
                 onTextResult = { text ->
-                    noteText = text
+                    val n = NoteCard(
+                        noteId = "",
+                        boardId = "",
+                        title = text,
+                        posX = 0f,
+                        posY = 0f,
+                        size = IntSize.Zero,
+                        isSelected = false,
+                        color = "",
+                        image = "",
+                        isConnected = false
+                    )
+                    note = n
                     showAddNoteSheet = true
                 },
                 onAddNote = { showAddNoteSheet = true },
@@ -132,8 +145,10 @@ fun BoardEditorScreen(
                     val minY = boardSize.height * 0.2f
                     val maxY = boardSize.height * 0.6f
 
-                    val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble()).toFloat() else minX
-                    val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble()).toFloat() else minY
+                    val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
+                        .toFloat() else minX
+                    val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
+                        .toFloat() else minY
 
                     viewModel.addNote(
                         title = "",
@@ -189,6 +204,11 @@ fun BoardEditorScreen(
                 onGetSize = { size, index ->
                     viewModel.getCardSize(size, index)
                 },
+                onUpdateNote = {
+                    note = it
+                    showAddNoteSheet = true
+                    isUpdateNote = true
+                }
             )
 
             ZoomPanTool(
@@ -264,24 +284,37 @@ fun BoardEditorScreen(
     if (showAddNoteSheet) {
         NoteInputDialog(
             onDismiss = { showAddNoteSheet = !showAddNoteSheet },
-            inputText = noteText,
+            note = note,
+            isUpdate = isUpdateNote,
             onConfirm = { content, color ->
-                val random = Random.Default
-                val minX = boardSize.width * 0.2f
-                val maxX = boardSize.width * 0.6f
-                val minY = boardSize.height * 0.2f
-                val maxY = boardSize.height * 0.6f
+                if (!isUpdateNote) {
+                    val random = Random.Default
+                    val minX = boardSize.width * 0.2f
+                    val maxX = boardSize.width * 0.6f
+                    val minY = boardSize.height * 0.2f
+                    val maxY = boardSize.height * 0.6f
 
-                val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble()).toFloat() else minX
-                val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble()).toFloat() else minY
+                    val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
+                        .toFloat() else minX
+                    val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
+                        .toFloat() else minY
 
-                viewModel.addNote(
-                    title = content,
-                    image = "",
-                    color = color,
-                    posX = (rx - offset.x) / scale,
-                    posY = (ry - offset.y) / scale
-                )
+                    viewModel.addNote(
+                        title = content,
+                        image = "",
+                        color = color,
+                        posX = (rx - offset.x) / scale,
+                        posY = (ry - offset.y) / scale
+                    )
+                } else {
+                    viewModel.updateNote(
+                        noteId = note!!.noteId,
+                        text = content,
+                        image = "",
+                        color = color
+                    )
+                    isUpdateNote = false
+                }
                 showAddNoteSheet = !showAddNoteSheet
             }
         )
@@ -314,7 +347,8 @@ fun BoardEditor(
     isSelectionMode: Boolean,
     isConnectionMode: Boolean,
     onConnectCard: (NoteCard) -> Unit,
-    onSelectedCard: (String) -> Unit
+    onSelectedCard: (String) -> Unit,
+    onUpdateNote: (NoteCard) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -368,6 +402,14 @@ fun BoardEditor(
                             title = "Connect Note",
                             onClick = {
                                 onConnectCard(selectedNote!!)
+                                showMenu = false
+                            }
+                        )
+                        OverflowMenuItem(
+                            title = "Edit",
+                            onClick = {
+                                val note = notes.first { it.noteId == selectedNote?.noteId }
+                                onUpdateNote(note)
                                 showMenu = false
                             }
                         )

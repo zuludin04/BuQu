@@ -400,4 +400,15 @@ class BoardEditorViewModel @Inject constructor(
         quotes[quotes.indexOf(quote)] = quote.copy(isSelected = !isSelected)
         _uiState.update { it.copy(quotes = quotes) }
     }
+
+    fun updateNote(noteId: String, text: String, image: String, color: String) {
+        val notes = _uiState.value.notes.toMutableList()
+        val note = notes.first { it.noteId == noteId }.copy(
+            title = text,
+            image = image,
+            color = color
+        )
+        notes[notes.indexOfFirst { it.noteId == noteId }] = note
+        _uiState.update { it.copy(notes = notes) }
+    }
 }

@@ -72,13 +72,13 @@ import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorNote
-import java.io.File
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
+import java.io.File
 
 @Composable
 fun BoardNameDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
@@ -144,13 +144,13 @@ fun BoardNameDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteInputDialog(
-    inputText: String, onDismiss: () -> Unit, onConfirm: (String, String) -> Unit
+    note: NoteCard?, isUpdate: Boolean, onDismiss: () -> Unit, onConfirm: (String, String) -> Unit
 ) {
-    var text by remember { mutableStateOf(inputText) }
+    var text by remember { mutableStateOf(note?.title ?: "") }
     val colors = listOf(
         "E1F5FE", "FFF9C4", "F1F8E9", "FFEBEE", "F3E5F5", "EFEBE9"
     )
-    var selectedColor by remember { mutableStateOf(colors[0]) }
+    var selectedColor by remember { mutableStateOf(if (note?.color == "") colors[0] else note?.color) }
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(
@@ -164,7 +164,7 @@ fun NoteInputDialog(
                 .fillMaxWidth()
         ) {
             Text(
-                "Add New Card",
+                if (isUpdate) "Update Note" else "Add New Note",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -189,7 +189,8 @@ fun NoteInputDialog(
                             Icon(PhosphorXCircle, null)
                         }
                     }
-                })
+                }
+            )
 
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -236,14 +237,17 @@ fun NoteInputDialog(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { if (text.isNotBlank()) onConfirm(text, selectedColor) },
+                onClick = { if (text.isNotBlank()) onConfirm(text, selectedColor ?: colors[0]) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 enabled = text.isNotBlank()
             ) {
-                Text("Create Card", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (isUpdate) "Update Note" else "Create Note",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }
