@@ -1,11 +1,14 @@
 package com.app.zuludin.buqu.ui.quote.upsert
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -13,7 +16,8 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -21,13 +25,19 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,13 +57,17 @@ import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
 import com.app.zuludin.buqu.core.compose.MediaFileScanner
 import com.app.zuludin.buqu.core.compose.SpeechToText
+import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.compose.TitleInputField
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
+import com.app.zuludin.buqu.core.icons.PhosphorImage
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
+import com.app.zuludin.buqu.core.utils.convertPathFileToUri
+import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Quote
 import java.io.File
 
@@ -69,6 +83,10 @@ fun UpsertQuoteScreen(
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    var showPreviewImage by remember { mutableStateOf(false) }
+    var showTextSelection by remember { mutableStateOf(false) }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -87,47 +105,63 @@ fun UpsertQuoteScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(actions = {
-                if (topAppBarTitle == "Update Quote") {
-                    IconButton(onClick = viewModel::deleteQuote) {
-                        Icon(PhosphorTrash, "Localized description")
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                actions = {
+                    if (topAppBarTitle == "Update Quote") {
+                        IconButton(onClick = viewModel::deleteQuote) {
+                            Icon(PhosphorTrash, "Localized description")
+                        }
+
+                        IconButton(onClick = {
+                            val quote = Quote(
+                                quoteId = "",
+                                quote = uiState.quote,
+                                author = uiState.author,
+                                book = uiState.book,
+                                page = 0,
+                                category = "",
+                                categoryId = "",
+                                color = ""
+                            )
+                            onShareQuote(quote)
+                        }) {
+                            Icon(PhosphorShareNetwork, "Localized description")
+                        }
                     }
 
-                    IconButton(onClick = {
-                        val quote = Quote(
-                            quoteId = "",
-                            quote = uiState.quote,
-                            author = uiState.author,
-                            book = uiState.book,
-                            page = 0,
-                            category = "",
-                            categoryId = "",
-                            color = ""
-                        )
-                        onShareQuote(quote)
-                    }) {
-                        Icon(PhosphorShareNetwork, "Localized description")
+                    SpeechToText { viewModel.updateQuote(it) }
+
+                    MediaFileScanner(
+                        imageVector = PhosphorAperture,
+                        isOpenCamera = true,
+                        onTextSelected = { viewModel.updateQuote(it) },
+                        onSaveImage = { path, _ ->
+                            viewModel.updateImage(path)
+                            viewModel.removeQuoteText()
+                        }
+                    )
+
+                    MediaFileScanner(
+                        imageVector = PhosphorImage,
+                        isOpenCamera = false,
+                        onTextSelected = { viewModel.updateQuote(it) },
+                        onSaveImage = { path, _ ->
+                            viewModel.updateImage(path)
+                            viewModel.removeQuoteText()
+                        }
+                    )
+                }, floatingActionButton = {
+                    FloatingActionButton(
+                        modifier = Modifier.testTag("AddNewQuote"),
+                        onClick = viewModel::saveQuote,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+                    ) {
+                        Icon(PhosphorCheck, "Localized description")
                     }
                 }
-
-                SpeechToText { viewModel.updateQuote(it) }
-
-                MediaFileScanner(
-                    imageVector = PhosphorAperture,
-                    isOpenCamera = true,
-                    onTextSelected = { viewModel.updateQuote(it) },
-                    onSaveImage = { path, _ -> viewModel.updateImage(path) }
-                )
-            }, floatingActionButton = {
-                FloatingActionButton(
-                    modifier = Modifier.testTag("AddNewQuote"),
-                    onClick = viewModel::saveQuote,
-                    containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                ) {
-                    Icon(PhosphorCheck, "Localized description")
-                }
-            })
+            )
         }
     ) { contentPadding ->
         Column(
@@ -176,7 +210,9 @@ fun UpsertQuoteScreen(
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Quote Image",
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable { showPreviewImage = true },
                             contentScale = ContentScale.Crop
                         )
 
@@ -266,6 +302,77 @@ fun UpsertQuoteScreen(
         if (uiState.isError) {
             scaffoldState.snackbarHostState.showSnackbar("Make sure to fill all forms")
             viewModel.errorMessageShown()
+        }
+    }
+
+    if (showTextSelection) {
+        TextSelectionDialog(
+            bitmap = context.fixImageRotation(uiState.image.convertPathFileToUri())!!,
+            onDismiss = { showTextSelection = !showTextSelection },
+            onTextSelected = { selectedText ->
+                viewModel.updateQuote(selectedText)
+                viewModel.removeImage()
+                showTextSelection = !showTextSelection
+            }
+        )
+    }
+
+    if (showPreviewImage) {
+        ScanImageTextSheet(
+            imagePath = uiState.image,
+            onDismiss = { showPreviewImage = !showPreviewImage },
+            onScanText = {
+                showTextSelection = true
+                showPreviewImage = !showPreviewImage
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScanImageTextSheet(onDismiss: () -> Unit, imagePath: String, onScanText: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val context = LocalContext.current
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+                .fillMaxWidth()
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(File(imagePath))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Quote Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = { onScanText() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Text(
+                    "Scan Text",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
     }
 }

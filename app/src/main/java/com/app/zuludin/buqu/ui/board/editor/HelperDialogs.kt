@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.board.editor
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -148,7 +147,6 @@ fun NoteInputDialog(
     note: NoteCard?, isUpdate: Boolean, onDismiss: () -> Unit, onConfirm: (String, String) -> Unit
 ) {
     var text by remember { mutableStateOf(note?.title ?: "") }
-    Log.d("NOTE_COLOR", note?.color.toString())
     val colors = listOf(
         "E1F5FE", "FFF9C4", "F1F8E9", "FFEBEE", "F3E5F5", "EFEBE9"
     )

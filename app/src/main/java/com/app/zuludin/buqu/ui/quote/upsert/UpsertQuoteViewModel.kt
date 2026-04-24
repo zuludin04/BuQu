@@ -121,6 +121,12 @@ class UpsertQuoteViewModel @Inject constructor(
         }
     }
 
+    fun removeQuoteText() {
+        _uiState.update {
+            it.copy(quote = "", isSavingAsImage = true)
+        }
+    }
+
     fun updateSavingMode(isImage: Boolean) {
         _uiState.update {
             it.copy(isSavingAsImage = isImage)
