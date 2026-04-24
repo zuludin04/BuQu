@@ -283,7 +283,10 @@ fun BoardEditorScreen(
 
     if (showAddNoteSheet) {
         NoteInputDialog(
-            onDismiss = { showAddNoteSheet = !showAddNoteSheet },
+            onDismiss = {
+                showAddNoteSheet = !showAddNoteSheet
+                isUpdateNote = !isUpdateNote
+            },
             note = note,
             isUpdate = isUpdateNote,
             onConfirm = { content, color ->
@@ -314,6 +317,7 @@ fun BoardEditorScreen(
                         color = color
                     )
                     isUpdateNote = false
+                    note = null
                 }
                 showAddNoteSheet = !showAddNoteSheet
             }
