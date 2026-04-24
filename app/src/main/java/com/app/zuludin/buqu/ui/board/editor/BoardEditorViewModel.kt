@@ -370,7 +370,7 @@ class BoardEditorViewModel @Inject constructor(
         val selectedQuotes = _uiState.value.quotes.filter { it.isSelected }
         selectedQuotes.forEachIndexed { i, q ->
             val space = (i + 1) * 250f
-            addNote(q.quote, "", q.color, posX = space)
+            addNote(q.quote, q.image, q.color, posX = space)
         }
 
         val quotes = _uiState.value.quotes.toMutableList()
