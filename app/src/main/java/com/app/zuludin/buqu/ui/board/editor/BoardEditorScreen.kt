@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -35,11 +36,14 @@ import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.compose.ImagePickDialog
+import com.app.zuludin.buqu.core.compose.saveImageToInternalStorage
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
+import com.app.zuludin.buqu.core.utils.convertPathFileToUri
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import kotlin.math.roundToInt
@@ -53,9 +57,11 @@ fun BoardEditorScreen(
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
+    var showUpdateNoteImage by remember { mutableStateOf(false) }
     var showBoardNameDialog by remember { mutableStateOf(false) }
     var showImportQuotesDialog by remember { mutableStateOf(false) }
     var isUpdateNote by remember { mutableStateOf(false) }
@@ -206,8 +212,12 @@ fun BoardEditorScreen(
                 },
                 onUpdateNote = {
                     note = it
-                    showAddNoteSheet = true
                     isUpdateNote = true
+                    if (it.image.isBlank()) {
+                        showAddNoteSheet = true
+                    } else {
+                        showUpdateNoteImage = true
+                    }
                 }
             )
 
@@ -336,6 +346,29 @@ fun BoardEditorScreen(
             categories = uiState.categories
         )
     }
+
+    if (showUpdateNoteImage) {
+        ImagePickDialog(
+            uri = note!!.image.convertPathFileToUri(),
+            onDismiss = {
+                showUpdateNoteImage = !showUpdateNoteImage
+                isUpdateNote = false
+                note = null
+            },
+            showScanText = false,
+            color = note!!.color,
+            onSaveImage = { selectedColor, uri ->
+                val path = saveImageToInternalStorage(context, uri)
+                if (path != null) {
+                    viewModel.updateNote(note!!.noteId, "", path, selectedColor)
+                }
+                showUpdateNoteImage = !showUpdateNoteImage
+                isUpdateNote = false
+                note = null
+            },
+            onScanText = { },
+        )
+    }
 }
 
 @Composable
@@ -410,7 +443,7 @@ fun BoardEditor(
                             }
                         )
                         OverflowMenuItem(
-                            title = "Edit",
+                            title = "Update Note",
                             onClick = {
                                 val note = notes.first { it.noteId == selectedNote?.noteId }
                                 onUpdateNote(note)

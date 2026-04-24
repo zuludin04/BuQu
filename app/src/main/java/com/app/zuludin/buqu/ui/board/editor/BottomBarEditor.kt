@@ -3,11 +3,11 @@ package com.app.zuludin.buqu.ui.board.editor
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +38,7 @@ fun BottomBarEditor(
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
 
     BottomAppBar(
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
         actions = {
             MediaFileScanner(
                 imageVector = PhosphorAperture,
@@ -62,7 +63,7 @@ fun BottomBarEditor(
         },
         floatingActionButton = {
             FloatingActionButton(
-                containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                containerColor = MaterialTheme.colorScheme.primary,
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
                 content = { Icon(PhosphorPlus, null) },
                 onClick = { onAddNote() },

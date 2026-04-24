@@ -14,6 +14,8 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -151,6 +153,11 @@ fun Context.fixImageRotation(uri: Uri): Bitmap? {
     }
 }
 
+fun Context.getImageBitmap(uri: Uri): ImageBitmap {
+    val bitmap = this.fixImageRotation(uri)
+    return bitmap!!.asImageBitmap()
+}
+
 fun Int.pxToDp(): Dp = (this / Resources.getSystem().displayMetrics.density).dp
 
 fun Color.darken(factor: Float = 0.8f): Color {
@@ -159,4 +166,9 @@ fun Color.darken(factor: Float = 0.8f): Color {
         green = green * factor,
         blue = blue * factor
     )
+}
+
+fun String.convertPathFileToUri(): Uri {
+    val file = File(this)
+    return Uri.fromFile(file)
 }
