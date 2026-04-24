@@ -227,6 +227,7 @@ private fun HomeContent(
                                     backgroundColor = "#${quotes[it].color}",
                                     book = quotes[it].book,
                                     author = quotes[it].author,
+                                    imagePath = quotes[it].image
                                 ) {
                                     onQuoteClick(quotes[it].quoteId)
                                 }
