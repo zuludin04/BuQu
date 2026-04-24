@@ -56,7 +56,7 @@ fun NoteCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            if (imagePath != "") {
+            if (imagePath.isNotBlank()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -75,23 +75,27 @@ fun NoteCard(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "\"$quote\"",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.Medium
-                    ),
-                    color = if (imagePath == "") Color.Unspecified else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 10,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (quote.isNotBlank()) {
+                    Text(
+                        text = "\"$quote\"",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = if (imagePath == "") Color.Unspecified else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 10,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
                 Column {
-                    Text(
-                        text = author,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        maxLines = 1
-                    )
+                    if (author.isNotBlank()) {
+                        Text(
+                            text = author,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            maxLines = 1
+                        )
+                    }
                     if (book.isNotBlank()) {
                         Text(
                             text = book,

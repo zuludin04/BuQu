@@ -14,15 +14,19 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
@@ -49,9 +53,11 @@ import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
+import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.domain.models.Quote
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("DEPRECATION")
 @Composable
 fun UpsertQuoteScreen(
@@ -132,7 +138,29 @@ fun UpsertQuoteScreen(
             val focusManager = LocalFocusManager.current
             val context = LocalContext.current
 
-            if (uiState.image.isNotEmpty()) {
+            if (uiState.image.isNotEmpty() || uiState.quote.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    FilterChip(
+                        selected = !uiState.isSavingAsImage,
+                        onClick = { viewModel.updateSavingMode(false) },
+                        label = { Text("Text") },
+                        enabled = uiState.quote.isNotEmpty(),
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    FilterChip(
+                        selected = uiState.isSavingAsImage,
+                        onClick = { viewModel.updateSavingMode(true) },
+                        label = { Text("Image") },
+                        enabled = uiState.image.isNotEmpty()
+                    )
+                }
+            }
+
+            if (uiState.isSavingAsImage && uiState.image.isNotEmpty()) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,30 +169,47 @@ fun UpsertQuoteScreen(
                     shape = RoundedCornerShape(8.dp),
                     tonalElevation = 2.dp
                 ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(File(uiState.image))
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Quote Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(File(uiState.image))
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Quote Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        IconButton(
+                            onClick = viewModel::removeImage,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = PhosphorX,
+                                contentDescription = "Remove Image",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                 }
             }
 
-            TitleInputField(
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = false,
-                label = stringResource(R.string.quote),
-                capitalization = KeyboardCapitalization.Sentences,
-                value = uiState.quote,
-                onChanged = viewModel::updateQuote,
-                imeAction = ImeAction.Next,
-                keyboardAction = KeyboardActions(onNext = {
-                    focusManager.moveFocus(FocusDirection.Down)
-                })
-            )
+            if (!uiState.isSavingAsImage) {
+                TitleInputField(
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = false,
+                    label = stringResource(R.string.quote),
+                    capitalization = KeyboardCapitalization.Sentences,
+                    value = uiState.quote,
+                    onChanged = viewModel::updateQuote,
+                    imeAction = ImeAction.Next,
+                    keyboardAction = KeyboardActions(onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    })
+                )
+            }
             Row {
                 TitleInputField(
                     modifier = Modifier.weight(2f),

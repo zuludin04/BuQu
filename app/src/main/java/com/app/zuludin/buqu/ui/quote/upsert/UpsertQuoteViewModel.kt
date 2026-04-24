@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.quote.upsert
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +21,7 @@ data class UpsertQuoteUiState(
     val page: String = "",
     val author: String = "",
     val image: String = "",
+    val isSavingAsImage: Boolean = false,
     val category: Category = Category(
         categoryId = "a76c5015-34c7-4a54-bdfb-c5ed2010b7c9",
         name = "Motivation",
@@ -53,16 +53,18 @@ class UpsertQuoteViewModel @Inject constructor(
 
     fun saveQuote() = viewModelScope.launch {
         val state = uiState.value
-        if (state.quote.isNotEmpty() || state.image.isNotEmpty()) {
-            Log.d("SAVE_IMAGE", state.image)
+        val quoteToSave = if (state.isSavingAsImage) "" else state.quote
+        val imageToSave = if (state.isSavingAsImage) state.image else ""
+
+        if (quoteToSave.isNotEmpty() || imageToSave.isNotEmpty()) {
             quoteRepository.upsertQuote(
                 quoteId = quoteId,
-                quote = state.quote,
+                quote = quoteToSave,
                 book = state.book,
                 author = state.author,
                 page = if (state.page.isEmpty()) 0 else state.page.toInt(),
                 categoryId = state.category.categoryId,
-                image = state.image
+                image = imageToSave
             )
             _uiState.update {
                 it.copy(isQuoteSaved = true, isError = false)
@@ -109,7 +111,19 @@ class UpsertQuoteViewModel @Inject constructor(
 
     fun updateImage(newImage: String) {
         _uiState.update {
-            it.copy(image = newImage)
+            it.copy(image = newImage, isSavingAsImage = true)
+        }
+    }
+
+    fun removeImage() {
+        _uiState.update {
+            it.copy(image = "", isSavingAsImage = false)
+        }
+    }
+
+    fun updateSavingMode(isImage: Boolean) {
+        _uiState.update {
+            it.copy(isSavingAsImage = isImage)
         }
     }
 
@@ -131,7 +145,6 @@ class UpsertQuoteViewModel @Inject constructor(
         viewModelScope.launch {
             quoteRepository.getQuoteById(quoteId).let { quote ->
                 if (quote != null) {
-                    Log.d("IMAGE_QUOTE", quote.image)
                     _uiState.update {
                         it.copy(
                             quote = quote.quote,
@@ -139,6 +152,7 @@ class UpsertQuoteViewModel @Inject constructor(
                             page = quote.page.toString(),
                             author = quote.author,
                             image = quote.image,
+                            isSavingAsImage = quote.image.isNotBlank(),
                             category = Category(
                                 categoryId = quote.categoryId,
                                 name = quote.category,
