@@ -411,4 +411,63 @@ class BoardEditorViewModel @Inject constructor(
         notes[notes.indexOfFirst { it.noteId == noteId }] = note
         _uiState.update { it.copy(notes = notes) }
     }
+
+    fun tidyUpNotes(boardWidth: Float, boardHeight: Float) {
+        val notes = _uiState.value.notes
+        if (notes.isEmpty()) return
+
+        val columnCount = 3
+        val padding = 32f
+
+        val columnWidths = FloatArray(columnCount)
+        notes.forEachIndexed { index, note ->
+            val column = index % columnCount
+            val width = if (note.size.width > 0) note.size.width.toFloat() else 300f
+            columnWidths[column] = maxOf(columnWidths[column], width)
+        }
+
+        val totalWidth = columnWidths.sum() + (columnCount - 1) * padding
+        val startX = (boardWidth - totalWidth) / 2
+
+        val columnXOffsets = FloatArray(columnCount)
+        columnXOffsets[0] = startX
+        for (i in 1 until columnCount) {
+            columnXOffsets[i] = columnXOffsets[i - 1] + columnWidths[i - 1] + padding
+        }
+
+        val tempHeights = FloatArray(columnCount)
+        notes.forEachIndexed { index, note ->
+            val column = index % columnCount
+            val height = if (note.size.height > 0) note.size.height.toFloat() else 250f
+            tempHeights[column] += height + padding
+        }
+        val totalHeight = tempHeights.maxOrNull() ?: 0f
+        val startY = (boardHeight - totalHeight) / 2
+
+        val columnHeights = FloatArray(columnCount) { startY }
+
+        val tidiedNotes = notes.mapIndexed { index, note ->
+            val column = index % columnCount
+            val x = columnXOffsets[column]
+            val y = columnHeights[column]
+
+            val height = if (note.size.height > 0) note.size.height.toFloat() else 250f
+            columnHeights[column] += height + padding
+
+            note.copy(posX = x, posY = y)
+        }
+
+        val tidiedRopes = _uiState.value.ropes.map { rope ->
+            val sourceNote = tidiedNotes.find { it.noteId == rope.sourceNoteId }
+            val targetNote = tidiedNotes.find { it.noteId == rope.targetNoteId }
+            rope.copy(
+                sourceX = sourceNote?.posX ?: rope.sourceX,
+                sourceY = sourceNote?.posY ?: rope.sourceY,
+                targetX = targetNote?.posX ?: rope.targetX,
+                targetY = targetNote?.posY ?: rope.targetY
+            )
+        }
+
+        _uiState.update { it.copy(notes = tidiedNotes, ropes = tidiedRopes) }
+    }
 }

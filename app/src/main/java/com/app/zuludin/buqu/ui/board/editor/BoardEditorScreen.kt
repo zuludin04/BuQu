@@ -163,6 +163,12 @@ fun BoardEditorScreen(
                         posX = (rx - offset.x) / scale,
                         posY = (ry - offset.y) / scale
                     )
+                },
+                onTidyUp = {
+                    viewModel.tidyUpNotes(
+                        boardSize.width.toFloat(),
+                        boardSize.height.toFloat()
+                    )
                 }
             )
         }

@@ -32,7 +32,8 @@ import kotlin.math.roundToInt
 fun BottomBarEditor(
     onTextResult: (String) -> Unit,
     onAddNote: () -> Unit,
-    onSaveImage: (String, String) -> Unit
+    onSaveImage: (String, String) -> Unit,
+    onTidyUp: () -> Unit
 ) {
     var showOverflowMenu by remember { mutableStateOf(false) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
@@ -81,8 +82,11 @@ fun BottomBarEditor(
         ) {
             Column(modifier = Modifier.widthIn(max = 120.dp)) {
                 OverflowMenuItem(
-                    title = "Auto Layout",
-                    onClick = { showOverflowMenu = !showOverflowMenu }
+                    title = "Tidy Up Notes",
+                    onClick = {
+                        onTidyUp()
+                        showOverflowMenu = !showOverflowMenu
+                    }
                 )
                 OverflowMenuItem(
                     title = "Settings",
