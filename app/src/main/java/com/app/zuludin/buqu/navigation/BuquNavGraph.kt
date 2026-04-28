@@ -20,6 +20,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
 import com.app.zuludin.buqu.ui.book.list.BookScreen
+import com.app.zuludin.buqu.ui.book.scan.CoverScanScreen
 import com.app.zuludin.buqu.ui.book.search.BookSearchScreen
 import com.app.zuludin.buqu.ui.book.upsert.UpsertBookScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
@@ -109,7 +110,7 @@ fun BuquNavGraph(
             BookScreen(
                 onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
                 onSearchClick = { navActions.navigateToBookSearch() },
-                onScanClick = { navActions.navigateToUpsertBook("Add Book", null) }
+                onScanClick = { navActions.navigateToCoverScan() }
             )
         }
 
@@ -133,9 +134,18 @@ fun BuquNavGraph(
             BookSearchScreen(
                 onBack = { navController.popBackStack() },
                 onBookSelected = { book ->
-                    navController.previousBackStackEntry?.savedStateHandle?.set("selected_book", book.bookId)
+                    // Return to the list first, then open Add flow with selected Google Books id.
                     navController.popBackStack()
+                    navActions.navigateToUpsertBook("Add Book", book.bookId)
                 }
+            )
+        }
+
+        composable(BuquDestinations.COVER_SCAN_ROUTE) {
+            CoverScanScreen(
+                onBack = { navController.popBackStack() },
+                onEditBook = { bookId -> navActions.navigateToUpsertBook("Add Book", bookId) },
+                onSaved = { navController.popBackStack() }
             )
         }
     }

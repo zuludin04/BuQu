@@ -30,15 +30,13 @@ fun TextScanner(
 
     ImagePicker(
         child = {
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = imageVector,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.shapes.small)
-                        .padding(4.dp)
-                )
-            }
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.shapes.small)
+                    .padding(4.dp)
+            )
         },
         isOpenCamera = true,
         onImageResult = {
