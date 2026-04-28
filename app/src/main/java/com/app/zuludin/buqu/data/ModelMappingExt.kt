@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.data
 import androidx.compose.ui.unit.IntSize
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.BoardTotalNoteEntity
+import com.app.zuludin.buqu.data.datasources.database.entities.BookEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryAndQuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.ConnectedNoteCardEntity
@@ -11,6 +12,7 @@ import com.app.zuludin.buqu.data.datasources.database.entities.NoteCardEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
 import com.app.zuludin.buqu.domain.models.Board
+import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
@@ -121,3 +123,24 @@ fun ConnectedRopeEntity.toExternal() = Rope(
     sourceSize = IntSize(sourceWidth, sourceHeight),
     targetSize = IntSize(targetWidth, targetHeight)
 )
+
+fun Book.toLocal() = BookEntity(
+    bookId = bookId,
+    title = title,
+    author = author,
+    cover = cover,
+    description = description,
+    totalPages = totalPages
+)
+
+fun BookEntity.toExternal() = Book(
+    bookId = bookId,
+    title = title,
+    author = author,
+    cover = cover,
+    description = description,
+    totalPages = totalPages
+)
+
+@JvmName("localToExternalBook")
+fun List<BookEntity>.toExternal() = map(BookEntity::toExternal)

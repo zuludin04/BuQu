@@ -11,6 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.zuludin.buqu.navigation.BuquDestinationArgs.BOOK_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.QUOTE_ID_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_AUTHOR_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_BOOK_ARG
@@ -18,6 +19,9 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
+import com.app.zuludin.buqu.ui.book.list.BookScreen
+import com.app.zuludin.buqu.ui.book.search.BookSearchScreen
+import com.app.zuludin.buqu.ui.book.upsert.UpsertBookScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
@@ -100,11 +104,44 @@ fun BuquNavGraph(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(BuquDestinations.BOOKS_ROUTE) {
+            BookScreen(
+                onBookClick = { navActions.navigateToUpsertBook("Update Book", it) }
+            )
+        }
+
+        composable(
+            BuquDestinations.UPSERT_BOOK_ROUTE,
+            arguments = listOf(
+                navArgument(TITLE_ARG) { type = NavType.StringType },
+                navArgument(BOOK_ID_ARG) { type = NavType.StringType; nullable = true }
+            )
+        ) { entry ->
+            val title = entry.arguments?.getString(TITLE_ARG)
+            UpsertBookScreen(
+                onBack = { navController.popBackStack() },
+                onSearchWeb = { navActions.navigateToBookSearch() },
+                topAppBarTitle = title ?: "",
+                savedStateHandle = entry.savedStateHandle
+            )
+        }
+
+        composable(BuquDestinations.BOOK_SEARCH_ROUTE) {
+            BookSearchScreen(
+                onBack = { navController.popBackStack() },
+                onBookSelected = { book ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("selected_book", book.bookId)
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
 
 val bottomBarRoutes = setOf(
     BuquDestinations.QUOTES_ROUTE,
     BuquDestinations.BOARD_ROUTE,
+    BuquDestinations.BOOKS_ROUTE,
     BuquDestinations.SETTING_ROUTE
 )

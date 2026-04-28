@@ -5,11 +5,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.data.repositories.BoardRepository
+import com.app.zuludin.buqu.data.repositories.BookRepository
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.NoteCardRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.data.repositories.RopeRepository
 import com.app.zuludin.buqu.domain.models.Board
+import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
@@ -36,6 +38,7 @@ data class BoardEditorUiState(
     val errorConnectSameNote: Boolean = false,
     val successSaveBoard: Boolean = false,
     val quotes: List<Quote> = emptyList(),
+    val books: List<Book> = emptyList(),
     val categories: List<Category> = emptyList()
 )
 
@@ -45,6 +48,7 @@ class BoardEditorViewModel @Inject constructor(
     private val noteRepository: NoteCardRepository,
     private val ropeRepository: RopeRepository,
     private val quoteRepository: QuoteRepository,
+    private val bookRepository: BookRepository,
     private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -62,6 +66,7 @@ class BoardEditorViewModel @Inject constructor(
             currentBoardId = UUID.randomUUID().toString()
         }
         loadQuotes()
+        loadBooks()
         loadCategories()
     }
 
@@ -359,6 +364,14 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
+    private fun loadBooks() {
+        viewModelScope.launch {
+            bookRepository.observeBooks().collect { books ->
+                _uiState.update { it.copy(books = books) }
+            }
+        }
+    }
+
     private fun loadCategories() {
         viewModelScope.launch {
             val categories = categoryRepository.getCategories()
@@ -381,6 +394,23 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(quotes = quotes) }
     }
 
+    fun importBooks() {
+        val selectedBooks = _uiState.value.books.filter { it.isSelected }
+        selectedBooks.forEachIndexed { i, b ->
+            val space = (i + 1) * 250f
+            addNote(
+                title = b.title,
+                image = "",
+                color = "E1F5FE",
+                posX = space
+            )
+        }
+
+        val books = _uiState.value.books.map { it.copy(isSelected = false) }
+        _uiState.update { it.copy(books = books) }
+    }
+
+
     fun resetSelectedNotes() {
         val ropes = _uiState.value.ropes
         val notes = _uiState.value.notes.map { note ->
@@ -399,6 +429,14 @@ class BoardEditorViewModel @Inject constructor(
         val isSelected = quote.isSelected
         quotes[quotes.indexOf(quote)] = quote.copy(isSelected = !isSelected)
         _uiState.update { it.copy(quotes = quotes) }
+    }
+
+    fun selectImportBook(bookId: String) {
+        val books = _uiState.value.books.toMutableList()
+        val book = books.first { it.bookId == bookId }
+        val isSelected = book.isSelected
+        books[books.indexOf(book)] = book.copy(isSelected = !isSelected)
+        _uiState.update { it.copy(books = books) }
     }
 
     fun updateNote(noteId: String, text: String, image: String, color: String) {

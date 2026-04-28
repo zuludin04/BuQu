@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -10,12 +13,22 @@ android {
     namespace = "com.app.zuludin.buqu"
     compileSdk = 35
 
+    val localProperties = Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            load(FileInputStream(localPropertiesFile))
+        }
+    }
+    val googleBooksApiKey = localProperties.getProperty("GOOGLE_BOOKS_API_KEY") ?: ""
+
     defaultConfig {
         applicationId = "com.app.zuludin.buqu"
         minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "GOOGLE_BOOKS_API_KEY", "\"$googleBooksApiKey\"")
 
         testInstrumentationRunner = "com.app.zuludin.buqu.HiltTestRunner"
         vectorDrawables {
@@ -131,4 +144,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.espresso.idling.resource)
+
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson)
 }

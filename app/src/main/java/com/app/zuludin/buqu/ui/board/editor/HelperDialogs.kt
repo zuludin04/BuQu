@@ -65,15 +65,19 @@ import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.InputHelperChip
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorLinkBreak
+import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorMicrophone
 import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
+import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
+import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
@@ -539,6 +543,127 @@ fun QuoteImportItem(quote: Quote, onClick: () -> Unit) {
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.primary
                     )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookImportDialog(
+    onDismiss: () -> Unit,
+    onBookSelected: (Book) -> Unit,
+    onImportBooks: () -> Unit,
+    books: List<Book>
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    var active by remember { mutableStateOf(false) }
+
+    val filteredBooks = books.filter { book ->
+        book.title.contains(searchQuery, ignoreCase = true) ||
+                book.author.contains(searchQuery, ignoreCase = true)
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Scaffold(
+                topBar = {
+                    Column {
+                        BuQuToolbar(
+                            title = "Import Books",
+                            backButton = {
+                                IconButton(onClick = onDismiss) {
+                                    Icon(PhosphorX, null)
+                                }
+                            },
+                            actions = {
+                                IconButton(onClick = onImportBooks) {
+                                    Icon(PhosphorCheck, null)
+                                }
+                            }
+                        )
+
+                        SearchBar(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onSearch = { active = false },
+                            active = active,
+                            onActiveChange = { active = it },
+                            placeholder = { Text("Search books") },
+                            leadingIcon = { Icon(PhosphorMagnifyingGlass, null) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {}
+                    }
+                }
+            ) { paddingValues ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filteredBooks) { book ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onBookSelected(book) },
+                            border = if (book.isSelected) BorderStroke(
+                                2.dp,
+                                MaterialTheme.colorScheme.primary
+                            ) else null
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = book.cover,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(50.dp, 75.dp),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .padding(start = 12.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(
+                                        text = book.title,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = book.author,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                if (book.isSelected) {
+                                    Icon(
+                                        PhosphorCheck,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

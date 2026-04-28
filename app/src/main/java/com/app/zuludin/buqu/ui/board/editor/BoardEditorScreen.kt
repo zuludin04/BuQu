@@ -40,6 +40,7 @@ import com.app.zuludin.buqu.core.compose.ImagePickDialog
 import com.app.zuludin.buqu.core.compose.saveImageToInternalStorage
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
+import com.app.zuludin.buqu.core.icons.PhosphorListDashes
 import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
@@ -64,6 +65,7 @@ fun BoardEditorScreen(
     var showUpdateNoteImage by remember { mutableStateOf(false) }
     var showBoardNameDialog by remember { mutableStateOf(false) }
     var showImportQuotesDialog by remember { mutableStateOf(false) }
+    var showImportBooksDialog by remember { mutableStateOf(false) }
     var isUpdateNote by remember { mutableStateOf(false) }
 
     var scale by remember { mutableFloatStateOf(1f) }
@@ -110,6 +112,10 @@ fun BoardEditorScreen(
                         IconButton(
                             onClick = { showImportQuotesDialog = true },
                             content = { Icon(PhosphorNote, null) }
+                        )
+                        IconButton(
+                            onClick = { showImportBooksDialog = true },
+                            content = { Icon(PhosphorListDashes, null) }
                         )
                         IconButton(
                             onClick = {
@@ -350,6 +356,18 @@ fun BoardEditorScreen(
                 showImportQuotesDialog = !showImportQuotesDialog
             },
             categories = uiState.categories
+        )
+    }
+
+    if (showImportBooksDialog) {
+        BookImportDialog(
+            books = uiState.books,
+            onDismiss = { showImportBooksDialog = !showImportBooksDialog },
+            onBookSelected = { viewModel.selectImportBook(it.bookId) },
+            onImportBooks = {
+                viewModel.importBooks()
+                showImportBooksDialog = !showImportBooksDialog
+            }
         )
     }
 
