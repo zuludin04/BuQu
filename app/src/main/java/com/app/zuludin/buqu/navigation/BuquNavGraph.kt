@@ -107,7 +107,9 @@ fun BuquNavGraph(
 
         composable(BuquDestinations.BOOKS_ROUTE) {
             BookScreen(
-                onBookClick = { navActions.navigateToUpsertBook("Update Book", it) }
+                onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
+                onSearchClick = { navActions.navigateToBookSearch() },
+                onScanClick = { navActions.navigateToUpsertBook("Add Book", null) }
             )
         }
 

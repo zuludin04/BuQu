@@ -1,7 +1,10 @@
 package com.app.zuludin.buqu.ui.main
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -9,16 +12,20 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorChalkboardSimple
 import com.app.zuludin.buqu.core.icons.PhosphorGear
 import com.app.zuludin.buqu.core.icons.PhosphorListDashes
+import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.navigation.BuquDestinations
@@ -36,20 +43,46 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    var isFabMenuOpen by remember { mutableStateOf(false) }
+
     Scaffold(
         floatingActionButton = {
             if (currentRoute in bottomBarRoutes && currentRoute != BuquDestinations.SETTING_ROUTE) {
-                FloatingActionButton(
-                    modifier = Modifier.testTag("UpsertQuote"),
-                    onClick = {
-                        when (currentRoute) {
-                            BuquDestinations.QUOTES_ROUTE -> navActions.navigateToUpsertQuote("Insert Quote", null)
-                            BuquDestinations.BOARD_ROUTE -> navActions.navigateToBoardEditor(null)
-                            BuquDestinations.BOOKS_ROUTE -> navActions.navigateToUpsertBook("Insert Book", null)
-                        }
-                    },
-                ) {
-                    Icon(PhosphorPlus, null)
+                Box {
+                    FloatingActionButton(
+                        modifier = Modifier.testTag("UpsertQuote"),
+                        onClick = {
+                            when (currentRoute) {
+                                BuquDestinations.QUOTES_ROUTE -> navActions.navigateToUpsertQuote("Insert Quote", null)
+                                BuquDestinations.BOARD_ROUTE -> navActions.navigateToBoardEditor(null)
+                                BuquDestinations.BOOKS_ROUTE -> isFabMenuOpen = !isFabMenuOpen
+                            }
+                        },
+                    ) {
+                        Icon(PhosphorPlus, null)
+                    }
+
+                    DropdownMenu(
+                        expanded = isFabMenuOpen,
+                        onDismissRequest = { isFabMenuOpen = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Search books") },
+                            leadingIcon = { Icon(PhosphorMagnifyingGlass, null) },
+                            onClick = {
+                                isFabMenuOpen = false
+                                navActions.navigateToBookSearch()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Scan cover") },
+                            leadingIcon = { Icon(PhosphorAperture, null) },
+                            onClick = {
+                                isFabMenuOpen = false
+                                navActions.navigateToUpsertBook("Add Book", null)
+                            }
+                        )
+                    }
                 }
             }
         },
