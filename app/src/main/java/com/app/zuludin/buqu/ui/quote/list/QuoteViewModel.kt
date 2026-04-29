@@ -21,11 +21,10 @@ data class QuoteUiState(
     val quotes: List<Quote> = emptyList(),
     val categories: List<Category> = emptyList(),
     val selectedCategory: Category? = null,
-    val selectedAuthor: String? = null,
-    val selectedBook: String? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val userMessage: String? = null
+    val userMessage: String? = null,
+    val showCategoryFilter: Boolean = false
 )
 
 @HiltViewModel
@@ -34,8 +33,6 @@ class QuoteViewModel @Inject constructor(
     categoryRepository: CategoryRepository
 ) : ViewModel() {
     private val _selectedCategory = MutableStateFlow<Category?>(null)
-    private val _selectedAuthor = MutableStateFlow<String?>(null)
-    private val _selectedBook = MutableStateFlow<String?>(null)
     private val _searchQuery = MutableStateFlow("")
 
     private val baseState: Flow<QuoteUiState> = combine(
@@ -51,18 +48,15 @@ class QuoteViewModel @Inject constructor(
         combine(
             baseState,
             _selectedCategory,
-            _selectedAuthor,
-            _selectedBook,
             _searchQuery
-        ) { state, cat, author, book, query ->
-            val filteredQuotes = filterQuote(state.quotes, cat, author, book, query)
+        ) { state, cat, query ->
+            val filteredQuotes = filterQuote(state.quotes, cat, query)
             state.copy(
                 quotes = filteredQuotes,
                 selectedCategory = cat,
-                selectedAuthor = author,
-                selectedBook = book,
                 searchQuery = query,
-                isLoading = false
+                isLoading = false,
+                showCategoryFilter = state.quotes.isNotEmpty()
             )
         }
             .stateIn(
@@ -75,14 +69,6 @@ class QuoteViewModel @Inject constructor(
         _selectedCategory.value = category
     }
 
-    fun filterByAuthor(author: String?) {
-        _selectedAuthor.value = author
-    }
-
-    fun filterByBook(book: String?) {
-        _selectedBook.value = book
-    }
-
     fun searchQuotes(query: String) {
         _searchQuery.value = query
     }
@@ -90,20 +76,16 @@ class QuoteViewModel @Inject constructor(
     private fun filterQuote(
         quotes: List<Quote>,
         category: Category?,
-        author: String?,
-        book: String?,
         query: String
     ): List<Quote> {
         return quotes.filter { quote ->
             val matchesCategory = category == null || quote.categoryId == category.categoryId
-            val matchesAuthor = author == null || quote.author == author
-            val matchesBook = book == null || quote.book == book
             val matchesQuery = query.isEmpty() ||
                     quote.quote.contains(query, ignoreCase = true) ||
                     quote.author.contains(query, ignoreCase = true) ||
                     quote.book.contains(query, ignoreCase = true)
 
-            matchesCategory && matchesAuthor && matchesBook && matchesQuery
+            matchesCategory && matchesQuery
         }
     }
 }

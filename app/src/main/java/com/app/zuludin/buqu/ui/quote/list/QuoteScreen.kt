@@ -5,14 +5,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
@@ -24,33 +26,23 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
-import com.app.zuludin.buqu.core.compose.NoteCard
-import com.app.zuludin.buqu.core.icons.PhosphorListDashes
-import com.app.zuludin.buqu.core.icons.PhosphorNote
+import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
 import kotlinx.coroutines.launch
@@ -65,23 +57,13 @@ fun QuoteScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val sheetState = rememberModalBottomSheetState()
-    var showFilterSheet by remember { mutableStateOf(false) }
-
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = modifier.fillMaxSize(),
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column {
-                BuQuToolbar(
-                    title = stringResource(R.string.app_name),
-                    actions = {
-                        IconButton(onClick = { showFilterSheet = !showFilterSheet }) {
-                            Icon(PhosphorListDashes, null)
-                        }
-                    }
-                )
+                BuQuToolbar(title = stringResource(R.string.app_name))
 
                 SearchBar(
                     query = uiState.searchQuery,
@@ -93,7 +75,9 @@ fun QuoteScreen(
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    windowInsets = WindowInsets(0, 16, 0, 0),
                 ) {}
             }
         },
@@ -105,48 +89,17 @@ fun QuoteScreen(
         ) {
             HomeContent(
                 quotes = uiState.quotes,
+                categories = uiState.categories,
                 selectedCategory = uiState.selectedCategory,
-                selectedAuthor = uiState.selectedAuthor,
-                selectedBook = uiState.selectedBook,
                 onQuoteClick = onQuoteClick,
                 onSelectCategory = { viewModel.filterQuotes(it) },
-                onSelectAuthor = { viewModel.filterByAuthor(it) },
-                onSelectBook = { viewModel.filterByBook(it) },
                 isLoading = uiState.isLoading,
                 onRefresh = {
                     viewModel.filterQuotes(null)
-                    viewModel.filterByAuthor(null)
-                    viewModel.filterByBook(null)
                     viewModel.searchQuotes("")
-                }
+                },
+                showCategoryFilter = uiState.showCategoryFilter
             )
-
-            if (showFilterSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showFilterSheet = false },
-                    sheetState = sheetState
-                ) {
-                    QuoteFilterSheet(
-                        categories = uiState.categories,
-                        authors = uiState.quotes.map { it.author }.distinct()
-                            .filter { it.isNotBlank() },
-                        books = uiState.quotes.map { it.book }.distinct()
-                            .filter { it.isNotBlank() },
-                        onSelectCategory = {
-                            showFilterSheet = false
-                            viewModel.filterQuotes(it)
-                        },
-                        onSelectAuthor = {
-                            showFilterSheet = false
-                            viewModel.filterByAuthor(it)
-                        },
-                        onSelectBook = {
-                            showFilterSheet = false
-                            viewModel.filterByBook(it)
-                        }
-                    )
-                }
-            }
         }
     }
 }
@@ -160,46 +113,38 @@ fun QuoteScreen(
 private fun HomeContent(
     modifier: Modifier = Modifier,
     quotes: List<Quote>,
+    categories: List<Category>,
     selectedCategory: Category?,
-    selectedAuthor: String?,
-    selectedBook: String?,
     onSelectCategory: (Category?) -> Unit,
-    onSelectAuthor: (String?) -> Unit,
-    onSelectBook: (String?) -> Unit,
     onQuoteClick: (String) -> Unit,
     isLoading: Boolean,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    showCategoryFilter: Boolean
 ) {
     Column(modifier = modifier) {
-        FlowRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-        ) {
-            if (selectedCategory != null) {
-                QuoteFilterChip(
-                    text = selectedCategory.name,
-                    onClear = { onSelectCategory(null) },
-                    backgroundColor = Color("#${selectedCategory.color}".toColorInt()),
-                    contentColor = Color.White
-                )
-            }
-            if (selectedAuthor != null) {
-                QuoteFilterChip(
-                    text = "Author: $selectedAuthor",
-                    onClear = { onSelectAuthor(null) }
-                )
-            }
-            if (selectedBook != null) {
-                QuoteFilterChip(
-                    text = "Book: $selectedBook",
-                    onClear = { onSelectBook(null) }
-                )
+        if (showCategoryFilter) {
+            LazyRow(
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(categories.size) {
+                    QuoteFilterChip(
+                        text = categories[it].name,
+                        isSelected = selectedCategory == categories[it],
+                        onClick = {
+                            if (selectedCategory == categories[it]) {
+                                onSelectCategory(null)
+                            } else {
+                                onSelectCategory(categories[it])
+                            }
+                        }
+                    )
+                }
             }
         }
 
         if (quotes.isEmpty()) {
-            TasksEmptyContent(icon = PhosphorNote, message = R.string.empty_quote_message)
+            TasksEmptyContent(icon = PhosphorLightbulb, message = R.string.empty_quote_message)
         } else {
             val refreshScope = rememberCoroutineScope()
             val state = rememberPullRefreshState(
@@ -221,13 +166,14 @@ private fun HomeContent(
                             verticalItemSpacing = 16.dp
                         ) {
                             items(quotes.size) {
-                                NoteCard(
+                                QuoteItem(
                                     modifier = Modifier.testTag("QuoteItem"),
                                     quote = quotes[it].quote,
                                     backgroundColor = "#${quotes[it].color}",
                                     book = quotes[it].book,
                                     author = quotes[it].author,
-                                    imagePath = quotes[it].image
+                                    imagePath = quotes[it].image,
+                                    category = quotes[it].category
                                 ) {
                                     onQuoteClick(quotes[it].quoteId)
                                 }

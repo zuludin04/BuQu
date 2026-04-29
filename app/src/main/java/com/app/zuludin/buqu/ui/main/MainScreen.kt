@@ -22,11 +22,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
+import com.app.zuludin.buqu.core.icons.PhosphorBookOpen
 import com.app.zuludin.buqu.core.icons.PhosphorChalkboardSimple
 import com.app.zuludin.buqu.core.icons.PhosphorGear
-import com.app.zuludin.buqu.core.icons.PhosphorListDashes
+import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
 import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
-import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.navigation.BuquDestinations
 import com.app.zuludin.buqu.navigation.BuquNavGraph
@@ -53,8 +53,15 @@ fun MainScreen(
                         modifier = Modifier.testTag("UpsertQuote"),
                         onClick = {
                             when (currentRoute) {
-                                BuquDestinations.QUOTES_ROUTE -> navActions.navigateToUpsertQuote("Insert Quote", null)
-                                BuquDestinations.BOARD_ROUTE -> navActions.navigateToBoardEditor(null)
+                                BuquDestinations.QUOTES_ROUTE -> navActions.navigateToUpsertQuote(
+                                    "Insert Quote",
+                                    null
+                                )
+
+                                BuquDestinations.BOARD_ROUTE -> navActions.navigateToBoardEditor(
+                                    null
+                                )
+
                                 BuquDestinations.BOOKS_ROUTE -> isFabMenuOpen = !isFabMenuOpen
                             }
                         },
@@ -90,7 +97,7 @@ fun MainScreen(
             if (currentRoute in bottomBarRoutes) {
                 NavigationBar {
                     NavigationBarItem(
-                        icon = { Icon(PhosphorNote, null) },
+                        icon = { Icon(PhosphorLightbulb, null) },
                         label = { Text(stringResource(R.string.quote)) },
                         selected = currentRoute == BuquDestinations.QUOTES_ROUTE,
                         onClick = {
@@ -103,7 +110,7 @@ fun MainScreen(
                         }
                     )
                     NavigationBarItem(
-                        icon = { Icon(PhosphorListDashes, null) },
+                        icon = { Icon(PhosphorBookOpen, null) },
                         label = { Text(stringResource(R.string.book)) },
                         selected = currentRoute == BuquDestinations.BOOKS_ROUTE,
                         onClick = {
