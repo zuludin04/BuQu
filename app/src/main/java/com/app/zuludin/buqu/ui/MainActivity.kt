@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            BuQuTheme {
+            BuQuTheme(dynamicColor = false) {
                 val navController: NavHostController = rememberNavController()
                 Surface(
                     modifier = Modifier.fillMaxSize(),

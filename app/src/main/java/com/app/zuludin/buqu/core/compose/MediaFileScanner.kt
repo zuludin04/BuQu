@@ -67,9 +67,7 @@ fun MediaFileScanner(
             Icon(
                 imageVector = imageVector,
                 contentDescription = null,
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(8.dp)
+                modifier = Modifier.padding(8.dp)
             )
         },
         isOpenCamera = isOpenCamera,

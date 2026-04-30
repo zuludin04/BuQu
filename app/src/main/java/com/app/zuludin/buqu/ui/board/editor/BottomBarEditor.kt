@@ -7,7 +7,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +38,6 @@ fun BottomBarEditor(
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
 
     BottomAppBar(
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
         actions = {
             MediaFileScanner(
                 imageVector = PhosphorAperture,
@@ -64,7 +62,6 @@ fun BottomBarEditor(
         },
         floatingActionButton = {
             FloatingActionButton(
-                containerColor = MaterialTheme.colorScheme.primary,
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
                 content = { Icon(PhosphorPlus, null) },
                 onClick = { onAddNote() },

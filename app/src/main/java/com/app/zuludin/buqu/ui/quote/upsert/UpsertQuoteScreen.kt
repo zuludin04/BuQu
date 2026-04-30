@@ -106,7 +106,6 @@ fun UpsertQuoteScreen(
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
                 actions = {
                     if (topAppBarTitle == "Update Quote") {
                         IconButton(onClick = viewModel::deleteQuote) {
@@ -155,7 +154,6 @@ fun UpsertQuoteScreen(
                     FloatingActionButton(
                         modifier = Modifier.testTag("AddNewQuote"),
                         onClick = viewModel::saveQuote,
-                        containerColor = MaterialTheme.colorScheme.primary,
                         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
                     ) {
                         Icon(PhosphorCheck, "Localized description")
