@@ -38,21 +38,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.app.zuludin.buqu.R
+import com.app.zuludin.buqu.core.compose.BookSpinner
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ColorSpinner
 import com.app.zuludin.buqu.core.compose.MediaFileScanner
@@ -66,6 +70,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorImage
 import com.app.zuludin.buqu.core.icons.PhosphorShareNetwork
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
+import com.app.zuludin.buqu.core.theme.provider
 import com.app.zuludin.buqu.core.utils.convertPathFileToUri
 import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Quote
@@ -170,26 +175,24 @@ fun UpsertQuoteScreen(
             val focusManager = LocalFocusManager.current
             val context = LocalContext.current
 
-            if (uiState.image.isNotEmpty() || uiState.quote.isNotEmpty()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    FilterChip(
-                        selected = !uiState.isSavingAsImage,
-                        onClick = { viewModel.updateSavingMode(false) },
-                        label = { Text("Text") },
-                        enabled = uiState.quote.isNotEmpty(),
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    FilterChip(
-                        selected = uiState.isSavingAsImage,
-                        onClick = { viewModel.updateSavingMode(true) },
-                        label = { Text("Image") },
-                        enabled = uiState.image.isNotEmpty()
-                    )
-                }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                FilterChip(
+                    selected = !uiState.isSavingAsImage,
+                    onClick = { viewModel.updateSavingMode(false) },
+                    label = { Text("Text") },
+                    enabled = uiState.quote.isNotEmpty(),
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                FilterChip(
+                    selected = uiState.isSavingAsImage,
+                    onClick = { viewModel.updateSavingMode(true) },
+                    label = { Text("Image") },
+                    enabled = uiState.image.isNotEmpty()
+                )
             }
 
             if (uiState.isSavingAsImage && uiState.image.isNotEmpty()) {
@@ -238,47 +241,27 @@ fun UpsertQuoteScreen(
                     capitalization = KeyboardCapitalization.Sentences,
                     value = uiState.quote,
                     onChanged = viewModel::updateQuote,
-                    imeAction = ImeAction.Next,
-                    keyboardAction = KeyboardActions(onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    })
+                    imeAction = ImeAction.Done,
+                    keyboardAction = KeyboardActions(onDone = {
+                        focusManager.clearFocus()
+                    }),
+                    minLines = 5,
+                    textStyle = TextStyle(
+                        fontStyle = FontStyle.Italic, fontFamily = FontFamily(
+                            Font(
+                                googleFont = GoogleFont("Playfair Display"),
+                                fontProvider = provider
+                            )
+                        )
+                    )
                 )
             }
-            Row {
-                TitleInputField(
-                    modifier = Modifier.weight(2f),
-                    label = stringResource(R.string.book),
-                    capitalization = KeyboardCapitalization.Words,
-                    value = uiState.book,
-                    onChanged = viewModel::updateBook,
-                    imeAction = ImeAction.Next,
-                    keyboardAction = KeyboardActions(onNext = {
-                        focusManager.moveFocus(FocusDirection.Right)
-                    })
-                )
-                Box(modifier = Modifier.padding(horizontal = 8.dp))
-                TitleInputField(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.page),
-                    keyboardType = KeyboardType.Number,
-                    value = uiState.page,
-                    onChanged = viewModel::updatePage,
-                    imeAction = ImeAction.Next,
-                    keyboardAction = KeyboardActions(onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    })
-                )
-            }
-            TitleInputField(
-                modifier = Modifier.fillMaxWidth(),
-                label = stringResource(R.string.author),
-                capitalization = KeyboardCapitalization.Words,
-                value = uiState.author,
-                onChanged = viewModel::updateAuthor,
-                imeAction = ImeAction.Done,
-                keyboardAction = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                })
+
+            BookSpinner(
+                modifier = Modifier.padding(top = 12.dp),
+                currentBookId = uiState.bookId,
+                books = uiState.books,
+                onSelectBook = viewModel::selectBook
             )
             if (uiState.categories.isNotEmpty()) {
                 ColorSpinner(

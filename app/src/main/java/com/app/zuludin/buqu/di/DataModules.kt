@@ -43,6 +43,7 @@ object DatabaseModule {
         return Room
             .databaseBuilder(context.applicationContext, BuQuDatabase::class.java, "Buqu.db")
             .addCallback(PrePopulateCategoryCallback())
+            .fallbackToDestructiveMigration()
             .build()
     }
 

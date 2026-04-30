@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -50,12 +49,6 @@ fun QuoteItem(
     imagePath: String = "",
     onClick: () -> Unit
 ) {
-    val fontName = GoogleFont("Playfair Display")
-
-    val playfairFont = FontFamily(
-        Font(googleFont = fontName, fontProvider = provider)
-    )
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -74,7 +67,9 @@ fun QuoteItem(
                     AsyncImage(
                         model = File(imagePath),
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 250.dp),
                         contentScale = ContentScale.Fit
                     )
 
@@ -106,7 +101,12 @@ fun QuoteItem(
                             fontStyle = FontStyle.Italic,
                             fontWeight = FontWeight.Medium,
                         ),
-                        fontFamily = playfairFont,
+                        fontFamily = FontFamily(
+                            Font(
+                                googleFont = GoogleFont("Playfair Display"),
+                                fontProvider = provider
+                            )
+                        ),
                         color = if (imagePath == "") Color.Unspecified else MaterialTheme.colorScheme.onSurface,
                         overflow = TextOverflow.Ellipsis
                     )

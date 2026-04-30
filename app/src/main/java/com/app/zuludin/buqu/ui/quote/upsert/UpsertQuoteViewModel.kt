@@ -3,8 +3,10 @@ package com.app.zuludin.buqu.ui.quote.upsert
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.data.repositories.BookRepository
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
+import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +20,7 @@ import javax.inject.Inject
 data class UpsertQuoteUiState(
     val quote: String = "",
     val book: String = "",
+    val bookId: String? = null,
     val page: String = "",
     val author: String = "",
     val image: String = "",
@@ -29,6 +32,7 @@ data class UpsertQuoteUiState(
         type = "Quote"
     ),
     val categories: List<Category> = emptyList(),
+    val books: List<Book> = emptyList(),
     val isQuoteSaved: Boolean = false,
     val isError: Boolean = false,
 )
@@ -37,6 +41,7 @@ data class UpsertQuoteUiState(
 class UpsertQuoteViewModel @Inject constructor(
     private val quoteRepository: QuoteRepository,
     private val categoryRepository: CategoryRepository,
+    private val bookRepository: BookRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
@@ -46,8 +51,27 @@ class UpsertQuoteViewModel @Inject constructor(
 
     init {
         loadCategories()
+        loadBooks()
         if (quoteId != null) {
             loadQuote(quoteId)
+        }
+    }
+
+    private fun loadBooks() {
+        viewModelScope.launch {
+            bookRepository.observeBooks().collect { books ->
+                _uiState.update { it.copy(books = books) }
+            }
+        }
+    }
+
+    fun selectBook(book: Book?) {
+        _uiState.update {
+            it.copy(
+                book = book?.title ?: "",
+                bookId = book?.bookId,
+                author = book?.author ?: ""
+            )
         }
     }
 
@@ -64,7 +88,8 @@ class UpsertQuoteViewModel @Inject constructor(
                 author = state.author,
                 page = if (state.page.isEmpty()) 0 else state.page.toInt(),
                 categoryId = state.category.categoryId,
-                image = imageToSave
+                image = imageToSave,
+                bookId = state.bookId
             )
             _uiState.update {
                 it.copy(isQuoteSaved = true, isError = false)
@@ -88,24 +113,6 @@ class UpsertQuoteViewModel @Inject constructor(
     fun updateQuote(newQuote: String) {
         _uiState.update {
             it.copy(quote = newQuote)
-        }
-    }
-
-    fun updateBook(newBook: String) {
-        _uiState.update {
-            it.copy(book = newBook)
-        }
-    }
-
-    fun updatePage(newPage: String) {
-        _uiState.update {
-            it.copy(page = newPage)
-        }
-    }
-
-    fun updateAuthor(newAuthor: String) {
-        _uiState.update {
-            it.copy(author = newAuthor)
         }
     }
 
@@ -158,6 +165,7 @@ class UpsertQuoteViewModel @Inject constructor(
                             page = quote.page.toString(),
                             author = quote.author,
                             image = quote.image,
+                            bookId = quote.bookId,
                             isSavingAsImage = quote.image.isNotBlank(),
                             category = Category(
                                 categoryId = quote.categoryId,

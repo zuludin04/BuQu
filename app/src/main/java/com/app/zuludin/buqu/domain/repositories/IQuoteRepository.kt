@@ -17,7 +17,8 @@ interface IQuoteRepository {
         book: String,
         page: Int,
         categoryId: String,
-        image: String = ""
+        image: String = "",
+        bookId: String? = null
     )
 
     suspend fun deleteQuote(quoteId: String)

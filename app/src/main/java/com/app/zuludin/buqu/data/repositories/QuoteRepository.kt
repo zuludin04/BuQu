@@ -42,7 +42,8 @@ class QuoteRepository @Inject constructor(
         book: String,
         page: Int,
         categoryId: String,
-        image: String
+        image: String,
+        bookId: String?
     ) {
         if (quoteId != null) {
             val q = getQuoteById(quoteId)!!.copy(
@@ -51,7 +52,8 @@ class QuoteRepository @Inject constructor(
                 book = book,
                 page = page,
                 categoryId = categoryId,
-                image = image
+                image = image,
+                bookId = bookId
             )
             localSource.upsertQuote(q.toLocal())
         } else {
@@ -66,7 +68,8 @@ class QuoteRepository @Inject constructor(
                     book = book,
                     page = page,
                     categoryId = categoryId,
-                    image = image
+                    image = image,
+                    bookId = bookId
                 )
             localSource.upsertQuote(savedQuote.toLocal())
         }

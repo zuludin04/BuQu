@@ -26,5 +26,8 @@ data class QuoteEntity(
     var categoryId: String,
 
     @ColumnInfo(name = "image")
-    var image: String
+    var image: String,
+
+    @ColumnInfo(name = "bookId")
+    var bookId: String? = null
 )
