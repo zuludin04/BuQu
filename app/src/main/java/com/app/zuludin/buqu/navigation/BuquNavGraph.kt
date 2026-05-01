@@ -108,7 +108,6 @@ fun BuquNavGraph(
             BookScreen(
                 onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
                 onAddOnlineBookClick = { navActions.navigateToUpsertBook("Add Book", it) },
-                onScanClick = { }
             )
         }
 

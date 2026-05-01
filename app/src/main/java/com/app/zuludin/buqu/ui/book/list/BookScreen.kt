@@ -1,5 +1,10 @@
 package com.app.zuludin.buqu.ui.book.list
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,32 +37,69 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.app.zuludin.buqu.BuildConfig
 import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
+import com.app.zuludin.buqu.core.utils.createImageFile
+import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Book
+import java.util.Objects
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookScreen(
     onBookClick: (String) -> Unit,
     onAddOnlineBookClick: (String) -> Unit,
-    onScanClick: () -> Unit,
     viewModel: BookViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    var showImageScanner by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    val file = remember { context.createImageFile() }
+    val uri = FileProvider.getUriForFile(
+        Objects.requireNonNull(context), BuildConfig.APPLICATION_ID + ".provider", file
+    )
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                showImageScanner = true
+            }
+        }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -125,7 +167,16 @@ fun BookScreen(
                             .padding(paddingValues)
                             .padding(16.dp),
                         onSearchClick = { viewModel.setScope(BookSearchScope.Online) },
-                        onScanClick = onScanClick
+                        onScanClick = {
+                            val permissionCheckResult = ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.CAMERA
+                            )
+                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }
                     )
                     return@Scaffold
                 }
@@ -206,6 +257,19 @@ fun BookScreen(
                 }
             }
         }
+    }
+
+    if (showImageScanner) {
+        TextSelectionDialog(
+            bitmap = context.fixImageRotation(uri!!)!!,
+            onDismiss = { showImageScanner = !showImageScanner },
+            onTextSelected = { selectedText ->
+                viewModel.onQueryChange(selectedText)
+                viewModel.setScope(BookSearchScope.Online)
+                viewModel.searchOnline()
+                showImageScanner = !showImageScanner
+            }
+        )
     }
 }
 
