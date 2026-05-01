@@ -11,9 +11,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.navigation.BuquScreens.BOARD_EDITOR_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.BOARD_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.BOOKS_SCREEN
-import com.app.zuludin.buqu.navigation.BuquScreens.BOOK_SEARCH_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.CATEGORY_SELECT_SCREEN
-import com.app.zuludin.buqu.navigation.BuquScreens.COVER_SCAN_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.QUOTES_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.SETTING_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.SHARE_SCREEN
@@ -30,8 +28,6 @@ private object BuquScreens {
     const val BOARD_EDITOR_SCREEN = "boardEditor"
     const val BOOKS_SCREEN = "books"
     const val UPSERT_BOOK_SCREEN = "upsertBook"
-    const val BOOK_SEARCH_SCREEN = "bookSearch"
-    const val COVER_SCAN_SCREEN = "coverScan"
 }
 
 object BuquDestinationArgs {
@@ -57,8 +53,6 @@ object BuquDestinations {
     const val BOOKS_ROUTE = BOOKS_SCREEN
     const val UPSERT_BOOK_ROUTE =
         "$UPSERT_BOOK_SCREEN/{$TITLE_ARG}?$BOOK_ID_ARG={$BOOK_ID_ARG}"
-    const val BOOK_SEARCH_ROUTE = BOOK_SEARCH_SCREEN
-    const val COVER_SCAN_ROUTE = COVER_SCAN_SCREEN
 }
 
 class BuquNavigationActions(private val navController: NavController) {
@@ -86,13 +80,5 @@ class BuquNavigationActions(private val navController: NavController) {
         navController.navigate("$UPSERT_BOOK_SCREEN/$title".let {
             if (bookId != null) "$it?$BOOK_ID_ARG=$bookId" else it
         })
-    }
-
-    fun navigateToBookSearch() {
-        navController.navigate(BuquDestinations.BOOK_SEARCH_ROUTE)
-    }
-
-    fun navigateToCoverScan() {
-        navController.navigate(BuquDestinations.COVER_SCAN_ROUTE)
     }
 }

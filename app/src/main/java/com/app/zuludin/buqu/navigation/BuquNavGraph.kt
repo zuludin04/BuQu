@@ -20,8 +20,6 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
 import com.app.zuludin.buqu.ui.book.list.BookScreen
-import com.app.zuludin.buqu.ui.book.scan.CoverScanScreen
-import com.app.zuludin.buqu.ui.book.search.BookSearchScreen
 import com.app.zuludin.buqu.ui.book.upsert.UpsertBookScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
@@ -110,7 +108,7 @@ fun BuquNavGraph(
             BookScreen(
                 onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
                 onAddOnlineBookClick = { navActions.navigateToUpsertBook("Add Book", it) },
-                onScanClick = { navActions.navigateToCoverScan() }
+                onScanClick = { }
             )
         }
 
@@ -124,28 +122,9 @@ fun BuquNavGraph(
             val title = entry.arguments?.getString(TITLE_ARG)
             UpsertBookScreen(
                 onBack = { navController.popBackStack() },
-                onSearchWeb = { navActions.navigateToBookSearch() },
+                onSearchWeb = { },
                 topAppBarTitle = title ?: "",
                 savedStateHandle = entry.savedStateHandle
-            )
-        }
-
-        composable(BuquDestinations.BOOK_SEARCH_ROUTE) {
-            BookSearchScreen(
-                onBack = { navController.popBackStack() },
-                onBookSelected = { book ->
-                    // Return to the list first, then open Add flow with selected Google Books id.
-                    navController.popBackStack()
-                    navActions.navigateToUpsertBook("Add Book", book.bookId)
-                }
-            )
-        }
-
-        composable(BuquDestinations.COVER_SCAN_ROUTE) {
-            CoverScanScreen(
-                onBack = { navController.popBackStack() },
-                onEditBook = { bookId -> navActions.navigateToUpsertBook("Add Book", bookId) },
-                onSaved = { navController.popBackStack() }
             )
         }
     }

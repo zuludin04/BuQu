@@ -78,7 +78,6 @@ fun MainScreen(
                             leadingIcon = { Icon(PhosphorMagnifyingGlass, null) },
                             onClick = {
                                 isFabMenuOpen = false
-                                navActions.navigateToBookSearch()
                             }
                         )
                         DropdownMenuItem(
