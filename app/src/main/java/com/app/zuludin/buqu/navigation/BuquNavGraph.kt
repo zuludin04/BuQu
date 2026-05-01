@@ -25,9 +25,9 @@ import com.app.zuludin.buqu.ui.book.search.BookSearchScreen
 import com.app.zuludin.buqu.ui.book.upsert.UpsertBookScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
+import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
 import com.app.zuludin.buqu.ui.settings.SettingsScreen
 import com.app.zuludin.buqu.ui.share.ShareScreen
-import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
 
 @Composable
 fun BuquNavGraph(
@@ -109,7 +109,7 @@ fun BuquNavGraph(
         composable(BuquDestinations.BOOKS_ROUTE) {
             BookScreen(
                 onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
-                onSearchClick = { navActions.navigateToBookSearch() },
+                onAddOnlineBookClick = { navActions.navigateToUpsertBook("Add Book", it) },
                 onScanClick = { navActions.navigateToCoverScan() }
             )
         }

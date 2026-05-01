@@ -2,6 +2,7 @@ package com.app.zuludin.buqu.ui.book.list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,33 +15,45 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.domain.models.Book
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookScreen(
     onBookClick: (String) -> Unit,
-    onSearchClick: () -> Unit,
+    onAddOnlineBookClick: (String) -> Unit,
     onScanClick: () -> Unit,
     viewModel: BookViewModel = hiltViewModel()
 ) {
@@ -48,39 +61,148 @@ fun BookScreen(
 
     Scaffold(
         topBar = {
-            BuQuToolbar(
-                title = "Books",
-                backButton = {},
-                actions = {
-                    IconButton(onClick = onSearchClick) {
-                        Icon(PhosphorMagnifyingGlass, contentDescription = "Search Books")
-                    }
-                    IconButton(onClick = onScanClick) {
-                        Icon(PhosphorAperture, contentDescription = "Scan Book")
-                    }
+            Column {
+                BuQuToolbar(title = stringResource(R.string.app_name))
+
+                SearchBar(
+                    query = uiState.query,
+                    onQueryChange = viewModel::onQueryChange,
+                    onSearch = {
+                        if (uiState.scope == BookSearchScope.Online) {
+                            viewModel.searchOnline()
+                        }
+                    },
+                    active = false,
+                    onActiveChange = { },
+                    placeholder = { Text("Search book title") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (uiState.query.isNotBlank()) {
+                            IconButton(
+                                onClick = { viewModel.clearQuery() },
+                                content = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Clear search query"
+                                    )
+                                }
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                ) {}
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = uiState.scope == BookSearchScope.Saved,
+                        onClick = { viewModel.setScope(BookSearchScope.Saved) },
+                        label = { Text("Saved") }
+                    )
+                    FilterChip(
+                        selected = uiState.scope == BookSearchScope.Online,
+                        onClick = { viewModel.setScope(BookSearchScope.Online) },
+                        label = { Text("Online") }
+                    )
                 }
-            )
+            }
         }
     ) { paddingValues ->
-        if (uiState.books.isEmpty()) {
-            EmptyBooksState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                onSearchClick = onSearchClick,
-                onScanClick = onScanClick
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(uiState.books) { book ->
-                    BookItem(book = book, onClick = { onBookClick(book.bookId) })
+        when (uiState.scope) {
+            BookSearchScope.Saved -> {
+                val showEmptyBooksState = uiState.books.isEmpty() && uiState.query.isBlank()
+                if (showEmptyBooksState) {
+                    EmptyBooksState(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                            .padding(16.dp),
+                        onSearchClick = { viewModel.setScope(BookSearchScope.Online) },
+                        onScanClick = onScanClick
+                    )
+                    return@Scaffold
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (uiState.savedResults.isEmpty() && uiState.query.isNotBlank()) {
+                        item {
+                            SearchOnlineCtaRow(
+                                query = uiState.query.trim(),
+                                onSearchOnline = {
+                                    viewModel.setScope(BookSearchScope.Online)
+                                    viewModel.searchOnline()
+                                }
+                            )
+                        }
+                    }
+
+                    items(uiState.savedResults) { book ->
+                        BookItem(book = book, onClick = { onBookClick(book.bookId) })
+                    }
+                }
+            }
+
+            BookSearchScope.Online -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (uiState.isOnlineLoading) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "Searching online…",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    } else if (uiState.onlineErrorMessage != null) {
+                        item {
+                            OnlineErrorState(
+                                message = uiState.onlineErrorMessage ?: "",
+                                onRetry = { viewModel.searchOnline() }
+                            )
+                        }
+                    } else if (uiState.onlineResults.isEmpty()) {
+                        item {
+                            OnlineEmptyState(
+                                query = uiState.query.trim(),
+                                onSearch = { viewModel.searchOnline() }
+                            )
+                        }
+                    } else {
+                        item {
+                            Text(
+                                text = "Online results",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        items(uiState.onlineResults) { book ->
+                            BookItem(book = book, onClick = { onAddOnlineBookClick(book.bookId) })
+                        }
+                    }
                 }
             }
         }
@@ -125,6 +247,87 @@ private fun EmptyBooksState(
 }
 
 @Composable
+private fun SearchOnlineCtaRow(
+    query: String,
+    onSearchOnline: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "No matches in Saved.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Button(onClick = onSearchOnline) {
+                Text("Search online for \"$query\"")
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnlineEmptyState(
+    query: String,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = if (query.isBlank()) "Type a query, then submit to search online." else "No online results for “$query”.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(onClick = onSearch, enabled = query.isNotBlank()) {
+            Text("Search online")
+        }
+    }
+}
+
+@Composable
+private fun OnlineErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
+}
+
+@Composable
 fun BookItem(
     book: Book,
     onClick: () -> Unit
@@ -132,7 +335,10 @@ fun BookItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Row(
             modifier = Modifier
