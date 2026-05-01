@@ -59,7 +59,7 @@ import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.TextSelectionDialog
 import com.app.zuludin.buqu.core.icons.PhosphorAperture
-import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
+import com.app.zuludin.buqu.core.icons.PhosphorPencil
 import com.app.zuludin.buqu.core.utils.createImageFile
 import com.app.zuludin.buqu.core.utils.fixImageRotation
 import com.app.zuludin.buqu.domain.models.Book
@@ -70,6 +70,7 @@ import java.util.Objects
 fun BookScreen(
     onBookClick: (String) -> Unit,
     onAddOnlineBookClick: (String) -> Unit,
+    onAddManualBookClick: () -> Unit,
     viewModel: BookViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -166,7 +167,7 @@ fun BookScreen(
                             .fillMaxSize()
                             .padding(paddingValues)
                             .padding(16.dp),
-                        onSearchClick = { viewModel.setScope(BookSearchScope.Online) },
+                        onManualInput = { onAddManualBookClick() },
                         onScanClick = {
                             val permissionCheckResult = ContextCompat.checkSelfPermission(
                                 context, Manifest.permission.CAMERA
@@ -276,7 +277,7 @@ fun BookScreen(
 @Composable
 private fun EmptyBooksState(
     modifier: Modifier = Modifier,
-    onSearchClick: () -> Unit,
+    onManualInput: () -> Unit,
     onScanClick: () -> Unit
 ) {
     Column(
@@ -296,10 +297,10 @@ private fun EmptyBooksState(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = onSearchClick) {
-                Icon(PhosphorMagnifyingGlass, null)
+            Button(onClick = onManualInput) {
+                Icon(PhosphorPencil, null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Search")
+                Text("Manual Input")
             }
             Button(onClick = onScanClick) {
                 Icon(PhosphorAperture, null)

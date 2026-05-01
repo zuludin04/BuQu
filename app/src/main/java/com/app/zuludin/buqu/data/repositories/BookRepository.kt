@@ -41,7 +41,9 @@ class BookRepository @Inject constructor(
         author: String,
         cover: String,
         description: String,
-        totalPages: Int
+        totalPages: Int,
+        publisher: String,
+        year: Int
     ) {
         if (bookId != null) {
             val book = Book(
@@ -50,7 +52,9 @@ class BookRepository @Inject constructor(
                 author = author,
                 cover = cover,
                 description = description,
-                totalPages = totalPages
+                totalPages = totalPages,
+                publisher = publisher,
+                year = year
             )
             localSource.upsertBook(book.toLocal())
         } else {
@@ -63,7 +67,9 @@ class BookRepository @Inject constructor(
                 author = author,
                 cover = cover,
                 description = description,
-                totalPages = totalPages
+                totalPages = totalPages,
+                publisher = publisher,
+                year = year
             )
             localSource.upsertBook(book.toLocal())
         }
@@ -77,13 +83,19 @@ class BookRepository @Inject constructor(
         try {
             val response = apiService.searchBooks(query, BuildConfig.GOOGLE_BOOKS_API_KEY)
             response.items?.map { item ->
+                val year = item.volumeInfo.publishedDate
+                    ?.take(4)
+                    ?.toIntOrNull()
+                    ?: 0
                 Book(
                     bookId = item.id,
                     title = item.volumeInfo.title,
                     author = item.volumeInfo.authors?.joinToString(", ") ?: "Unknown Author",
                     cover = item.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:") ?: "",
                     description = item.volumeInfo.description ?: "",
-                    totalPages = item.volumeInfo.pageCount ?: 0
+                    totalPages = item.volumeInfo.pageCount ?: 0,
+                    publisher = item.volumeInfo.publisher ?: "",
+                    year = year
                 )
             } ?: emptyList()
         } catch (_: Exception) {
@@ -94,6 +106,10 @@ class BookRepository @Inject constructor(
     private suspend fun getDetailBook(bookId: String): Book? = withContext(dispatcher) {
         try {
             val response = apiService.getBookDetail(bookId, BuildConfig.GOOGLE_BOOKS_API_KEY)
+            val year = response.volumeInfo?.publishedDate
+                ?.take(4)
+                ?.toIntOrNull()
+                ?: 0
             val book = Book(
                 bookId = response.id ?: "",
                 title = response.volumeInfo?.title ?: "",
@@ -102,6 +118,8 @@ class BookRepository @Inject constructor(
                     ?: "",
                 description = response.volumeInfo?.description ?: "",
                 totalPages = response.volumeInfo?.pageCount ?: 0,
+                publisher = response.volumeInfo?.publisher ?: "",
+                year = year,
             )
             book
         } catch (_: Exception) {

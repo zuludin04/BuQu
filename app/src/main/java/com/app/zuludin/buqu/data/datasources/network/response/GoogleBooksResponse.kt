@@ -14,7 +14,9 @@ data class VolumeInfo(
     val authors: List<String>?,
     val description: String?,
     val imageLinks: ImageLinks?,
-    val pageCount: Int?
+    val pageCount: Int?,
+    val publisher: String? = null,
+    val publishedDate: String? = null
 )
 
 data class ImageLinks(

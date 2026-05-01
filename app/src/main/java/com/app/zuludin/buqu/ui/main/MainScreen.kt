@@ -26,7 +26,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorBookOpen
 import com.app.zuludin.buqu.core.icons.PhosphorChalkboardSimple
 import com.app.zuludin.buqu.core.icons.PhosphorGear
 import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
-import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
+import com.app.zuludin.buqu.core.icons.PhosphorPencil
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
 import com.app.zuludin.buqu.navigation.BuquDestinations
 import com.app.zuludin.buqu.navigation.BuquNavGraph
@@ -74,10 +74,11 @@ fun MainScreen(
                         onDismissRequest = { isFabMenuOpen = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Search books") },
-                            leadingIcon = { Icon(PhosphorMagnifyingGlass, null) },
+                            text = { Text("Manual input") },
+                            leadingIcon = { Icon(PhosphorPencil, null) },
                             onClick = {
                                 isFabMenuOpen = false
+                                navActions.navigateToBookEdit("Add Book", null)
                             }
                         )
                         DropdownMenuItem(

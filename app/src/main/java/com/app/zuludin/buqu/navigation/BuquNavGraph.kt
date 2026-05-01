@@ -19,6 +19,7 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
+import com.app.zuludin.buqu.ui.book.edit.BookEditScreen
 import com.app.zuludin.buqu.ui.book.list.BookScreen
 import com.app.zuludin.buqu.ui.book.upsert.UpsertBookScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
@@ -108,6 +109,7 @@ fun BuquNavGraph(
             BookScreen(
                 onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
                 onAddOnlineBookClick = { navActions.navigateToUpsertBook("Add Book", it) },
+                onAddManualBookClick = { navActions.navigateToBookEdit("Add Book", null) },
             )
         }
 
@@ -124,6 +126,20 @@ fun BuquNavGraph(
                 onSearchWeb = { },
                 topAppBarTitle = title ?: "",
                 savedStateHandle = entry.savedStateHandle
+            )
+        }
+
+        composable(
+            BuquDestinations.BOOK_EDIT_ROUTE,
+            arguments = listOf(
+                navArgument(TITLE_ARG) { type = NavType.StringType },
+                navArgument(BOOK_ID_ARG) { type = NavType.StringType; nullable = true }
+            )
+        ) { entry ->
+            val title = entry.arguments?.getString(TITLE_ARG)
+            BookEditScreen(
+                onBack = { navController.popBackStack() },
+                topAppBarTitle = title ?: "",
             )
         }
     }

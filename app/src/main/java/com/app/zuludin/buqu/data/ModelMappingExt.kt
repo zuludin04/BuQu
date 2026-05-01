@@ -132,7 +132,9 @@ fun Book.toLocal() = BookEntity(
     author = author,
     cover = cover,
     description = description,
-    totalPages = totalPages
+    totalPages = totalPages,
+    publisher = publisher,
+    year = year
 )
 
 fun BookEntity.toExternal() = Book(
@@ -141,7 +143,9 @@ fun BookEntity.toExternal() = Book(
     author = author,
     cover = cover,
     description = description,
-    totalPages = totalPages
+    totalPages = totalPages,
+    publisher = publisher,
+    year = year
 )
 
 @JvmName("localToExternalBook")

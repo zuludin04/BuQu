@@ -23,5 +23,11 @@ data class BookEntity(
     var description: String,
 
     @ColumnInfo(name = "totalPages")
-    var totalPages: Int
+    var totalPages: Int,
+
+    @ColumnInfo(name = "publisher")
+    var publisher: String,
+
+    @ColumnInfo(name = "year")
+    var year: Int
 )

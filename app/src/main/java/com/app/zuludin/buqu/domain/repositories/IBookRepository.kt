@@ -14,7 +14,9 @@ interface IBookRepository {
         author: String,
         cover: String,
         description: String,
-        totalPages: Int
+        totalPages: Int,
+        publisher: String,
+        year: Int
     )
 
     suspend fun deleteBook(bookId: String)

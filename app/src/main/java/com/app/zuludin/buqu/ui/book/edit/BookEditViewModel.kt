@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.book.upsert
+package com.app.zuludin.buqu.ui.book.edit
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -12,26 +12,27 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class UpsertBookUiState(
+data class BookEditUiState(
     val bookId: String? = null,
     val title: String = "",
     val author: String = "",
     val cover: String = "",
     val description: String = "",
     val totalPages: Int = 0,
-    val isSuccess: Boolean = false,
-    val isLoading: Boolean = false
+    val publisher: String = "",
+    val year: Int = 0,
+    val isSuccess: Boolean = false
 )
 
 @HiltViewModel
-class UpsertBookViewModel @Inject constructor(
+class BookEditViewModel @Inject constructor(
     private val bookRepository: IBookRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val bookId: String? = savedStateHandle[BuquDestinationArgs.BOOK_ID_ARG]
 
-    private val _uiState = MutableStateFlow(UpsertBookUiState())
-    val uiState: StateFlow<UpsertBookUiState> = _uiState
+    private val _uiState = MutableStateFlow(BookEditUiState())
+    val uiState: StateFlow<BookEditUiState> = _uiState
 
     init {
         if (bookId != null) {
@@ -49,7 +50,9 @@ class UpsertBookViewModel @Inject constructor(
                         author = book.author,
                         cover = book.cover,
                         description = book.description,
-                        totalPages = book.totalPages
+                        totalPages = book.totalPages,
+                        publisher = book.publisher,
+                        year = book.year
                     )
                 }
             }
@@ -77,6 +80,15 @@ class UpsertBookViewModel @Inject constructor(
         _uiState.update { it.copy(totalPages = p) }
     }
 
+    fun onPublisherChange(publisher: String) {
+        _uiState.update { it.copy(publisher = publisher) }
+    }
+
+    fun onYearChange(year: String) {
+        val y = year.toIntOrNull() ?: 0
+        _uiState.update { it.copy(year = y) }
+    }
+
     fun saveBook() {
         viewModelScope.launch {
             bookRepository.upsertBook(
@@ -86,8 +98,8 @@ class UpsertBookViewModel @Inject constructor(
                 cover = _uiState.value.cover,
                 description = _uiState.value.description,
                 totalPages = _uiState.value.totalPages,
-                publisher = "",
-                year = 0
+                publisher = _uiState.value.publisher,
+                year = _uiState.value.year
             )
             _uiState.update { it.copy(isSuccess = true) }
         }

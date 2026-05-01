@@ -7,5 +7,7 @@ data class Book(
     val cover: String,
     val description: String,
     val totalPages: Int,
+    val publisher: String = "",
+    val year: Int = 0,
     val isSelected: Boolean = false
 )
