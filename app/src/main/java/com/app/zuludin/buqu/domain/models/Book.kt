@@ -9,5 +9,6 @@ data class Book(
     val totalPages: Int,
     val publisher: String = "",
     val year: Int = 0,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    val fromDatabase: Boolean = true
 )

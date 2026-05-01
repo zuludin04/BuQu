@@ -117,10 +117,4 @@ class BookViewModel @Inject constructor(
             }
         }
     }
-
-    fun deleteBook(bookId: String) {
-        viewModelScope.launch {
-            bookRepository.deleteBook(bookId)
-        }
-    }
 }

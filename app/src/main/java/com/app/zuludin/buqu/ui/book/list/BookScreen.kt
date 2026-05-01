@@ -68,8 +68,7 @@ import java.util.Objects
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookScreen(
-    onBookClick: (String) -> Unit,
-    onAddOnlineBookClick: (String) -> Unit,
+    onBookClick: (String, String) -> Unit,
     onAddManualBookClick: () -> Unit,
     viewModel: BookViewModel = hiltViewModel()
 ) {
@@ -202,7 +201,7 @@ fun BookScreen(
                     }
 
                     items(uiState.savedResults) { book ->
-                        BookItem(book = book, onClick = { onBookClick(book.bookId) })
+                        BookItem(book = book, onClick = { onBookClick(book.title, book.bookId) })
                     }
                 }
             }
@@ -252,7 +251,10 @@ fun BookScreen(
                             )
                         }
                         items(uiState.onlineResults) { book ->
-                            BookItem(book = book, onClick = { onAddOnlineBookClick(book.bookId) })
+                            BookItem(
+                                book = book,
+                                onClick = { onBookClick(book.title, book.bookId) }
+                            )
                         }
                     }
                 }

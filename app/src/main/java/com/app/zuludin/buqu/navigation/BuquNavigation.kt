@@ -11,12 +11,12 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.navigation.BuquScreens.BOARD_EDITOR_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.BOARD_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.BOOKS_SCREEN
+import com.app.zuludin.buqu.navigation.BuquScreens.BOOK_DETAIL_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.BOOK_EDIT_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.CATEGORY_SELECT_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.QUOTES_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.SETTING_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.SHARE_SCREEN
-import com.app.zuludin.buqu.navigation.BuquScreens.UPSERT_BOOK_SCREEN
 import com.app.zuludin.buqu.navigation.BuquScreens.UPSERT_QUOTE_SCREEN
 
 private object BuquScreens {
@@ -28,8 +28,8 @@ private object BuquScreens {
     const val BOARD_SCREEN = "board"
     const val BOARD_EDITOR_SCREEN = "boardEditor"
     const val BOOKS_SCREEN = "books"
-    const val UPSERT_BOOK_SCREEN = "upsertBook"
     const val BOOK_EDIT_SCREEN = "bookEdit"
+    const val BOOK_DETAIL_SCREEN = "bookDetail"
 }
 
 object BuquDestinationArgs {
@@ -53,9 +53,9 @@ object BuquDestinations {
     const val BOARD_ROUTE = BOARD_SCREEN
     const val BOARD_EDITOR_ROUTE = "$BOARD_EDITOR_SCREEN?$BOARD_ID_ARG={$BOARD_ID_ARG}"
     const val BOOKS_ROUTE = BOOKS_SCREEN
-    const val UPSERT_BOOK_ROUTE =
-        "$UPSERT_BOOK_SCREEN/{$TITLE_ARG}?$BOOK_ID_ARG={$BOOK_ID_ARG}"
     const val BOOK_EDIT_ROUTE = "$BOOK_EDIT_SCREEN/{$TITLE_ARG}?$BOOK_ID_ARG={$BOOK_ID_ARG}"
+    const val BOOK_DETAIL_ROUTE =
+        "$BOOK_DETAIL_SCREEN/{$TITLE_ARG}?$BOOK_ID_ARG={$BOOK_ID_ARG}"
 }
 
 class BuquNavigationActions(private val navController: NavController) {
@@ -79,15 +79,13 @@ class BuquNavigationActions(private val navController: NavController) {
         })
     }
 
-    fun navigateToUpsertBook(title: String, bookId: String?) {
-        navController.navigate("$UPSERT_BOOK_SCREEN/$title".let {
-            if (bookId != null) "$it?$BOOK_ID_ARG=$bookId" else it
-        })
-    }
-
     fun navigateToBookEdit(title: String, bookId: String?) {
         navController.navigate("$BOOK_EDIT_SCREEN/$title".let {
             if (bookId != null) "$it?$BOOK_ID_ARG=$bookId" else it
         })
+    }
+
+    fun navigateToBookDetail(title: String, bookId: String) {
+        navController.navigate("$BOOK_DETAIL_SCREEN/$title?$BOOK_ID_ARG=$bookId")
     }
 }

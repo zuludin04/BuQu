@@ -120,6 +120,7 @@ class BookRepository @Inject constructor(
                 totalPages = response.volumeInfo?.pageCount ?: 0,
                 publisher = response.volumeInfo?.publisher ?: "",
                 year = year,
+                fromDatabase = false
             )
             book
         } catch (_: Exception) {

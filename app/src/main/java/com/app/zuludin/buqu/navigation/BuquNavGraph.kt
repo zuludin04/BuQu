@@ -19,9 +19,9 @@ import com.app.zuludin.buqu.navigation.BuquDestinationArgs.SHARE_QUOTE_ARG
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs.TITLE_ARG
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorScreen
 import com.app.zuludin.buqu.ui.board.list.BoardListScreen
+import com.app.zuludin.buqu.ui.book.detail.BookDetailScreen
 import com.app.zuludin.buqu.ui.book.edit.BookEditScreen
 import com.app.zuludin.buqu.ui.book.list.BookScreen
-import com.app.zuludin.buqu.ui.book.upsert.UpsertBookScreen
 import com.app.zuludin.buqu.ui.category.CategorySelectScreen
 import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
 import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
@@ -107,25 +107,10 @@ fun BuquNavGraph(
 
         composable(BuquDestinations.BOOKS_ROUTE) {
             BookScreen(
-                onBookClick = { navActions.navigateToUpsertBook("Update Book", it) },
-                onAddOnlineBookClick = { navActions.navigateToUpsertBook("Add Book", it) },
+                onBookClick = { title, bookId ->
+                    navActions.navigateToBookDetail(title, bookId)
+                },
                 onAddManualBookClick = { navActions.navigateToBookEdit("Add Book", null) },
-            )
-        }
-
-        composable(
-            BuquDestinations.UPSERT_BOOK_ROUTE,
-            arguments = listOf(
-                navArgument(TITLE_ARG) { type = NavType.StringType },
-                navArgument(BOOK_ID_ARG) { type = NavType.StringType; nullable = true }
-            )
-        ) { entry ->
-            val title = entry.arguments?.getString(TITLE_ARG)
-            UpsertBookScreen(
-                onBack = { navController.popBackStack() },
-                onSearchWeb = { },
-                topAppBarTitle = title ?: "",
-                savedStateHandle = entry.savedStateHandle
             )
         }
 
@@ -140,6 +125,24 @@ fun BuquNavGraph(
             BookEditScreen(
                 onBack = { navController.popBackStack() },
                 topAppBarTitle = title ?: "",
+            )
+        }
+
+        composable(
+            BuquDestinations.BOOK_DETAIL_ROUTE, listOf(
+                navArgument(TITLE_ARG) { type = NavType.StringType },
+                navArgument(BOOK_ID_ARG) { type = NavType.StringType; nullable = true }
+            )
+        ) { entry ->
+            val title = entry.arguments?.getString(TITLE_ARG)
+            BookDetailScreen(
+                onBack = { navController.popBackStack() },
+                topAppBarTitle = title ?: "",
+                onAddQuoteClick = { navActions.navigateToUpsertQuote("Add Quote", null) },
+                onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
+                onEditBook = { title, bookId ->
+                    navActions.navigateToBookEdit(title, bookId)
+                }
             )
         }
     }

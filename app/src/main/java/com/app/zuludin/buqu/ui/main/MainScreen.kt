@@ -86,7 +86,6 @@ fun MainScreen(
                             leadingIcon = { Icon(PhosphorAperture, null) },
                             onClick = {
                                 isFabMenuOpen = false
-                                navActions.navigateToUpsertBook("Add Book", null)
                             }
                         )
                     }
