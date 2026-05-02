@@ -40,8 +40,6 @@ import com.app.zuludin.buqu.core.compose.ImagePickDialog
 import com.app.zuludin.buqu.core.compose.saveImageToInternalStorage
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
-import com.app.zuludin.buqu.core.icons.PhosphorListDashes
-import com.app.zuludin.buqu.core.icons.PhosphorNote
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.utils.convertPathFileToUri
@@ -109,14 +107,6 @@ fun BoardEditorScreen(
                             content = { Icon(PhosphorTrash, null) }
                         )
                     } else {
-                        IconButton(
-                            onClick = { showImportQuotesDialog = true },
-                            content = { Icon(PhosphorNote, null) }
-                        )
-                        IconButton(
-                            onClick = { showImportBooksDialog = true },
-                            content = { Icon(PhosphorListDashes, null) }
-                        )
                         IconButton(
                             onClick = {
                                 if (uiState.board == null) {
@@ -233,9 +223,9 @@ fun BoardEditorScreen(
                 }
             )
 
-            ZoomPanTool(
+            BoardTools(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(Alignment.BottomCenter)
                     .padding(16.dp),
                 onZoomIn = { scale = (scale - 0.1f).coerceAtLeast(0.5f) },
                 onZoomOut = { scale = (scale + 0.1f).coerceAtMost(3f) },
@@ -243,13 +233,9 @@ fun BoardEditorScreen(
                     scale = 1f
                     offset = Offset.Zero
                 },
-                scale = scale
-            )
-
-            SelectConnectTool(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
+                scale = scale,
+                onImportQuotes = { showImportQuotesDialog = true },
+                onImportBooks = { showImportBooksDialog = true },
                 isSelectionMode = uiState.isSelectionMode,
                 isConnectionMode = uiState.isConnectionMode,
                 onToggleSelectionMode = { viewModel.toggleSelectionModel() },

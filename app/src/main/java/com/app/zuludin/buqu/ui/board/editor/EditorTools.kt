@@ -3,51 +3,80 @@ package com.app.zuludin.buqu.ui.board.editor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.app.zuludin.buqu.core.icons.PhosphorLineSegments
+import com.app.zuludin.buqu.core.icons.PhosphorBookOpen
+import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
+import com.app.zuludin.buqu.core.icons.PhosphorLinkSimpleHorizontal
 import com.app.zuludin.buqu.core.icons.PhosphorMinus
+import com.app.zuludin.buqu.core.icons.PhosphorNavigationArrow
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
-import com.app.zuludin.buqu.core.icons.PhosphorSelectionAll
 import kotlin.math.roundToInt
 
 @Composable
-fun ZoomPanTool(
+fun BoardTools(
     modifier: Modifier = Modifier,
     onZoomIn: () -> Unit,
     onZoomOut: () -> Unit,
     onResetZoom: () -> Unit,
-    scale: Float
+    scale: Float,
+    onImportQuotes: () -> Unit,
+    onImportBooks: () -> Unit,
+    isSelectionMode: Boolean,
+    onToggleSelectionMode: () -> Unit,
+    isConnectionMode: Boolean,
+    onToggleConnectionMode: () -> Unit
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-        tonalElevation = 4.dp
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shadowElevation = 3.dp
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier.height(IntrinsicSize.Min)
         ) {
-            IconButton(onClick = { onZoomIn() }) {
-                Icon(PhosphorMinus, null, modifier = Modifier.size(18.dp))
-            }
+            ButtonTool(
+                imageVector = PhosphorNavigationArrow,
+                onClick = { onToggleSelectionMode() },
+                isActive = isSelectionMode
+            )
+            ButtonTool(
+                imageVector = PhosphorLinkSimpleHorizontal,
+                onClick = { onToggleConnectionMode() },
+                isActive = isConnectionMode
+            )
+
+            Divider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .padding(vertical = 8.dp)
+            )
+
+            ButtonTool(
+                onClick = { onZoomIn() }, imageVector = PhosphorMinus
+            )
             Text(
                 text = "${(scale * 100).roundToInt()}%",
                 style = MaterialTheme.typography.labelMedium,
@@ -56,61 +85,50 @@ fun ZoomPanTool(
                     .clickable { onResetZoom() },
                 textAlign = TextAlign.Center
             )
-            IconButton(onClick = { onZoomOut() }) {
-                Icon(PhosphorPlus, null, modifier = Modifier.size(18.dp))
-            }
+            ButtonTool(
+                onClick = { onZoomOut() }, imageVector = PhosphorPlus
+            )
+
+            Divider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .padding(vertical = 8.dp)
+            )
+
+            ButtonTool(
+                imageVector = PhosphorLightbulb, onClick = { onImportQuotes() })
+            ButtonTool(
+                imageVector = PhosphorBookOpen, onClick = { onImportBooks() })
         }
     }
 }
 
 @Composable
-fun SelectConnectTool(
-    modifier: Modifier = Modifier,
-    isSelectionMode: Boolean,
-    isConnectionMode: Boolean,
-    onToggleSelectionMode: () -> Unit,
-    onToggleConnectionMode: () -> Unit,
-) {
-    Row(modifier = modifier) {
-        IconButton(
-            modifier = Modifier.background(
-                color = if (isConnectionMode) MaterialTheme.colorScheme.primary.copy(
-                    alpha = 0.9f
-                ) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                shape = RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
-            ),
-            onClick = { onToggleConnectionMode() },
-            content = {
-                Icon(
-                    imageVector = PhosphorLineSegments,
-                    contentDescription = null,
-                    tint = if (isConnectionMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-        )
-        IconButton(
-            modifier = Modifier.background(
-                color = if (isSelectionMode) MaterialTheme.colorScheme.tertiary.copy(
-                    alpha = 0.9f
-                ) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
-            ), onClick = { onToggleSelectionMode() }, content = {
-                Icon(
-                    imageVector = PhosphorSelectionAll,
-                    contentDescription = null,
-                    tint = if (isSelectionMode) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        )
-    }
+private fun ButtonTool(imageVector: ImageVector, onClick: () -> Unit, isActive: Boolean = false) {
+    Surface(
+        modifier = Modifier
+            .padding(8.dp)
+            .background(
+                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable { onClick() }
+            .padding(8.dp),
+        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+        content = {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    )
 }
 
 @Composable
 fun SelectionConnectionIndicator(modifier: Modifier, isConnectionMode: Boolean) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
             color = if (isConnectionMode) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.secondary,
