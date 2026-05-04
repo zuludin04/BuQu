@@ -37,7 +37,8 @@ data class BoardEditorUiState(
     val successSaveBoard: Boolean = false,
     val quotes: List<Quote> = emptyList(),
     val books: List<Book> = emptyList(),
-    val categories: List<Category> = emptyList()
+    val categories: List<Category> = emptyList(),
+    val showGrid: Boolean = true
 )
 
 @HiltViewModel
@@ -459,6 +460,11 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         _uiState.update { it.copy(notes = tidiedNotes, ropes = tidiedRopes) }
+    }
+
+    fun toggleGrid() {
+        val isShown = _uiState.value.showGrid
+        _uiState.update { it.copy(showGrid = !isShown) }
     }
 
 //    fun noteConnectMode(noteId: String) {

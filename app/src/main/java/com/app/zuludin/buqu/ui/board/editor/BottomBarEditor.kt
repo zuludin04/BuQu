@@ -32,7 +32,8 @@ fun BottomBarEditor(
     onTextResult: (String) -> Unit,
     onAddNote: () -> Unit,
     onSaveImage: (String, String) -> Unit,
-    onTidyUp: () -> Unit
+    onTidyUp: () -> Unit,
+    onToggleGrid: () -> Unit
 ) {
     var showOverflowMenu by remember { mutableStateOf(false) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
@@ -86,8 +87,11 @@ fun BottomBarEditor(
                     }
                 )
                 OverflowMenuItem(
-                    title = "Settings",
-                    onClick = { showOverflowMenu = !showOverflowMenu }
+                    title = "Toggle Grid",
+                    onClick = {
+                        onToggleGrid()
+                        showOverflowMenu = !showOverflowMenu
+                    }
                 )
             }
         }

@@ -164,7 +164,8 @@ fun BoardEditorScreen(
                         boardSize.width.toFloat(),
                         boardSize.height.toFloat()
                     )
-                }
+                },
+                onToggleGrid = { viewModel.toggleGrid() }
             )
         }
     ) { paddingValues ->
@@ -175,7 +176,9 @@ fun BoardEditorScreen(
                 .onSizeChanged { boardSize = it }
                 .transformable(state)
         ) {
-            GridBackgroundComponent(scale = camera.zoom, offset = camera.offset)
+            if (uiState.showGrid) {
+                GridBackgroundComponent(scale = camera.zoom, offset = camera.offset)
+            }
 
             BoardEditor(
                 notes = uiState.notes,
