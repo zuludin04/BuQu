@@ -1,7 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,6 +41,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.utils.convertPathFileToUri
+import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import kotlin.math.roundToInt
@@ -66,11 +65,12 @@ fun BoardEditorScreen(
     var showImportBooksDialog by remember { mutableStateOf(false) }
     var isUpdateNote by remember { mutableStateOf(false) }
 
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
+    var camera by remember { mutableStateOf(Camera()) }
     val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-        scale *= zoomChange
-        offset += offsetChange
+        val zoom = camera.zoom * zoomChange
+        val offset = camera.offset + offsetChange
+        val newCamera = camera.copy(zoom = zoom, offset = offset)
+        camera = newCamera
     }
 
     var note by remember { mutableStateOf<NoteCard?>(null) }
@@ -156,8 +156,8 @@ fun BoardEditorScreen(
                         title = "",
                         image = path,
                         color = color,
-                        posX = (rx - offset.x) / scale,
-                        posY = (ry - offset.y) / scale
+                        posX = (rx - camera.offset.x) / camera.zoom,
+                        posY = (ry - camera.offset.y) / camera.zoom
                     )
                 },
                 onTidyUp = {
@@ -182,8 +182,9 @@ fun BoardEditorScreen(
                     else if (uiState.isSelectionMode) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
                     else Color.Transparent
                 )
+                .transformable(state)
         ) {
-            GridBackgroundComponent(scale = scale, offset = offset)
+            GridBackgroundComponent(scale = camera.zoom, offset = camera.offset)
 
             BoardEditor(
                 notes = uiState.notes,
@@ -191,9 +192,8 @@ fun BoardEditorScreen(
                 onDragNote = { noteId, x, y ->
                     viewModel.dragNoteCard(noteId, x, y)
                 },
-                scale = scale,
-                offset = offset,
-                state = state,
+                scale = camera.zoom,
+                offset = camera.offset,
                 isSelectionMode = uiState.isSelectionMode,
                 onSelectedCard = { id ->
                     if (uiState.isConnectionMode) {
@@ -227,13 +227,20 @@ fun BoardEditorScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp),
-                onZoomIn = { scale = (scale - 0.1f).coerceAtLeast(0.5f) },
-                onZoomOut = { scale = (scale + 0.1f).coerceAtMost(3f) },
-                onResetZoom = {
-                    scale = 1f
-                    offset = Offset.Zero
+                onZoomIn = {
+                    val scale = (camera.zoom - 0.1f).coerceAtLeast(0.5f)
+                    val newZoomCamera = camera.copy(zoom = scale)
+                    camera = newZoomCamera
                 },
-                scale = scale,
+                onZoomOut = {
+                    val scale = (camera.zoom + 0.1f).coerceAtMost(3f)
+                    val newZoomCamera = camera.copy(zoom = scale)
+                    camera = newZoomCamera
+                },
+                onResetZoom = {
+                    camera = Camera()
+                },
+                scale = camera.zoom,
                 onImportQuotes = { showImportQuotesDialog = true },
                 onImportBooks = { showImportBooksDialog = true },
                 isSelectionMode = uiState.isSelectionMode,
@@ -314,8 +321,8 @@ fun BoardEditorScreen(
                         title = content,
                         image = "",
                         color = color,
-                        posX = (rx - offset.x) / scale,
-                        posY = (ry - offset.y) / scale
+                        posX = (rx - camera.offset.x) / camera.zoom,
+                        posY = (ry - camera.offset.y) / camera.zoom
                     )
                 } else {
                     viewModel.updateNote(
@@ -390,7 +397,6 @@ fun BoardEditor(
     onGetSize: (IntSize, Int) -> Unit,
     scale: Float,
     offset: Offset,
-    state: TransformableState,
     isSelectionMode: Boolean,
     isConnectionMode: Boolean,
     onConnectCard: (NoteCard) -> Unit,
@@ -410,7 +416,6 @@ fun BoardEditor(
                 translationX = offset.x,
                 translationY = offset.y
             )
-            .transformable(state = state)
     ) {
         ropes.forEach {
             RopeComponent(it)
