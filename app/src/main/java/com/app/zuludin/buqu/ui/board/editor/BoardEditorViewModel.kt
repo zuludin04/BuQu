@@ -30,11 +30,9 @@ data class BoardEditorUiState(
     val board: Board? = null,
     val ropes: List<Rope> = emptyList(),
     val sourceNote: NoteCard? = null,
-    val isSelectionMode: Boolean = false,
     val selectedNoteIds: List<String> = emptyList(),
     val deletedNotes: List<NoteCard> = emptyList(),
     val deletedRopes: List<Rope> = emptyList(),
-    val isConnectionMode: Boolean = false,
     val errorConnectSameNote: Boolean = false,
     val successSaveBoard: Boolean = false,
     val quotes: List<Quote> = emptyList(),
@@ -248,17 +246,6 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun toggleSelectionModel() {
-        val isSelection = _uiState.value.isSelectionMode
-        _uiState.update { it.copy(isSelectionMode = !isSelection, isConnectionMode = false) }
-        if (isSelection) {
-            resetSelectedNotes()
-            val noteIds = _uiState.value.selectedNoteIds.toMutableList()
-            noteIds.clear()
-            _uiState.update { it.copy(selectedNoteIds = noteIds) }
-        }
-    }
-
     fun changeNoteSelectionStatus(noteId: String) {
         val note = _uiState.value.notes.first { it.noteId == noteId }
         val isSelected = note.isSelected
@@ -314,41 +301,6 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         clearNoteIds()
-    }
-
-    fun toggleConnectionMode() {
-        val isConnectionMode = _uiState.value.isConnectionMode
-        _uiState.update { it.copy(isConnectionMode = !isConnectionMode, isSelectionMode = false) }
-        if (isConnectionMode) resetSelectedNotes()
-    }
-
-    fun noteConnectMode(noteId: String) {
-        val notes = _uiState.value.notes
-
-        val source = _uiState.value.sourceNote
-        if (source == null) {
-            val note = notes.first { it.noteId == noteId }.copy(isConnected = true)
-            val updatedNotes = _uiState.value.notes.toMutableList()
-            updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
-            _uiState.update { it.copy(sourceNote = note, notes = updatedNotes) }
-        } else {
-            if (noteId == source.noteId) {
-                val note = notes.first { it.noteId == noteId }.copy(isConnected = false)
-                val updatedNotes = _uiState.value.notes.toMutableList()
-                updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
-                _uiState.update {
-                    it.copy(
-                        errorConnectSameNote = true,
-                        sourceNote = null,
-                        notes = updatedNotes
-                    )
-                }
-            } else {
-                val note = notes.first { it.noteId == noteId }
-                connectNoteWithRope(note)
-                _uiState.update { it.copy(sourceNote = null) }
-            }
-        }
     }
 
     fun snackbarMessageShown() {
@@ -508,4 +460,33 @@ class BoardEditorViewModel @Inject constructor(
 
         _uiState.update { it.copy(notes = tidiedNotes, ropes = tidiedRopes) }
     }
+
+//    fun noteConnectMode(noteId: String) {
+//        val notes = _uiState.value.notes
+//
+//        val source = _uiState.value.sourceNote
+//        if (source == null) {
+//            val note = notes.first { it.noteId == noteId }.copy(isConnected = true)
+//            val updatedNotes = _uiState.value.notes.toMutableList()
+//            updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
+//            _uiState.update { it.copy(sourceNote = note, notes = updatedNotes) }
+//        } else {
+//            if (noteId == source.noteId) {
+//                val note = notes.first { it.noteId == noteId }.copy(isConnected = false)
+//                val updatedNotes = _uiState.value.notes.toMutableList()
+//                updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
+//                _uiState.update {
+//                    it.copy(
+//                        errorConnectSameNote = true,
+//                        sourceNote = null,
+//                        notes = updatedNotes
+//                    )
+//                }
+//            } else {
+//                val note = notes.first { it.noteId == noteId }
+//                connectNoteWithRope(note)
+//                _uiState.update { it.copy(sourceNote = null) }
+//            }
+//        }
+//    }
 }

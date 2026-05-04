@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.board.editor
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
@@ -23,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -82,13 +80,13 @@ fun BoardEditorScreen(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = if (uiState.isSelectionMode) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
+                title = if (uiState.selectedNoteIds.isNotEmpty()) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
                     ?: topAppBarTitle),
                 backButton = {
                     IconButton(
                         onClick = {
-                            if (uiState.isSelectionMode) {
-                                viewModel.toggleSelectionModel()
+                            if (uiState.selectedNoteIds.isNotEmpty()) {
+                                viewModel.resetSelectedNotes()
                                 viewModel.clearNoteIds()
                             } else {
                                 onBack()
@@ -96,12 +94,13 @@ fun BoardEditorScreen(
                         },
                         content = {
                             Icon(
-                                if (uiState.isSelectionMode) PhosphorX else PhosphorArrowLeft, null
+                                if (uiState.selectedNoteIds.isNotEmpty()) PhosphorX else PhosphorArrowLeft,
+                                null
                             )
                         }
                     )
                 }, actions = {
-                    if (uiState.isSelectionMode) {
+                    if (uiState.selectedNoteIds.isNotEmpty()) {
                         IconButton(
                             onClick = { viewModel.deleteSelectedNotes() },
                             content = { Icon(PhosphorTrash, null) }
@@ -174,14 +173,6 @@ fun BoardEditorScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
                 .onSizeChanged { boardSize = it }
-                .border(
-                    width = if (uiState.isConnectionMode || uiState.isSelectionMode) 4.dp else 0.dp,
-                    color = if (uiState.isConnectionMode) MaterialTheme.colorScheme.primary.copy(
-                        alpha = 0.5f
-                    )
-                    else if (uiState.isSelectionMode) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
-                    else Color.Transparent
-                )
                 .transformable(state)
         ) {
             GridBackgroundComponent(scale = camera.zoom, offset = camera.offset)
@@ -194,17 +185,7 @@ fun BoardEditorScreen(
                 },
                 scale = camera.zoom,
                 offset = camera.offset,
-                isSelectionMode = uiState.isSelectionMode,
-                onSelectedCard = { id ->
-                    if (uiState.isConnectionMode) {
-                        viewModel.noteConnectMode(id)
-                    }
-
-                    if (uiState.isSelectionMode) {
-                        viewModel.changeNoteSelectionStatus(id)
-                    }
-                },
-                isConnectionMode = uiState.isConnectionMode,
+                onSelectedCard = { viewModel.changeNoteSelectionStatus(it) },
                 onConnectCard = { note ->
                     viewModel.updateSourceNote(note)
                     showConnectionSheet = true
@@ -243,20 +224,7 @@ fun BoardEditorScreen(
                 scale = camera.zoom,
                 onImportQuotes = { showImportQuotesDialog = true },
                 onImportBooks = { showImportBooksDialog = true },
-                isSelectionMode = uiState.isSelectionMode,
-                isConnectionMode = uiState.isConnectionMode,
-                onToggleSelectionMode = { viewModel.toggleSelectionModel() },
-                onToggleConnectionMode = { viewModel.toggleConnectionMode() }
             )
-
-            if (uiState.isConnectionMode || uiState.isSelectionMode) {
-                SelectionConnectionIndicator(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp),
-                    isConnectionMode = uiState.isConnectionMode
-                )
-            }
         }
     }
 
@@ -397,8 +365,6 @@ fun BoardEditor(
     onGetSize: (IntSize, Int) -> Unit,
     scale: Float,
     offset: Offset,
-    isSelectionMode: Boolean,
-    isConnectionMode: Boolean,
     onConnectCard: (NoteCard) -> Unit,
     onSelectedCard: (String) -> Unit,
     onUpdateNote: (NoteCard) -> Unit
@@ -430,17 +396,13 @@ fun BoardEditor(
                 onGetSize = { size ->
                     onGetSize(size, index)
                 },
-                onSelect = { t, off ->
-                    if (isSelectionMode || isConnectionMode) {
-                        onSelectedCard(t.noteId)
-                    } else {
-                        selectedNote = t
-                        popupOffset = off
-                        showMenu = true
-                    }
+                onSelect = { t ->
+                    onSelectedCard(t.noteId)
                 },
-                isSelectionMode = isSelectionMode,
-                isConnectionMode = isConnectionMode
+                onPopupMenu = { off ->
+                    popupOffset = off
+                    showMenu = true
+                },
             )
         }
 

@@ -56,22 +56,17 @@ import kotlin.math.roundToInt
 fun NoteCardComponent(
     note: NoteCard,
     onPositionChanged: (String, Float, Float) -> Unit,
-    onSelect: (NoteCard, Offset) -> Unit,
+    onSelect: (NoteCard) -> Unit,
     onGetSize: (IntSize) -> Unit,
-    isDraggable: Boolean = true,
-    isSelectionMode: Boolean,
-    isConnectionMode: Boolean
+    onPopupMenu: (Offset) -> Unit,
 ) {
     var isDragging by remember { mutableStateOf(false) }
     var newOffset by remember { mutableStateOf(Offset(note.posX, note.posY)) }
 
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
-    val backgroundColor = if (isSelectionMode || isConnectionMode) {
-        Color("#${note.color}".toColorInt()).darken(if (note.isSelected || note.isConnected) 1f else 0.6f)
-    } else {
-        Color("#${note.color}".toColorInt())
-    }
+    val backgroundColor =
+        Color("#${note.color}".toColorInt()).darken(if (note.isSelected || note.isConnected) 1f else 0.95f)
     val context = LocalContext.current
 
     Box(
@@ -82,37 +77,36 @@ fun NoteCardComponent(
             .graphicsLayer {
                 rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
 
-                if (isDraggable) {
-                    val scaleValue =
-                        if (isDragging || (isSelectionMode && note.isSelected)) 1.15f else 1f
-                    scaleX = scaleValue
-                    scaleY = scaleValue
-                }
+                val scaleValue =
+                    if (isDragging || note.isSelected) 1.03f else 1f
+                scaleX = scaleValue
+                scaleY = scaleValue
             }
             .neumorphicShadow(backgroundColor = backgroundColor)
             .padding(16.dp)
-            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
+            .pointerInput(note.noteId) {
                 detectTapGestures(
-                    onTap = { tapOffset ->
-                        val absoluteTapPos = Offset(
-                            newOffset.x + tapOffset.x, newOffset.y + tapOffset.y
-                        )
-                        onSelect(note, absoluteTapPos)
+                    onTap = {
+                        onSelect(note)
                         isDragging = false
+                    },
+                    onLongPress = { longPressOffset ->
+                        val popupPos = Offset(
+                            newOffset.x + longPressOffset.x, newOffset.y + longPressOffset.y
+                        )
+                        onPopupMenu(popupPos)
                     }
                 )
             }
-            .pointerInput(note.noteId, isSelectionMode, isConnectionMode) {
+            .pointerInput(note.noteId) {
                 detectDragGestures(
                     onDragStart = { isDragging = true },
                     onDragEnd = { isDragging = false },
                     onDragCancel = { isDragging = false },
                     onDrag = { change, dragAmount ->
-                        if (!isSelectionMode && !isConnectionMode) {
-                            change.consume()
-                            newOffset += dragAmount
-                            updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
-                        }
+                        change.consume()
+                        newOffset += dragAmount
+                        updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
                     }
                 )
             }
