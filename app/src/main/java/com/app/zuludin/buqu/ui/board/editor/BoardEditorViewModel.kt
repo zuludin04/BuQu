@@ -467,6 +467,22 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(showGrid = !isShown) }
     }
 
+    fun toggleUpdateNote(noteId: String) {
+        val note = _uiState.value.notes.first { it.noteId == noteId }
+        val newNote = note.copy(isUpdate = true)
+        val notes = _uiState.value.notes.toMutableList()
+        notes[notes.indexOf(note)] = newNote
+        _uiState.update { it.copy(notes = notes) }
+    }
+
+    fun updateNoteContent(noteId: String, content: String) {
+        val note = _uiState.value.notes.first { it.noteId == noteId }
+        val newNote = note.copy(title = content)
+        val notes = _uiState.value.notes.toMutableList()
+        notes[notes.indexOf(note)] = newNote
+        _uiState.update { it.copy(notes = notes) }
+    }
+
 //    fun noteConnectMode(noteId: String) {
 //        val notes = _uiState.value.notes
 //

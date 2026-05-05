@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,9 +36,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -59,6 +57,8 @@ fun NoteCardComponent(
     onSelect: (NoteCard) -> Unit,
     onGetSize: (IntSize) -> Unit,
     onPopupMenu: (Offset) -> Unit,
+    onUpdateNote: (String) -> Unit,
+    onChangeContent: (String, String) -> Unit
 ) {
     var isDragging by remember { mutableStateOf(false) }
     var newOffset by remember { mutableStateOf(Offset(note.posX, note.posY)) }
@@ -95,7 +95,8 @@ fun NoteCardComponent(
                             newOffset.x + longPressOffset.x, newOffset.y + longPressOffset.y
                         )
                         onPopupMenu(popupPos)
-                    }
+                    },
+                    onDoubleTap = { onUpdateNote(note.noteId) }
                 )
             }
             .pointerInput(note.noteId) {
@@ -143,14 +144,11 @@ fun NoteCardComponent(
                     )
                 }
             } else {
-                Text(
-                    text = note.title,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
+                OutlinedTextField(
+                    value = note.title,
+                    onValueChange = { onChangeContent(note.noteId, it) },
                     maxLines = 6,
-                    overflow = TextOverflow.Ellipsis
+                    enabled = note.isUpdate
                 )
             }
         }

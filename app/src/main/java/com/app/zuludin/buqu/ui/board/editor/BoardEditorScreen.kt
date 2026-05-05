@@ -197,13 +197,20 @@ fun BoardEditorScreen(
                     viewModel.getCardSize(size, index)
                 },
                 onUpdateNote = {
-                    note = it
-                    isUpdateNote = true
-                    if (it.image.isBlank()) {
-                        showAddNoteSheet = true
-                    } else {
-                        showUpdateNoteImage = true
-                    }
+//                    note = it
+//                    isUpdateNote = true
+//                    if (it.image.isBlank()) {
+//                        showAddNoteSheet = true
+//                    } else {
+//                        showUpdateNoteImage = true
+//                    }
+                    viewModel.toggleUpdateNote(it)
+                },
+                onChangeContent = { noteId, content ->
+                    viewModel.updateNoteContent(
+                        noteId,
+                        content
+                    )
                 }
             )
 
@@ -370,7 +377,8 @@ fun BoardEditor(
     offset: Offset,
     onConnectCard: (NoteCard) -> Unit,
     onSelectedCard: (String) -> Unit,
-    onUpdateNote: (NoteCard) -> Unit
+    onUpdateNote: (String) -> Unit,
+    onChangeContent: (String, String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -406,6 +414,8 @@ fun BoardEditor(
                     popupOffset = off
                     showMenu = true
                 },
+                onUpdateNote = { onUpdateNote(it) },
+                onChangeContent = onChangeContent
             )
         }
 
@@ -425,9 +435,9 @@ fun BoardEditor(
                         OverflowMenuItem(
                             title = "Update Note",
                             onClick = {
-                                val note = notes.first { it.noteId == selectedNote?.noteId }
-                                onUpdateNote(note)
-                                showMenu = false
+//                                val note = notes.first { it.noteId == selectedNote?.noteId }
+//                                onUpdateNote(note)
+//                                showMenu = false
                             }
                         )
                     }
