@@ -100,13 +100,14 @@ fun BoardEditorScreen(
                                 if (uiState.selectedNoteIds.isNotEmpty()) PhosphorX else PhosphorArrowLeft,
                                 null
                             )
-                        }
+                        },
                     )
-                }, actions = {
+                },
+                actions = {
                     if (uiState.selectedNoteIds.isNotEmpty()) {
                         IconButton(
                             onClick = { viewModel.deleteSelectedNotes() },
-                            content = { Icon(PhosphorTrash, null) }
+                            content = { Icon(PhosphorTrash, null) },
                         )
                     } else {
                         IconButton(
@@ -117,10 +118,10 @@ fun BoardEditorScreen(
                                     viewModel.saveBoardAndCards(uiState.board?.name ?: "Board")
                                 }
                             },
-                            content = { Icon(PhosphorCheck, null) }
+                            content = { Icon(PhosphorCheck, null) },
                         )
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -164,21 +165,19 @@ fun BoardEditorScreen(
                 },
                 onTidyUp = {
                     viewModel.tidyUpNotes(
-                        boardSize.width.toFloat(),
-                        boardSize.height.toFloat()
+                        boardSize.width.toFloat(), boardSize.height.toFloat()
                     )
                 },
-                onToggleGrid = { viewModel.toggleGrid() }
+                onToggleGrid = { viewModel.toggleGrid() },
             )
-        }
+        },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .onSizeChanged { boardSize = it }
-                .transformable(state)
-        ) {
+                .transformable(state)) {
             if (uiState.showGrid) {
                 GridBackgroundComponent(scale = camera.zoom, offset = camera.offset)
             }
@@ -186,9 +185,7 @@ fun BoardEditorScreen(
             BoardEditor(
                 notes = uiState.notes,
                 ropes = uiState.ropes,
-                onDragNote = { noteId, x, y ->
-                    viewModel.dragNoteCard(noteId, x, y)
-                },
+                onDragNote = { viewModel.dragNoteCard(it) },
                 scale = camera.zoom,
                 offset = camera.offset,
                 onSelectedCard = { viewModel.changeNoteSelectionStatus(it) },
@@ -200,20 +197,10 @@ fun BoardEditorScreen(
                     viewModel.getCardSize(size, index)
                 },
                 onUpdateNote = {
-//                    note = it
-//                    isUpdateNote = true
-//                    if (it.image.isBlank()) {
-//                        showAddNoteSheet = true
-//                    } else {
-//                        showUpdateNoteImage = true
-//                    }
                     viewModel.toggleUpdateNote(it)
                 },
                 onChangeContent = { noteId, content ->
-                    viewModel.updateNoteContent(
-                        noteId,
-                        content
-                    )
+                    viewModel.updateNoteContent(noteId, content)
                 },
                 onAddQuickNote = {
                     viewModel.addNote(
@@ -224,7 +211,7 @@ fun BoardEditorScreen(
                         posY = (it.y - camera.offset.y) / camera.zoom,
                         isQuickAdd = true
                     )
-                }
+                },
             )
 
             BoardTools(
@@ -269,7 +256,7 @@ fun BoardEditorScreen(
             onConfirm = { name, color ->
                 viewModel.saveBoardAndCards(name, color)
                 showBoardNameDialog = !showBoardNameDialog
-            }
+            },
         )
     }
 
@@ -283,7 +270,7 @@ fun BoardEditorScreen(
                     val note = uiState.notes.first { n -> n.noteId == it.noteId }
                     viewModel.connectNoteWithRope(note)
                 }
-            }
+            },
         )
     }
 
@@ -317,16 +304,13 @@ fun BoardEditorScreen(
                     )
                 } else {
                     viewModel.updateNote(
-                        noteId = note!!.noteId,
-                        text = content,
-                        image = "",
-                        color = color
+                        noteId = note!!.noteId, text = content, image = "", color = color
                     )
                     isUpdateNote = false
                     note = null
                 }
                 showAddNoteSheet = !showAddNoteSheet
-            }
+            },
         )
     }
 
@@ -351,7 +335,7 @@ fun BoardEditorScreen(
             onImportBooks = {
                 viewModel.importBooks()
                 showImportBooksDialog = !showImportBooksDialog
-            }
+            },
         )
     }
 
@@ -384,7 +368,7 @@ fun BoardEditor(
     modifier: Modifier = Modifier,
     notes: List<NoteCard>,
     ropes: List<Rope>,
-    onDragNote: (String, Float, Float) -> Unit,
+    onDragNote: (NoteCard) -> Unit,
     onGetSize: (IntSize, Int) -> Unit,
     scale: Float,
     offset: Offset,
@@ -405,13 +389,13 @@ fun BoardEditor(
                 scaleX = scale,
                 scaleY = scale,
                 translationX = offset.x,
-                translationY = offset.y
+                translationY = offset.y,
             )
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onDoubleTap = { onAddQuickNote(it) }
+                    onDoubleTap = { onAddQuickNote(it) },
                 )
-            }
+            },
     ) {
         ropes.forEach {
             RopeComponent(it)
@@ -420,27 +404,24 @@ fun BoardEditor(
         notes.forEachIndexed { index, n ->
             NoteCardComponent(
                 note = n,
-                onPositionChanged = { noteId, x, y ->
-                    onDragNote(noteId, x, y)
-                },
-                onGetSize = { size ->
-                    onGetSize(size, index)
-                },
-                onSelect = { t ->
-                    onSelectedCard(t.noteId)
-                },
+                onPositionChanged = onDragNote,
+                onGetSize = { size -> onGetSize(size, index) },
+                onSelect = { t -> onSelectedCard(t.noteId) },
                 onPopupMenu = { off ->
                     popupOffset = off
                     showMenu = true
                 },
-                onUpdateNote = { onUpdateNote(it) },
-                onChangeContent = onChangeContent
+                onUpdateNote = onUpdateNote,
+                onChangeContent = onChangeContent,
             )
         }
 
         if (showMenu) {
+            val screenOffset = Offset(
+                popupOffset.x * scale + offset.x, popupOffset.y * scale + offset.y
+            )
             Popup(
-                offset = IntOffset(popupOffset.x.roundToInt(), popupOffset.y.roundToInt()),
+                offset = IntOffset(screenOffset.x.roundToInt(), screenOffset.y.roundToInt()),
                 onDismissRequest = { showMenu = false },
                 content = {
                     Column(modifier = Modifier.widthIn(max = 150.dp)) {
@@ -449,15 +430,11 @@ fun BoardEditor(
                             onClick = {
                                 onConnectCard(selectedNote!!)
                                 showMenu = false
-                            }
+                            },
                         )
                         OverflowMenuItem(
                             title = "Update Note",
-                            onClick = {
-//                                val note = notes.first { it.noteId == selectedNote?.noteId }
-//                                onUpdateNote(note)
-//                                showMenu = false
-                            }
+                            onClick = {},
                         )
                     }
                 },

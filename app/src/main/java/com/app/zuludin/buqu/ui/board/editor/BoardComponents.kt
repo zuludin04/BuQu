@@ -53,7 +53,7 @@ import kotlin.math.roundToInt
 @Composable
 fun NoteCardComponent(
     note: NoteCard,
-    onPositionChanged: (String, Float, Float) -> Unit,
+    onPositionChanged: (NoteCard) -> Unit,
     onSelect: (NoteCard) -> Unit,
     onGetSize: (IntSize) -> Unit,
     onPopupMenu: (Offset) -> Unit,
@@ -61,8 +61,8 @@ fun NoteCardComponent(
     onChangeContent: (String, String) -> Unit
 ) {
     var isDragging by remember { mutableStateOf(false) }
-    var newOffset by remember { mutableStateOf(Offset(note.posX, note.posY)) }
 
+    val updatedOffset by rememberUpdatedState(Offset(note.posX, note.posY))
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
     val backgroundColor =
@@ -90,10 +90,8 @@ fun NoteCardComponent(
                         onSelect(note)
                         isDragging = false
                     },
-                    onLongPress = { longPressOffset ->
-                        val popupPos = Offset(
-                            newOffset.x + longPressOffset.x, newOffset.y + longPressOffset.y
-                        )
+                    onLongPress = { offset ->
+                        val popupPos = Offset(note.posX + offset.x, note.posY + offset.y)
                         onPopupMenu(popupPos)
                     },
                     onDoubleTap = { onUpdateNote(note.noteId) }
@@ -106,8 +104,9 @@ fun NoteCardComponent(
                     onDragCancel = { isDragging = false },
                     onDrag = { change, dragAmount ->
                         change.consume()
-                        newOffset += dragAmount
-                        updatedOnPositionChanged(note.noteId, newOffset.x, newOffset.y)
+                        val newOffset = updatedOffset + dragAmount
+                        val n = note.copy(posX = newOffset.x, posY = newOffset.y)
+                        updatedOnPositionChanged(n)
                     }
                 )
             }

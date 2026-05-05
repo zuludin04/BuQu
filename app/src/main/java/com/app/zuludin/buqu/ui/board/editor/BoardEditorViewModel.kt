@@ -136,12 +136,10 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun dragNoteCard(noteId: String, x: Float, y: Float) {
-        val note = _uiState.value.notes.first { it.noteId == noteId }
-        val newNote = note.copy(posX = x, posY = y)
+    fun dragNoteCard(note: NoteCard) {
         val notes = _uiState.value.notes.toMutableList()
-        val index = notes.indexOf(note)
-        notes[index] = newNote
+        val index = notes.indexOfFirst { it.noteId == note.noteId }
+        notes[index] = note
         _uiState.update { it.copy(notes = notes) }
         updateRopePosition(note)
     }
