@@ -112,7 +112,8 @@ class BoardEditorViewModel @Inject constructor(
         image: String,
         color: String,
         posX: Float? = null,
-        posY: Float? = null
+        posY: Float? = null,
+        isQuickAdd: Boolean = false
     ) {
         val randomX = (100..600).random().toFloat()
         val randomY = (100..1000).random().toFloat()
@@ -125,7 +126,8 @@ class BoardEditorViewModel @Inject constructor(
             posY = posY ?: randomY,
             color = color,
             size = IntSize.Zero,
-            image = image
+            image = image,
+            isUpdate = isQuickAdd
         )
         val notes = _uiState.value.notes.toMutableList()
         notes.add(note)

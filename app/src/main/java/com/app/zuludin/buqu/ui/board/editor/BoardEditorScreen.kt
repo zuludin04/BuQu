@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.compose.ImagePickDialog
 import com.app.zuludin.buqu.core.compose.saveImageToInternalStorage
@@ -211,6 +214,16 @@ fun BoardEditorScreen(
                         noteId,
                         content
                     )
+                },
+                onAddQuickNote = {
+                    viewModel.addNote(
+                        title = "",
+                        image = "",
+                        color = colors[0],
+                        posX = (it.x - camera.offset.x) / camera.zoom,
+                        posY = (it.y - camera.offset.y) / camera.zoom,
+                        isQuickAdd = true
+                    )
                 }
             )
 
@@ -378,7 +391,8 @@ fun BoardEditor(
     onConnectCard: (NoteCard) -> Unit,
     onSelectedCard: (String) -> Unit,
     onUpdateNote: (String) -> Unit,
-    onChangeContent: (String, String) -> Unit
+    onChangeContent: (String, String) -> Unit,
+    onAddQuickNote: (Offset) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -393,6 +407,11 @@ fun BoardEditor(
                 translationX = offset.x,
                 translationY = offset.y
             )
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = { onAddQuickNote(it) }
+                )
+            }
     ) {
         ropes.forEach {
             RopeComponent(it)
