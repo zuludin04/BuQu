@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.math.sqrt
 
 data class BoardEditorUiState(
     val notes: List<NoteCard> = emptyList(),
@@ -38,7 +40,8 @@ data class BoardEditorUiState(
     val quotes: List<Quote> = emptyList(),
     val books: List<Book> = emptyList(),
     val categories: List<Category> = emptyList(),
-    val showGrid: Boolean = true
+    val showGrid: Boolean = true,
+    val noteHighlightId: String? = null
 )
 
 @HiltViewModel
@@ -136,11 +139,12 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun dragNoteCard(note: NoteCard) {
+    fun dragNoteCard(note: NoteCard, current: Offset) {
         val notes = _uiState.value.notes.toMutableList()
         val index = notes.indexOfFirst { it.noteId == note.noteId }
         notes[index] = note
         _uiState.update { it.copy(notes = notes) }
+        highlightNearestNode(current, note.noteId)
         updateRopePosition(note)
     }
 
@@ -481,6 +485,48 @@ class BoardEditorViewModel @Inject constructor(
         val notes = _uiState.value.notes.toMutableList()
         notes[notes.indexOf(note)] = newNote
         _uiState.update { it.copy(notes = notes) }
+    }
+
+    fun highlightNearestNode(current: Offset, excludeId: String) {
+        val notes = _uiState.value.notes.toMutableList()
+        val nearest = findNearestNode(current, notes, excludeId)
+
+        if (nearest != null) {
+            _uiState.update { it.copy(noteHighlightId = nearest.noteId) }
+        } else {
+            _uiState.update { it.copy(noteHighlightId = null) }
+        }
+    }
+
+    private fun findNearestNode(
+        current: Offset,
+        nodes: List<NoteCard>,
+        excludeId: String? = null
+    ): NoteCard? {
+
+        var minDistance = Float.MAX_VALUE
+        var nearest: NoteCard? = null
+
+        nodes.forEach { node ->
+            if (node.noteId == excludeId) return@forEach
+
+            val nodeCenter = Offset(
+                node.posX + node.size.width / 2f,
+                node.posY + node.size.height / 2f
+            )
+
+            val dx = nodeCenter.x - current.x
+            val dy = nodeCenter.y - current.y
+            val distance = sqrt(dx * dx + dy * dy)
+
+            if (distance < minDistance) {
+                minDistance = distance
+                nearest = node
+            }
+        }
+
+        val threshold = 600f
+        return if (minDistance < threshold) nearest else null
     }
 
 //    fun noteConnectMode(noteId: String) {

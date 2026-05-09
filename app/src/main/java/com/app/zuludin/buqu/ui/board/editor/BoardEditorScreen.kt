@@ -185,7 +185,7 @@ fun BoardEditorScreen(
             BoardEditor(
                 notes = uiState.notes,
                 ropes = uiState.ropes,
-                onDragNote = { viewModel.dragNoteCard(it) },
+                onDragNote = { note, current -> viewModel.dragNoteCard(note, current) },
                 scale = camera.zoom,
                 offset = camera.offset,
                 onSelectedCard = { viewModel.changeNoteSelectionStatus(it) },
@@ -212,6 +212,8 @@ fun BoardEditorScreen(
                         isQuickAdd = true
                     )
                 },
+                onDragEnd = { },
+                noteHighlightedId = uiState.noteHighlightId
             )
 
             BoardTools(
@@ -368,7 +370,7 @@ fun BoardEditor(
     modifier: Modifier = Modifier,
     notes: List<NoteCard>,
     ropes: List<Rope>,
-    onDragNote: (NoteCard) -> Unit,
+    onDragNote: (NoteCard, Offset) -> Unit,
     onGetSize: (IntSize, Int) -> Unit,
     scale: Float,
     offset: Offset,
@@ -376,7 +378,9 @@ fun BoardEditor(
     onSelectedCard: (String) -> Unit,
     onUpdateNote: (String) -> Unit,
     onChangeContent: (String, String) -> Unit,
-    onAddQuickNote: (Offset) -> Unit
+    onAddQuickNote: (Offset) -> Unit,
+    onDragEnd: () -> Unit,
+    noteHighlightedId: String?,
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -404,7 +408,14 @@ fun BoardEditor(
         notes.forEachIndexed { index, n ->
             NoteCardComponent(
                 note = n,
-                onPositionChanged = onDragNote,
+                onPositionChanged = { note ->
+                    val offset = Offset(
+                        x = note.posX + note.size.width / 2f,
+                        y = note.posY + note.size.height / 2f
+                    )
+
+                    onDragNote(note, offset)
+                },
                 onGetSize = { size -> onGetSize(size, index) },
                 onSelect = { t -> onSelectedCard(t.noteId) },
                 onPopupMenu = { off ->
@@ -413,6 +424,11 @@ fun BoardEditor(
                 },
                 onUpdateNote = onUpdateNote,
                 onChangeContent = onChangeContent,
+                onDragEnd = {
+
+                },
+                scale = scale,
+                isHighlighted = n.noteId == noteHighlightedId
             )
         }
 

@@ -53,12 +53,15 @@ import kotlin.math.roundToInt
 @Composable
 fun NoteCardComponent(
     note: NoteCard,
+    scale: Float,
+    isHighlighted: Boolean,
     onPositionChanged: (NoteCard) -> Unit,
     onSelect: (NoteCard) -> Unit,
     onGetSize: (IntSize) -> Unit,
     onPopupMenu: (Offset) -> Unit,
     onUpdateNote: (String) -> Unit,
-    onChangeContent: (String, String) -> Unit
+    onChangeContent: (String, String) -> Unit,
+    onDragEnd: () -> Unit
 ) {
     var isDragging by remember { mutableStateOf(false) }
 
@@ -66,7 +69,13 @@ fun NoteCardComponent(
     val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
     val backgroundColor =
-        Color("#${note.color}".toColorInt()).darken(if (note.isSelected || note.isConnected) 1f else 0.95f)
+        Color("#${note.color}".toColorInt()).darken(
+            when {
+                isHighlighted -> 1.1f
+                note.isSelected || note.isConnected -> 1f
+                else -> 0.95f
+            }
+        )
     val context = LocalContext.current
 
     Box(
@@ -75,8 +84,6 @@ fun NoteCardComponent(
             .onSizeChanged { onGetSize(it) }
             .offset { IntOffset(note.posX.roundToInt(), note.posY.roundToInt()) }
             .graphicsLayer {
-                rotationZ = (note.noteId.hashCode() % 6 - 3).toFloat()
-
                 val scaleValue =
                     if (isDragging || note.isSelected) 1.03f else 1f
                 scaleX = scaleValue
@@ -100,12 +107,20 @@ fun NoteCardComponent(
             .pointerInput(note.noteId) {
                 detectDragGestures(
                     onDragStart = { isDragging = true },
-                    onDragEnd = { isDragging = false },
+                    onDragEnd = {
+                        isDragging = false
+                        onDragEnd()
+                    },
                     onDragCancel = { isDragging = false },
                     onDrag = { change, dragAmount ->
                         change.consume()
-                        val newOffset = updatedOffset + dragAmount
+
+                        val worldDx = dragAmount.x / scale
+                        val worldDy = dragAmount.y / scale
+
+                        val newOffset = updatedOffset + Offset(worldDx, worldDy)
                         val n = note.copy(posX = newOffset.x, posY = newOffset.y)
+
                         updatedOnPositionChanged(n)
                     }
                 )
