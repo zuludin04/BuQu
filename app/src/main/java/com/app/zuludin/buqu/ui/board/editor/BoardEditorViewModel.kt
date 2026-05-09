@@ -493,8 +493,13 @@ class BoardEditorViewModel @Inject constructor(
         val nearest = findNearestNode(current, notes, note.noteId)
 
         if (nearest != null) {
-            _uiState.update { it.copy(noteHighlightId = nearest.noteId) }
-            createPreviewRope(note, nearest)
+            val ropes = _uiState.value.ropes
+            val connectedRope =
+                ropes.firstOrNull { (it.sourceNoteId == note.noteId && it.targetNoteId == nearest.noteId) || (it.sourceNoteId == nearest.noteId && it.targetNoteId == note.noteId) }
+            if (connectedRope == null) {
+                _uiState.update { it.copy(noteHighlightId = nearest.noteId) }
+                createPreviewRope(note, nearest)
+            }
         } else {
             _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
         }
@@ -513,26 +518,32 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun createPreviewRope(source: NoteCard, target: NoteCard) {
-        val rope = Rope(
-            ropeId = UUID.randomUUID().toString(),
-            sourceNoteId = source.noteId,
-            targetNoteId = target.noteId,
-            boardId = boardId ?: currentBoardId,
-            sourceX = source.posX,
-            sourceY = source.posY,
-            targetX = target.posX,
-            targetY = target.posY,
-            targetSize = target.size,
-            sourceSize = source.size
-        )
+        val ropes = _uiState.value.ropes
+        val connectedRope =
+            ropes.firstOrNull { (it.sourceNoteId == source.noteId && it.targetNoteId == target.noteId) || (it.sourceNoteId == target.noteId && it.targetNoteId == source.noteId) }
 
-        _uiState.update { it.copy(previewRope = rope) }
+        if (connectedRope == null) {
+            val rope = Rope(
+                ropeId = UUID.randomUUID().toString(),
+                sourceNoteId = source.noteId,
+                targetNoteId = target.noteId,
+                boardId = boardId ?: currentBoardId,
+                sourceX = source.posX,
+                sourceY = source.posY,
+                targetX = target.posX,
+                targetY = target.posY,
+                targetSize = target.size,
+                sourceSize = source.size
+            )
+
+            _uiState.update { it.copy(previewRope = rope) }
+        }
     }
 
     private fun findNearestNode(
         current: Offset,
         nodes: List<NoteCard>,
-        excludeId: String? = null
+        excludeId: String? = null,
     ): NoteCard? {
 
         var minDistance = Float.MAX_VALUE
