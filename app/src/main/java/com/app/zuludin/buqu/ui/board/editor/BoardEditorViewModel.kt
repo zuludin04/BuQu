@@ -41,7 +41,8 @@ data class BoardEditorUiState(
     val books: List<Book> = emptyList(),
     val categories: List<Category> = emptyList(),
     val showGrid: Boolean = true,
-    val noteHighlightId: String? = null
+    val noteHighlightId: String? = null,
+    val previewRope: Rope? = null
 )
 
 @HiltViewModel
@@ -144,7 +145,7 @@ class BoardEditorViewModel @Inject constructor(
         val index = notes.indexOfFirst { it.noteId == note.noteId }
         notes[index] = note
         _uiState.update { it.copy(notes = notes) }
-        highlightNearestNode(current, note.noteId)
+        highlightNearestNode(current, note)
         updateRopePosition(note)
     }
 
@@ -487,15 +488,45 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(notes = notes) }
     }
 
-    fun highlightNearestNode(current: Offset, excludeId: String) {
+    fun highlightNearestNode(current: Offset, note: NoteCard) {
         val notes = _uiState.value.notes.toMutableList()
-        val nearest = findNearestNode(current, notes, excludeId)
+        val nearest = findNearestNode(current, notes, note.noteId)
 
         if (nearest != null) {
             _uiState.update { it.copy(noteHighlightId = nearest.noteId) }
+            createPreviewRope(note, nearest)
         } else {
-            _uiState.update { it.copy(noteHighlightId = null) }
+            _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
         }
+    }
+
+    fun onDragEnd() {
+        val ropes = _uiState.value.ropes.toMutableList()
+        val rope = _uiState.value.previewRope
+
+        if (rope != null) {
+            ropes.add(rope)
+            _uiState.update { it.copy(ropes = ropes) }
+        }
+
+        _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
+    }
+
+    private fun createPreviewRope(source: NoteCard, target: NoteCard) {
+        val rope = Rope(
+            ropeId = UUID.randomUUID().toString(),
+            sourceNoteId = source.noteId,
+            targetNoteId = target.noteId,
+            boardId = boardId ?: currentBoardId,
+            sourceX = source.posX,
+            sourceY = source.posY,
+            targetX = target.posX,
+            targetY = target.posY,
+            targetSize = target.size,
+            sourceSize = source.size
+        )
+
+        _uiState.update { it.copy(previewRope = rope) }
     }
 
     private fun findNearestNode(

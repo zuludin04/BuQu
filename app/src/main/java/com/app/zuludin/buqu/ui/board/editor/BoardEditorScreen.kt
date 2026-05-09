@@ -212,8 +212,9 @@ fun BoardEditorScreen(
                         isQuickAdd = true
                     )
                 },
-                onDragEnd = { },
-                noteHighlightedId = uiState.noteHighlightId
+                onDragEnd = { viewModel.onDragEnd() },
+                noteHighlightedId = uiState.noteHighlightId,
+                previewRope = uiState.previewRope
             )
 
             BoardTools(
@@ -381,6 +382,7 @@ fun BoardEditor(
     onAddQuickNote: (Offset) -> Unit,
     onDragEnd: () -> Unit,
     noteHighlightedId: String?,
+    previewRope: Rope?,
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
@@ -405,6 +407,8 @@ fun BoardEditor(
             RopeComponent(it)
         }
 
+        if (previewRope != null) RopeComponent(previewRope)
+
         notes.forEachIndexed { index, n ->
             NoteCardComponent(
                 note = n,
@@ -424,9 +428,7 @@ fun BoardEditor(
                 },
                 onUpdateNote = onUpdateNote,
                 onChangeContent = onChangeContent,
-                onDragEnd = {
-
-                },
+                onDragEnd = onDragEnd,
                 scale = scale,
                 isHighlighted = n.noteId == noteHighlightedId
             )
