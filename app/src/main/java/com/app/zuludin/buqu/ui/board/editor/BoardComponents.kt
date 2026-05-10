@@ -1,5 +1,7 @@
 package com.app.zuludin.buqu.ui.board.editor
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -171,6 +174,12 @@ fun NoteCardComponent(
 
 @Composable
 fun RopeComponent(rope: Rope) {
+    val progress = remember { Animatable(0f) }
+
+    LaunchedEffect(rope.ropeId) {
+        progress.animateTo(1f, animationSpec = tween(500))
+    }
+
     val sourceSize = rope.sourceSize
     val targetSize = rope.targetSize
     val initialRope = Offset(rope.sourceX, rope.sourceY)
@@ -184,10 +193,14 @@ fun RopeComponent(rope: Rope) {
             targetSize.width.pxToDp().toPx() / 2, targetSize.height.pxToDp().toPx() / 2
         )
 
+        val start = initialRope + startCenterOffset
+        val end = targetRope + targetCenterOffset
+        val animatedEnd = start + (end - start) * progress.value
+
         drawLine(
             color = Color(0xFF7D5260),
-            start = initialRope + startCenterOffset,
-            end = targetRope + targetCenterOffset,
+            start = start,
+            end = animatedEnd,
             strokeWidth = 8f,
             cap = StrokeCap.Round
         )
