@@ -499,6 +499,8 @@ class BoardEditorViewModel @Inject constructor(
             if (connectedRope == null) {
                 _uiState.update { it.copy(noteHighlightId = nearest.noteId) }
                 createPreviewRope(note, nearest)
+            } else {
+                _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
             }
         } else {
             _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
@@ -518,26 +520,21 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun createPreviewRope(source: NoteCard, target: NoteCard) {
-        val ropes = _uiState.value.ropes
-        val connectedRope =
-            ropes.firstOrNull { (it.sourceNoteId == source.noteId && it.targetNoteId == target.noteId) || (it.sourceNoteId == target.noteId && it.targetNoteId == source.noteId) }
+//        val ropes = _uiState.value.ropes
+        val rope = Rope(
+            ropeId = UUID.randomUUID().toString(),
+            sourceNoteId = source.noteId,
+            targetNoteId = target.noteId,
+            boardId = boardId ?: currentBoardId,
+            sourceX = source.posX,
+            sourceY = source.posY,
+            targetX = target.posX,
+            targetY = target.posY,
+            targetSize = target.size,
+            sourceSize = source.size
+        )
 
-        if (connectedRope == null) {
-            val rope = Rope(
-                ropeId = UUID.randomUUID().toString(),
-                sourceNoteId = source.noteId,
-                targetNoteId = target.noteId,
-                boardId = boardId ?: currentBoardId,
-                sourceX = source.posX,
-                sourceY = source.posY,
-                targetX = target.posX,
-                targetY = target.posY,
-                targetSize = target.size,
-                sourceSize = source.size
-            )
-
-            _uiState.update { it.copy(previewRope = rope) }
-        }
+        _uiState.update { it.copy(previewRope = rope) }
     }
 
     private fun findNearestNode(

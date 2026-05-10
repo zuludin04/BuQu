@@ -180,7 +180,7 @@ fun RopeComponent(rope: Rope, curveLine: Boolean = false) {
     val progress = remember { Animatable(0f) }
 
     LaunchedEffect(rope.ropeId) {
-        progress.animateTo(1f, animationSpec = tween(500))
+        progress.animateTo(1f, animationSpec = tween(250))
     }
 
     val sourceSize = rope.sourceSize
