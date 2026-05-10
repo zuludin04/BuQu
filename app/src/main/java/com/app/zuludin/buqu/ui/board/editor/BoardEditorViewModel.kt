@@ -570,33 +570,4 @@ class BoardEditorViewModel @Inject constructor(
         val threshold = 600f
         return if (minDistance < threshold) nearest else null
     }
-
-//    fun noteConnectMode(noteId: String) {
-//        val notes = _uiState.value.notes
-//
-//        val source = _uiState.value.sourceNote
-//        if (source == null) {
-//            val note = notes.first { it.noteId == noteId }.copy(isConnected = true)
-//            val updatedNotes = _uiState.value.notes.toMutableList()
-//            updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
-//            _uiState.update { it.copy(sourceNote = note, notes = updatedNotes) }
-//        } else {
-//            if (noteId == source.noteId) {
-//                val note = notes.first { it.noteId == noteId }.copy(isConnected = false)
-//                val updatedNotes = _uiState.value.notes.toMutableList()
-//                updatedNotes[updatedNotes.indexOfFirst { it.noteId == note.noteId }] = note
-//                _uiState.update {
-//                    it.copy(
-//                        errorConnectSameNote = true,
-//                        sourceNote = null,
-//                        notes = updatedNotes
-//                    )
-//                }
-//            } else {
-//                val note = notes.first { it.noteId == noteId }
-//                connectNoteWithRope(note)
-//                _uiState.update { it.copy(sourceNote = null) }
-//            }
-//        }
-//    }
 }

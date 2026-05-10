@@ -179,7 +179,7 @@ fun BoardEditorScreen(
                 .onSizeChanged { boardSize = it }
                 .transformable(state)) {
             if (uiState.showGrid) {
-                GridBackgroundComponent(scale = camera.zoom, offset = camera.offset)
+                DotBackgroundComponent(scale = camera.zoom, offset = camera.offset)
             }
 
             BoardEditor(

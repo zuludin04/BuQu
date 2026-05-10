@@ -223,6 +223,27 @@ fun GridBackgroundComponent(scale: Float, offset: Offset) {
 }
 
 @Composable
+fun DotBackgroundComponent(scale: Float, offset: Offset) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val gridSize = 40.dp.toPx()
+        val scaledGridSize = gridSize * scale
+
+        val startX = (offset.x % scaledGridSize)
+        val startY = (offset.y % scaledGridSize)
+
+        for (x in startX.toInt()..size.width.toInt() step scaledGridSize.toInt()) {
+            for (y in startY.toInt()..size.height.toInt() step scaledGridSize.toInt()) {
+                drawCircle(
+                    color = Color.Gray.copy(alpha = 0.3f),
+                    radius = 2f,
+                    center = Offset(x = x.toFloat(), y = y.toFloat())
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun OverflowMenuItem(title: String, onClick: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.background, tonalElevation = 8.dp, shadowElevation = 4.dp
