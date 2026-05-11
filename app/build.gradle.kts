@@ -10,6 +10,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:\\Users\\zuludin\\buqukeystore.jks")
+            storePassword = "neverwalkalone1892"
+            keyAlias = "BuQu"
+            keyPassword = "neverwalkalone1892"
+        }
+    }
     namespace = "com.app.zuludin.buqu"
     compileSdk = 35
 
@@ -43,6 +51,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

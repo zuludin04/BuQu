@@ -435,9 +435,7 @@ fun BoardEditor(
         }
 
         if (showMenu) {
-            val screenOffset = Offset(
-                popupOffset.x * scale + offset.x, popupOffset.y * scale + offset.y
-            )
+            val screenOffset = Offset(x = popupOffset.x * scale, y = popupOffset.y * scale)
             Popup(
                 offset = IntOffset(screenOffset.x.roundToInt(), screenOffset.y.roundToInt()),
                 onDismissRequest = { showMenu = false },
