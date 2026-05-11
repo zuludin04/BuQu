@@ -40,7 +40,8 @@ fun BuquNavGraph(
         navController,
         startDestination = BuquDestinations.QUOTES_ROUTE,
         enterTransition = { fadeIn(tween(0)) },
-        exitTransition = { fadeOut(tween(0)) }
+        exitTransition = { fadeOut(tween(0)) },
+        modifier = modifier,
     ) {
         composable(BuquDestinations.QUOTES_ROUTE) {
             QuoteScreen(

@@ -2,10 +2,10 @@ package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,9 +19,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,7 +27,6 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,7 +40,6 @@ import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +71,7 @@ fun QuoteScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(12.dp),
+                    windowInsets = WindowInsets(top = 16.dp),
                 ) {}
             }
         },
@@ -91,11 +87,6 @@ fun QuoteScreen(
                 selectedCategory = uiState.selectedCategory,
                 onQuoteClick = onQuoteClick,
                 onSelectCategory = { viewModel.filterQuotes(it) },
-                isLoading = uiState.isLoading,
-                onRefresh = {
-                    viewModel.filterQuotes(null)
-                    viewModel.searchQuotes("")
-                },
                 showCategoryFilter = uiState.showCategoryFilter
             )
         }
@@ -115,8 +106,6 @@ private fun HomeContent(
     selectedCategory: Category?,
     onSelectCategory: (Category?) -> Unit,
     onQuoteClick: (String) -> Unit,
-    isLoading: Boolean,
-    onRefresh: () -> Unit,
     showCategoryFilter: Boolean
 ) {
     Column(modifier = modifier) {
@@ -144,44 +133,27 @@ private fun HomeContent(
         if (quotes.isEmpty()) {
             TasksEmptyContent(icon = PhosphorLightbulb, message = R.string.empty_quote_message)
         } else {
-            val refreshScope = rememberCoroutineScope()
-            val state = rememberPullRefreshState(
-                refreshing = isLoading,
-                onRefresh = {
-                    refreshScope.launch { onRefresh() }
-                }
-            )
-
-            Box(
-                modifier = modifier.pullRefresh(state),
-                content = {
-                    Column(modifier = modifier.fillMaxSize()) {
-                        LazyVerticalStaggeredGrid(
-                            columns = StaggeredGridCells.Fixed(2),
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalItemSpacing = 16.dp
-                        ) {
-                            items(quotes.size) {
-                                QuoteItem(
-                                    modifier = Modifier.testTag("QuoteItem"),
-                                    quote = quotes[it].quote,
-                                    backgroundColor = "#${quotes[it].color}",
-                                    book = quotes[it].book,
-                                    author = quotes[it].author,
-                                    imagePath = quotes[it].image,
-                                    category = quotes[it].category
-                                ) {
-                                    onQuoteClick(quotes[it].quoteId)
-                                }
-                            }
-                        }
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalItemSpacing = 16.dp
+            ) {
+                items(quotes.size) {
+                    QuoteItem(
+                        modifier = Modifier.testTag("QuoteItem"),
+                        quote = quotes[it].quote,
+                        backgroundColor = "#${quotes[it].color}",
+                        book = quotes[it].book,
+                        author = quotes[it].author,
+                        imagePath = quotes[it].image,
+                        category = quotes[it].category
+                    ) {
+                        onQuoteClick(quotes[it].quoteId)
                     }
-
-                    PullRefreshIndicator(isLoading, state, Modifier.align(Alignment.TopCenter))
-                },
-            )
+                }
+            }
         }
     }
 }
