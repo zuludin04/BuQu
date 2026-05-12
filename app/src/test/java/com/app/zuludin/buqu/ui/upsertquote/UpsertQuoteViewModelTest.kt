@@ -112,7 +112,7 @@ class UpsertQuoteViewModelTest {
 
         val state = viewModel.uiState.first()
 
-        assertEquals(quote.quote, state.quote)
+        assertEquals(quote.quote, state.field)
         assertEquals(quote.author, state.author)
     }
 }

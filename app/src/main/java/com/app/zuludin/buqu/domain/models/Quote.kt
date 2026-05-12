@@ -13,3 +13,5 @@ data class Quote(
     val image: String = "",
     val bookId: String? = null
 )
+
+class InvalidQuoteException(message: String): Exception(message)

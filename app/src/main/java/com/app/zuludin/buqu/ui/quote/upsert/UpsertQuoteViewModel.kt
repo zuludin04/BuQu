@@ -3,189 +3,164 @@ package com.app.zuludin.buqu.ui.quote.upsert
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.zuludin.buqu.data.repositories.BookRepository
-import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.Category
+import com.app.zuludin.buqu.domain.models.InvalidQuoteException
+import com.app.zuludin.buqu.domain.models.Quote
+import com.app.zuludin.buqu.domain.usecase.quote.GetDetailQuoteUseCase
+import com.app.zuludin.buqu.domain.usecase.quote.UpsertQuoteUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class UpsertQuoteUiState(
-    val quote: String = "",
-    val book: String = "",
-    val bookId: String? = null,
-    val page: String = "",
-    val author: String = "",
-    val image: String = "",
-    val isSavingAsImage: Boolean = false,
-    val category: Category = Category(
-        categoryId = "a76c5015-34c7-4a54-bdfb-c5ed2010b7c9",
-        name = "Motivation",
-        color = "03A9F4",
-        type = "Quote"
-    ),
-    val categories: List<Category> = emptyList(),
-    val books: List<Book> = emptyList(),
-    val isQuoteSaved: Boolean = false,
-    val isError: Boolean = false,
-)
-
 @HiltViewModel
 class UpsertQuoteViewModel @Inject constructor(
     private val quoteRepository: QuoteRepository,
-    private val categoryRepository: CategoryRepository,
-    private val bookRepository: BookRepository,
+    private val getDetailQuote: GetDetailQuoteUseCase,
+    private val upsertQuote: UpsertQuoteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
 
-    private val _uiState = MutableStateFlow(UpsertQuoteUiState())
-    val uiState: StateFlow<UpsertQuoteUiState> = _uiState
+    private val _uiState = MutableStateFlow(UpsertQuoteState())
+    val uiState: StateFlow<UpsertQuoteState> = _uiState
+
+    private val _eventChannel = Channel<UpsertQuoteEvent>()
+    val events = _eventChannel.receiveAsFlow()
 
     init {
-        loadCategories()
-        loadBooks()
-        if (quoteId != null) {
-            loadQuote(quoteId)
-        }
+        loadData()
     }
 
-    private fun loadBooks() {
-        viewModelScope.launch {
-            bookRepository.observeBooks().collect { books ->
-                _uiState.update { it.copy(books = books) }
+    fun onAction(action: UpsertQuoteAction) {
+        when (action) {
+            UpsertQuoteAction.SaveQuote -> saveQuote()
+            UpsertQuoteAction.DeleteQuote -> deleteQuote()
+            is UpsertQuoteAction.PickImage -> {
+                updateImage(action.path)
+                removeQuoteText()
+            }
+
+            UpsertQuoteAction.RemoveImage -> removeImage()
+            is UpsertQuoteAction.SelectBook -> selectBook(action.book)
+            is UpsertQuoteAction.SelectCategory -> updateCategory(action.category)
+            is UpsertQuoteAction.ToggleSavingMode -> updateSavingMode(action.isImage)
+            is UpsertQuoteAction.UpdateQuote -> updateQuote(action.content)
+            is UpsertQuoteAction.ScanTextFromImage -> {
+                updateQuote(action.text)
+                removeImage()
             }
         }
     }
 
-    fun selectBook(book: Book?) {
-        _uiState.update {
-            it.copy(
-                book = book?.title ?: "",
-                bookId = book?.bookId,
-                author = book?.author ?: ""
+    private fun saveQuote() = viewModelScope.launch {
+        try {
+            val field = _uiState.value.field
+            val quote = Quote(
+                quoteId = "",
+                quote = field.quote,
+                author = "",
+                book = "",
+                page = 0,
+                categoryId = field.categoryId,
+                bookId = field.bookId,
+                image = field.image
             )
+            upsertQuote.invoke(quoteId, quote)
+            _eventChannel.send(UpsertQuoteEvent.GoHome)
+        } catch (e: InvalidQuoteException) {
+            _eventChannel.send(UpsertQuoteEvent.ShowSnackbar(e.message ?: "Failed save quote!"))
         }
     }
 
-    fun saveQuote() = viewModelScope.launch {
-        val state = uiState.value
-        val quoteToSave = if (state.isSavingAsImage) "" else state.quote
-        val imageToSave = if (state.isSavingAsImage) state.image else ""
-
-        if (quoteToSave.isNotEmpty() || imageToSave.isNotEmpty()) {
-            quoteRepository.upsertQuote(
-                quoteId = quoteId,
-                quote = quoteToSave,
-                book = state.book,
-                author = state.author,
-                page = if (state.page.isEmpty()) 0 else state.page.toInt(),
-                categoryId = state.category.categoryId,
-                image = imageToSave,
-                bookId = state.bookId
-            )
-            _uiState.update {
-                it.copy(isQuoteSaved = true, isError = false)
-            }
-        } else {
-            _uiState.update {
-                it.copy(isError = true)
-            }
-        }
-    }
-
-    fun deleteQuote() = viewModelScope.launch {
+    private fun deleteQuote() = viewModelScope.launch {
         if (quoteId != null) {
             quoteRepository.deleteQuote(quoteId)
-            _uiState.update {
-                it.copy(isQuoteSaved = true)
-            }
+            _eventChannel.send(UpsertQuoteEvent.GoHome)
         }
     }
 
-    fun updateQuote(newQuote: String) {
+    private fun updateQuote(newQuote: String) {
         _uiState.update {
-            it.copy(quote = newQuote)
+            it.copy(
+                field = it.field.copy(quote = newQuote),
+            )
         }
     }
 
-    fun updateImage(newImage: String) {
+
+    private fun updateImage(newImage: String) {
         _uiState.update {
-            it.copy(image = newImage, isSavingAsImage = true)
+            it.copy(field = it.field.copy(image = newImage), isSavingAsImage = true)
         }
     }
 
-    fun removeImage() {
+    private fun removeImage() {
         _uiState.update {
-            it.copy(image = "", isSavingAsImage = false)
+            it.copy(field = it.field.copy(image = ""), isSavingAsImage = false)
         }
     }
 
-    fun removeQuoteText() {
+    private fun removeQuoteText() {
         _uiState.update {
-            it.copy(quote = "", isSavingAsImage = true)
+            it.copy(field = it.field.copy(quote = ""), isSavingAsImage = true)
         }
     }
 
-    fun updateSavingMode(isImage: Boolean) {
+    private fun updateSavingMode(isImage: Boolean) {
         _uiState.update {
             it.copy(isSavingAsImage = isImage)
         }
     }
 
-    fun updateCategory(category: Category) {
+    private fun updateCategory(category: Category) {
         _uiState.update {
             it.copy(
-                category = category
+                field = it.field.copy(categoryId = category.categoryId),
             )
         }
     }
 
-    fun errorMessageShown() {
+    private fun selectBook(book: Book?) {
         _uiState.update {
-            it.copy(isError = false)
+            it.copy(
+                field = it.field.copy(bookId = book?.bookId),
+            )
         }
     }
 
-    fun loadQuote(quoteId: String) {
+    private fun loadData() {
         viewModelScope.launch {
-            quoteRepository.getQuoteById(quoteId).let { quote ->
-                if (quote != null) {
-                    _uiState.update {
+            getDetailQuote.invoke(quoteId).let { data ->
+                _uiState.update {
+                    if (data.quote != null) {
+                        val categoryId =
+                            data.quote.categoryId.ifBlank { data.categories.first().categoryId }
                         it.copy(
-                            quote = quote.quote,
-                            book = quote.book,
-                            page = quote.page.toString(),
-                            author = quote.author,
-                            image = quote.image,
-                            bookId = quote.bookId,
-                            isSavingAsImage = quote.image.isNotBlank(),
-                            category = Category(
-                                categoryId = quote.categoryId,
-                                name = quote.category,
-                                color = quote.color,
-                                type = "Quote"
-                            )
+                            field = QuoteInputField(
+                                quote = data.quote.quote,
+                                bookId = data.quote.bookId,
+                                categoryId = categoryId,
+                                image = data.quote.image
+                            ),
+                            books = data.books,
+                            categories = data.categories,
+                            isSavingAsImage = data.quote.image.isNotBlank()
+                        )
+                    } else {
+                        it.copy(
+                            field = QuoteInputField(categoryId = data.categories.first().categoryId),
+                            books = data.books,
+                            categories = data.categories
                         )
                     }
-                }
-            }
-
-        }
-    }
-
-    private fun loadCategories() {
-        viewModelScope.launch {
-            categoryRepository.observeCategories().first().let { categories ->
-                _uiState.update {
-                    it.copy(categories = categories)
                 }
             }
         }

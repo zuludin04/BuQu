@@ -73,7 +73,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.theme.provider
 import com.app.zuludin.buqu.core.utils.convertPathFileToUri
 import com.app.zuludin.buqu.core.utils.fixImageRotation
-import com.app.zuludin.buqu.domain.models.Quote
+import kotlinx.coroutines.flow.collectLatest
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,12 +82,47 @@ import java.io.File
 fun UpsertQuoteScreen(
     topAppBarTitle: String,
     onBack: () -> Unit,
-    onShareQuote: (Quote) -> Unit,
+    onShareQuote: (quote: String, author: String, book: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: UpsertQuoteViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is UpsertQuoteEvent.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(event.message)
+                }
+
+                UpsertQuoteEvent.GoHome -> onBack()
+            }
+        }
+    }
+
+    UpsertQuoteContent(
+        topAppBarTitle = topAppBarTitle,
+        onBack = onBack,
+        scaffoldState = scaffoldState,
+        modifier = modifier,
+        uiState = uiState,
+        onAction = viewModel::onAction,
+        onShareQuote = onShareQuote
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UpsertQuoteContent(
+    topAppBarTitle: String,
+    onBack: () -> Unit,
+    onShareQuote: (quote: String, author: String, book: String) -> Unit,
+    modifier: Modifier,
+    scaffoldState: ScaffoldState,
+    uiState: UpsertQuoteState,
+    onAction: (UpsertQuoteAction) -> Unit
+) {
     val context = LocalContext.current
 
     var showPreviewImage by remember { mutableStateOf(false) }
@@ -113,56 +148,53 @@ fun UpsertQuoteScreen(
             BottomAppBar(
                 actions = {
                     if (topAppBarTitle == "Update Quote") {
-                        IconButton(onClick = viewModel::deleteQuote) {
-                            Icon(PhosphorTrash, "Localized description")
-                        }
+                        IconButton(
+                            onClick = { onAction(UpsertQuoteAction.DeleteQuote) },
+                            content = {
+                                Icon(
+                                    imageVector = PhosphorTrash,
+                                    contentDescription = "Localized description"
+                                )
+                            },
+                        )
 
                         IconButton(onClick = {
-                            val quote = Quote(
-                                quoteId = "",
-                                quote = uiState.quote,
-                                author = uiState.author,
-                                book = uiState.book,
-                                page = 0,
-                                category = "",
-                                categoryId = "",
-                                color = ""
-                            )
-                            onShareQuote(quote)
+                            val field = uiState.field
+                            val book = uiState.books.first { it.bookId == field.bookId }
+                            onShareQuote(field.quote, book.author, book.title)
                         }) {
                             Icon(PhosphorShareNetwork, "Localized description")
                         }
                     }
 
-                    SpeechToText { viewModel.updateQuote(it) }
+                    SpeechToText { onAction(UpsertQuoteAction.UpdateQuote(it)) }
 
                     MediaFileScanner(
                         imageVector = PhosphorAperture,
                         isOpenCamera = true,
-                        onTextSelected = { viewModel.updateQuote(it) },
+                        onTextSelected = { onAction(UpsertQuoteAction.UpdateQuote(it)) },
                         onSaveImage = { path, _ ->
-                            viewModel.updateImage(path)
-                            viewModel.removeQuoteText()
+                            onAction(UpsertQuoteAction.PickImage(path))
                         }
                     )
 
                     MediaFileScanner(
                         imageVector = PhosphorImage,
                         isOpenCamera = false,
-                        onTextSelected = { viewModel.updateQuote(it) },
+                        onTextSelected = { onAction(UpsertQuoteAction.UpdateQuote(it)) },
                         onSaveImage = { path, _ ->
-                            viewModel.updateImage(path)
-                            viewModel.removeQuoteText()
+                            onAction(UpsertQuoteAction.PickImage(path))
                         }
                     )
                 }, floatingActionButton = {
                     FloatingActionButton(
                         modifier = Modifier.testTag("AddNewQuote"),
-                        onClick = viewModel::saveQuote,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                    ) {
-                        Icon(PhosphorCheck, "Localized description")
-                    }
+                        onClick = { onAction(UpsertQuoteAction.SaveQuote) },
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+                        content = {
+                            Icon(PhosphorCheck, "Localized description")
+                        }
+                    )
                 }
             )
         }
@@ -182,20 +214,20 @@ fun UpsertQuoteScreen(
             ) {
                 FilterChip(
                     selected = !uiState.isSavingAsImage,
-                    onClick = { viewModel.updateSavingMode(false) },
+                    onClick = { onAction(UpsertQuoteAction.ToggleSavingMode(false)) },
                     label = { Text("Text") },
-                    enabled = uiState.quote.isNotEmpty(),
+                    enabled = uiState.field.quote.isNotEmpty(),
                     modifier = Modifier.padding(end = 8.dp)
                 )
                 FilterChip(
                     selected = uiState.isSavingAsImage,
-                    onClick = { viewModel.updateSavingMode(true) },
+                    onClick = { onAction(UpsertQuoteAction.ToggleSavingMode(true)) },
                     label = { Text("Image") },
-                    enabled = uiState.image.isNotEmpty()
+                    enabled = uiState.field.image.isNotEmpty()
                 )
             }
 
-            if (uiState.isSavingAsImage && uiState.image.isNotEmpty()) {
+            if (uiState.isSavingAsImage && uiState.field.image.isNotEmpty()) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -207,7 +239,7 @@ fun UpsertQuoteScreen(
                     Box(modifier = Modifier.fillMaxSize()) {
                         AsyncImage(
                             model = ImageRequest.Builder(context)
-                                .data(File(uiState.image))
+                                .data(File(uiState.field.image))
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Quote Image",
@@ -218,7 +250,7 @@ fun UpsertQuoteScreen(
                         )
 
                         IconButton(
-                            onClick = viewModel::removeImage,
+                            onClick = { onAction(UpsertQuoteAction.DeleteQuote) },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(8.dp)
@@ -239,12 +271,12 @@ fun UpsertQuoteScreen(
                     singleLine = false,
                     label = stringResource(R.string.quote),
                     capitalization = KeyboardCapitalization.Sentences,
-                    value = uiState.quote,
-                    onChanged = viewModel::updateQuote,
+                    value = uiState.field.quote,
+                    onChanged = { onAction(UpsertQuoteAction.UpdateQuote(it)) },
                     imeAction = ImeAction.Done,
-                    keyboardAction = KeyboardActions(onDone = {
-                        focusManager.clearFocus()
-                    }),
+                    keyboardAction = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    ),
                     minLines = 5,
                     textStyle = TextStyle(
                         fontStyle = FontStyle.Italic, fontFamily = FontFamily(
@@ -259,40 +291,26 @@ fun UpsertQuoteScreen(
 
             BookSpinner(
                 modifier = Modifier.padding(top = 12.dp),
-                currentBookId = uiState.bookId,
+                currentBookId = uiState.field.bookId,
                 books = uiState.books,
-                onSelectBook = viewModel::selectBook
+                onSelectBook = { onAction(UpsertQuoteAction.SelectBook(it)) }
             )
-            if (uiState.categories.isNotEmpty()) {
-                ColorSpinner(
-                    modifier = Modifier.padding(top = 12.dp),
-                    currentCategory = uiState.category,
-                    categories = uiState.categories,
-                    onSelectCategory = viewModel::updateCategory
-                )
-            }
-        }
-    }
 
-    LaunchedEffect(uiState) {
-        if (uiState.isQuoteSaved) {
-            onBack()
-            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-        }
-
-        if (uiState.isError) {
-            scaffoldState.snackbarHostState.showSnackbar("Make sure to fill all forms")
-            viewModel.errorMessageShown()
+            ColorSpinner(
+                modifier = Modifier.padding(top = 12.dp),
+                currentCategoryId = uiState.field.categoryId,
+                categories = uiState.categories,
+                onSelectCategory = { onAction(UpsertQuoteAction.SelectCategory(it)) }
+            )
         }
     }
 
     if (showTextSelection) {
         TextSelectionDialog(
-            bitmap = context.fixImageRotation(uiState.image.convertPathFileToUri())!!,
+            bitmap = context.fixImageRotation(uiState.field.image.convertPathFileToUri())!!,
             onDismiss = { showTextSelection = !showTextSelection },
             onTextSelected = { selectedText ->
-                viewModel.updateQuote(selectedText)
-                viewModel.removeImage()
+                onAction(UpsertQuoteAction.ScanTextFromImage(selectedText))
                 showTextSelection = !showTextSelection
             }
         )
@@ -300,7 +318,7 @@ fun UpsertQuoteScreen(
 
     if (showPreviewImage) {
         ScanImageTextSheet(
-            imagePath = uiState.image,
+            imagePath = uiState.field.image,
             onDismiss = { showPreviewImage = !showPreviewImage },
             onScanText = {
                 showTextSelection = true
@@ -312,7 +330,7 @@ fun UpsertQuoteScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanImageTextSheet(onDismiss: () -> Unit, imagePath: String, onScanText: () -> Unit) {
+private fun ScanImageTextSheet(onDismiss: () -> Unit, imagePath: String, onScanText: () -> Unit) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
 

@@ -41,11 +41,11 @@ import com.app.zuludin.buqu.domain.models.Category
 @Composable
 fun ColorSpinner(
     modifier: Modifier = Modifier,
-    currentCategory: Category,
+    currentCategoryId: String,
     categories: List<Category>,
     onSelectCategory: (Category) -> Unit,
 ) {
-    var selectedCategory: Category by remember { mutableStateOf(currentCategory) }
+    val selectedCategory = categories.find { it.categoryId == currentCategoryId }
     var expanded by remember { mutableStateOf(false) }
     val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
     val iconRotation by animateFloatAsState(
@@ -68,14 +68,17 @@ fun ColorSpinner(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .size(24.dp)
-                    .background(Color("#${selectedCategory.color}".toColorInt()))
-            )
+            if (selectedCategory != null) {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(24.dp)
+                        .background(Color("#${selectedCategory.color}".toColorInt()))
+                )
+            }
+
             Text(
-                text = selectedCategory.name,
+                text = selectedCategory?.name ?: "-",
                 color = textColor,
                 style = TextStyle(color = MaterialTheme.colors.onBackground),
                 modifier = Modifier
@@ -84,7 +87,7 @@ fun ColorSpinner(
             )
             Icon(
                 imageVector = Icons.Filled.ArrowDropDown,
-                "",
+                contentDescription = "",
                 tint = textColor,
                 modifier = Modifier.rotate(iconRotation)
             )
@@ -112,7 +115,6 @@ fun ColorSpinner(
                 DropdownMenuItem(
                     onClick = {
                         expanded = false
-                        selectedCategory = category
                         onSelectCategory(category)
                     }
                 ) {
@@ -127,7 +129,7 @@ fun ColorSpinner(
 @Composable
 private fun ColorSpinnerPreview() {
     ColorSpinner(
-        currentCategory = Category("", "", "", ""),
+        currentCategoryId = "",
         categories = listOf(),
         onSelectCategory = {}
     )

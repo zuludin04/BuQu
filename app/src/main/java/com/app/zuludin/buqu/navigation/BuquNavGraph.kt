@@ -69,9 +69,9 @@ fun BuquNavGraph(
             UpsertQuoteScreen(
                 onBack = { navController.popBackStack() },
                 topAppBarTitle = title ?: "",
-                onShareQuote = {
+                onShareQuote = { quote, author, book ->
                     navActions.navigateToShareQuote(
-                        quote = it.quote, author = it.author, book = it.book
+                        quote = quote, author = author, book = book
                     )
                 })
         }
