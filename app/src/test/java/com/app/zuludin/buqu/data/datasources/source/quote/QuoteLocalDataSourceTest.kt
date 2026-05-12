@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.data.datasources.source
+package com.app.zuludin.buqu.data.datasources.source.quote
 
 import com.app.zuludin.buqu.data.datasources.database.FakeCategoryDao
 import com.app.zuludin.buqu.data.datasources.database.FakeQuoteDao
@@ -6,13 +6,10 @@ import com.app.zuludin.buqu.data.datasources.database.dao.CategoryDao
 import com.app.zuludin.buqu.data.datasources.database.dao.QuoteDao
 import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
 import com.app.zuludin.buqu.data.datasources.database.entities.QuoteEntity
-import com.app.zuludin.buqu.data.datasources.source.quote.QuoteLocalDataSource
 import com.app.zuludin.buqu.utils.DataDummy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
@@ -35,22 +32,22 @@ class QuoteLocalDataSourceTest {
     fun getQuotes_Category_emptyResultFromDatabase() = runTest {
         quoteDao.deleteQuotes()
         val quotes = localSource.getQuotesCategory().first()
-        assertTrue(quotes.isEmpty())
+        Assert.assertTrue(quotes.isEmpty())
     }
 
     @Test
     fun getQuotes_requestAllQuotesCategoryFromDatabase() = runTest {
         val quotes = localSource.getQuotesCategory().first()
-        assertTrue(quotes.isNotEmpty())
-        assertEquals(localQuotes.size, quotes.size)
+        Assert.assertTrue(quotes.isNotEmpty())
+        Assert.assertEquals(localQuotes.size, quotes.size)
     }
 
     @Test
     fun getQuotesByCategory_requestQuotesCategoryFromDatabase() = runTest {
         val sample = localQuotes.filter { it.categoryId == "Category1" }
         val quotes = localSource.getQuotesByCategory("Category1")
-        assertNotNull(quotes)
-        assertEquals(sample.size, quotes.size)
+        Assert.assertNotNull(quotes)
+        Assert.assertEquals(sample.size, quotes.size)
     }
 
     @Test
@@ -58,9 +55,9 @@ class QuoteLocalDataSourceTest {
         val sample = localQuotes[0]
         val actual = localSource.getQuoteDetail(sample.quoteId)
 
-        assertNotNull(actual)
-        assertEquals(sample.quote, actual?.quote)
-        assertEquals(sample.author, actual?.author)
+        Assert.assertNotNull(actual)
+        Assert.assertEquals(sample.quote, actual?.quote)
+        Assert.assertEquals(sample.author, actual?.author)
     }
 
     @Test
@@ -77,9 +74,9 @@ class QuoteLocalDataSourceTest {
         localSource.upsertQuote(newQuote)
 
         val quote = localSource.getQuoteDetail(newQuote.quoteId)
-        assertNotNull(quote)
-        assertEquals(newQuote.quote, quote?.quote)
-        assertEquals(newQuote.author, quote?.author)
+        Assert.assertNotNull(quote)
+        Assert.assertEquals(newQuote.quote, quote?.quote)
+        Assert.assertEquals(newQuote.author, quote?.author)
     }
 
     @Test
@@ -90,38 +87,38 @@ class QuoteLocalDataSourceTest {
 
         val afterDeleteQuote = localSource.getQuotesCategory().first()
 
-        assertEquals(afterDeleteQuote.size, initialQuotes.size - 1)
+        Assert.assertEquals(afterDeleteQuote.size, initialQuotes.size - 1)
     }
 
     @Test
     fun deleteQuotes_removeAllQuotesFromDatabase() = runTest {
         localSource.deleteQuotes()
         val quotes = localSource.getQuotesCategory().first()
-        assertTrue(quotes.isEmpty())
+        Assert.assertTrue(quotes.isEmpty())
     }
 
     @Test
     fun observeCategories_emptyCategoriesFromDatabase() = runTest {
         categoryDao.deleteCategories()
         val categories = localSource.observeCategories().first()
-        assertTrue(categories.isEmpty())
+        Assert.assertTrue(categories.isEmpty())
     }
 
     @Test
     fun observeCategories_requestAllCategoriesFromDatabase() = runTest {
         val categories = localSource.observeCategories().first()
-        assertTrue(categories.isNotEmpty())
-        assertEquals(localCategories, categories)
-        assertEquals(localCategories.size, categories.size)
+        Assert.assertTrue(categories.isNotEmpty())
+        Assert.assertEquals(localCategories, categories)
+        Assert.assertEquals(localCategories.size, categories.size)
     }
 
     @Test
     fun getCategoryById_requestDetailCategoryFromDatabase() = runTest {
         val sample = localCategories[0]
         val actual = localSource.getCategoryById(sample.categoryId)
-        assertNotNull(actual)
-        assertEquals(sample.name, actual?.name)
-        assertEquals(sample.type, actual?.type)
+        Assert.assertNotNull(actual)
+        Assert.assertEquals(sample.name, actual?.name)
+        Assert.assertEquals(sample.type, actual?.type)
     }
 
     @Test
@@ -135,9 +132,9 @@ class QuoteLocalDataSourceTest {
         localSource.upsertCategory(newCategory)
 
         val category = localSource.getCategoryById(newCategory.categoryId)
-        assertNotNull(category)
-        assertEquals(newCategory.name, category?.name)
-        assertEquals(newCategory.type, category?.type)
+        Assert.assertNotNull(category)
+        Assert.assertEquals(newCategory.name, category?.name)
+        Assert.assertEquals(newCategory.type, category?.type)
     }
 
     @Test
@@ -147,13 +144,13 @@ class QuoteLocalDataSourceTest {
 
         val afterDelete = localSource.observeCategories().first()
 
-        assertEquals(afterDelete.size, initial.size - 1)
+        Assert.assertEquals(afterDelete.size, initial.size - 1)
     }
 
     @Test
     fun deleteCategories_removeAllCategoriesFromDatabase() = runTest {
         localSource.deleteCategories()
         val categories = localSource.observeCategories().first()
-        assertTrue(categories.isEmpty())
+        Assert.assertTrue(categories.isEmpty())
     }
 }
