@@ -24,6 +24,10 @@ class FakeQuoteDao(initialQuotes: List<QuoteEntity>? = emptyList()) : QuoteDao {
         return flow { emit(data) }
     }
 
+    override suspend fun loadQuotes(): List<CategoryAndQuoteEntity> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getQuoteDetail(quoteId: String): CategoryAndQuoteEntity? {
         val data = _quotes?.get(quoteId)
         return data?.toQuoteAndCategory()
@@ -63,6 +67,7 @@ fun QuoteEntity.toQuoteAndCategory(): CategoryAndQuoteEntity {
         categoryId = this.categoryId,
         name = "",
         color = "",
-        type = ""
+        type = "",
+        image = ""
     )
 }

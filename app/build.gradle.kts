@@ -156,4 +156,5 @@ dependencies {
 
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)
+    testImplementation(libs.okhttp.mockwebserver)
 }

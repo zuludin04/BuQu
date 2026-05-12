@@ -71,7 +71,8 @@ class QuoteLocalDataSourceTest {
             author = "Asa 11",
             book = "Qoar 11",
             page = 12,
-            categoryId = "Category11"
+            categoryId = "Category11",
+            image = ""
         )
         localSource.upsertQuote(newQuote)
 

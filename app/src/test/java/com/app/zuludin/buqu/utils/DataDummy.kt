@@ -13,7 +13,8 @@ object DataDummy {
                 author = "Asa",
                 book = "Qoar",
                 page = 10,
-                categoryId = "Category$i"
+                categoryId = "Category$i",
+                image = ""
             )
             data.add(quote)
         }

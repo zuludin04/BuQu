@@ -24,6 +24,10 @@ class FakeCategoryDao(initialCategories: List<CategoryEntity>? = emptyList()) : 
     }
 
     override suspend fun getById(categoryId: String): CategoryEntity? = _categories?.get(categoryId)
+    
+    override suspend fun getAllCategories(): List<CategoryEntity> {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun upsert(quote: CategoryEntity) {
         _categories?.put(quote.categoryId, quote)

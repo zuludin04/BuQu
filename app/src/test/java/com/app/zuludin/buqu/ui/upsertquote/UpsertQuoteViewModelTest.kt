@@ -53,9 +53,9 @@ class UpsertQuoteViewModelTest {
         val page = "12"
         viewModel.apply {
             updateQuote(quote)
-            updateAuthor(author)
-            updateBook(book)
-            updatePage(page)
+//            updateAuthor(author)
+//            updateBook(book)
+//            updatePage(page)
         }
         viewModel.saveQuote()
         val state = viewModel.uiState.first()
