@@ -17,6 +17,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.app.zuludin.buqu.HiltTestActivity
 import com.app.zuludin.buqu.core.theme.BuQuTheme
+import com.app.zuludin.buqu.data.repositories.BookRepository
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
@@ -52,6 +53,9 @@ class UpsertQuoteScreenTest {
     @Inject
     lateinit var categoryRepo: CategoryRepository
 
+    @Inject
+    lateinit var bookRepo: BookRepository
+
     @Before
     fun init() {
         hiltRule.inject()
@@ -61,7 +65,7 @@ class UpsertQuoteScreenTest {
                 Surface {
                     UpsertQuoteScreen(
                         viewModel = UpsertQuoteViewModel(
-                            quoteRepo, categoryRepo, SavedStateHandle()
+                            quoteRepo, categoryRepo, bookRepo, SavedStateHandle()
                         ),
                         topAppBarTitle = "",
                         onBack = {},

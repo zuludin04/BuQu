@@ -36,7 +36,7 @@ class QuoteDaoTest {
         val cat = DataDummy.generateCategoryDummy()[0]
         database.categoryDao().upsert(cat)
 
-        val quote = QuoteEntity("quote1", "Hallo", "Asa", "Es", 12, cat.categoryId)
+        val quote = QuoteEntity("quote1", "Hallo", "Asa", "Es", 12, cat.categoryId, "")
         database.quoteDao().upsert(quote)
 
         val actual = database.quoteDao().getQuoteDetail(quote.quoteId)
@@ -51,7 +51,7 @@ class QuoteDaoTest {
         val cat = DataDummy.generateCategoryDummy()[0]
         database.categoryDao().upsert(cat)
 
-        val quote = QuoteEntity("quote1", "Hallo", "Asa", "Es", 12, cat.categoryId)
+        val quote = QuoteEntity("quote1", "Hallo", "Asa", "Es", 12, cat.categoryId, "")
         database.quoteDao().upsert(quote)
 
         database.quoteDao().deleteById(quote.quoteId)
@@ -66,10 +66,10 @@ class QuoteDaoTest {
         val cat = DataDummy.generateCategoryDummy()[0]
         database.categoryDao().upsert(cat)
 
-        val oldQuote = QuoteEntity("quote1", "Hallo", "Asa", "Es", 12, cat.categoryId)
+        val oldQuote = QuoteEntity("quote1", "Hallo", "Asa", "Es", 12, cat.categoryId, "")
         database.quoteDao().upsert(oldQuote)
 
-        val newQuote = QuoteEntity("quote1", "Hallo 12", "Asa", "Es", 15, cat.categoryId)
+        val newQuote = QuoteEntity("quote1", "Hallo 12", "Asa", "Es", 15, cat.categoryId, "")
 
         database.quoteDao().upsert(newQuote)
 

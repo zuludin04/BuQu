@@ -3,6 +3,7 @@ package com.app.zuludin.buqu.ui.upsertquote
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import com.app.zuludin.buqu.MainDispatcherRule
+import com.app.zuludin.buqu.data.repositories.BookRepository
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.models.Quote
@@ -37,11 +38,14 @@ class UpsertQuoteViewModelTest {
     @Mock
     private lateinit var categoryRepo: CategoryRepository
 
+    @Mock
+    private lateinit var bookRepo: BookRepository
+
     private lateinit var viewModel: UpsertQuoteViewModel
 
     @Test
     fun saveQuote_successSaveNewQuote() = runTest {
-        viewModel = UpsertQuoteViewModel(quoteRepo, categoryRepo, SavedStateHandle())
+        viewModel = UpsertQuoteViewModel(quoteRepo, categoryRepo, bookRepo, SavedStateHandle())
 
         val quote = "Quote"
         val author = "Awa"
@@ -70,7 +74,7 @@ class UpsertQuoteViewModelTest {
 
     @Test
     fun saveQuote_errorWhenSaveNewQuote() = runTest {
-        viewModel = UpsertQuoteViewModel(quoteRepo, categoryRepo, SavedStateHandle())
+        viewModel = UpsertQuoteViewModel(quoteRepo, categoryRepo, bookRepo, SavedStateHandle())
 
         viewModel.saveQuote()
         val state = viewModel.uiState.first()
@@ -82,6 +86,7 @@ class UpsertQuoteViewModelTest {
         viewModel = UpsertQuoteViewModel(
             quoteRepo,
             categoryRepo,
+            bookRepo,
             SavedStateHandle(mapOf(BuquDestinationArgs.QUOTE_ID_ARG to "0"))
         )
         viewModel.deleteQuote()
@@ -98,6 +103,7 @@ class UpsertQuoteViewModelTest {
         viewModel = UpsertQuoteViewModel(
             quoteRepo,
             categoryRepo,
+            bookRepo,
             SavedStateHandle(mapOf(BuquDestinationArgs.QUOTE_ID_ARG to "0"))
         )
         `when`(quoteRepo.getQuoteById(quote.quoteId)).thenReturn(quote)
