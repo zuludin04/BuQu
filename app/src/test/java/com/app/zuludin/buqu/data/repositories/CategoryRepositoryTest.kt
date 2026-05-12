@@ -1,6 +1,7 @@
 package com.app.zuludin.buqu.data.repositories
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.app.zuludin.buqu.data.datasources.database.entities.CategoryEntity
 import com.app.zuludin.buqu.data.datasources.source.quote.QuoteLocalDataSource
 import com.app.zuludin.buqu.utils.DataDummy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,6 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -60,5 +62,21 @@ class CategoryRepositoryTest {
         assertNotNull(actual)
         assertEquals(category.name, actual?.name)
         assertEquals(category.type, actual?.type)
+    }
+
+    @Test
+    fun upsertCategory_successUpsertCategory() = runTest {
+        val category = DataDummy.generateCategoryDummy()[0]
+        repository.upsertCategory(category.categoryId, category.name, category.color, category.type)
+        val expected = CategoryEntity(category.categoryId, category.name, category.color, category.type)
+        verify(localSource).upsertCategory(expected)
+    }
+
+    @Test
+    fun deleteCategory_successDeleteCategory() = runTest {
+        val categoryId = "cat1"
+        `when`(localSource.checkCategoryUsed(categoryId)).thenReturn(emptyList())
+        repository.deleteCategory(categoryId)
+        verify(localSource).deleteCategory(categoryId)
     }
 }
