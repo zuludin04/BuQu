@@ -12,3 +12,5 @@ data class Book(
     val isSelected: Boolean = false,
     val fromDatabase: Boolean = true
 )
+
+class InvalidBookException(message: String) : Exception(message)

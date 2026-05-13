@@ -36,19 +36,19 @@ class BookDetailViewModel @Inject constructor(
     }
 
     fun saveBook() {
-//        viewModelScope.launch {
-//            bookRepository.upsertBook(
-//                bookId = _uiState.value.book?.bookId,
-//                title = _uiState.value.book?.title ?: "",
-//                author = _uiState.value.book?.author ?: "",
-//                cover = _uiState.value.book?.cover ?: "",
-//                description = _uiState.value.book?.description ?: "",
-//                totalPages = _uiState.value.book?.totalPages ?: 0,
-//                publisher = _uiState.value.book?.publisher ?: "",
-//                year = _uiState.value.book?.year ?: 0
-//            )
-//            _uiState.update { it.copy(isSuccess = true, fromDatabase = true) }
-//        }
+        viewModelScope.launch {
+            bookRepository.upsertBook(
+                bookId = _uiState.value.book?.bookId,
+                title = _uiState.value.book?.title ?: "",
+                author = _uiState.value.book?.author ?: "",
+                cover = _uiState.value.book?.cover ?: "",
+                description = _uiState.value.book?.description ?: "",
+                totalPages = _uiState.value.book?.totalPages ?: 0,
+                publisher = _uiState.value.book?.publisher ?: "",
+                year = _uiState.value.book?.year ?: 0
+            )
+            _uiState.update { it.copy(fromDatabase = true) }
+        }
     }
 
     fun deleteBook() {

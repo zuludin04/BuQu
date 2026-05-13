@@ -3,36 +3,33 @@ package com.app.zuludin.buqu.ui.book.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.domain.models.Book
+import com.app.zuludin.buqu.domain.models.InvalidBookException
 import com.app.zuludin.buqu.domain.repositories.IBookRepository
+import com.app.zuludin.buqu.domain.usecase.book.UpsertBookUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class BookEditUiState(
-    val bookId: String? = null,
-    val title: String = "",
-    val author: String = "",
-    val cover: String = "",
-    val description: String = "",
-    val totalPages: Int = 0,
-    val publisher: String = "",
-    val year: Int = 0,
-    val isSuccess: Boolean = false
-)
-
 @HiltViewModel
 class BookEditViewModel @Inject constructor(
     private val bookRepository: IBookRepository,
+    private val upsertBook: UpsertBookUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val bookId: String? = savedStateHandle[BuquDestinationArgs.BOOK_ID_ARG]
 
-    private val _uiState = MutableStateFlow(BookEditUiState())
-    val uiState: StateFlow<BookEditUiState> = _uiState
+    private val _uiState = MutableStateFlow(BookEditFieldState())
+    val uiState: StateFlow<BookEditFieldState> = _uiState
+
+    private val _eventChannel = Channel<BookEditEvent>()
+    val events = _eventChannel.receiveAsFlow()
 
     init {
         if (bookId != null) {
@@ -91,17 +88,25 @@ class BookEditViewModel @Inject constructor(
 
     fun saveBook() {
         viewModelScope.launch {
-            bookRepository.upsertBook(
-                bookId = _uiState.value.bookId,
-                title = _uiState.value.title,
-                author = _uiState.value.author,
-                cover = _uiState.value.cover,
-                description = _uiState.value.description,
-                totalPages = _uiState.value.totalPages,
-                publisher = _uiState.value.publisher,
-                year = _uiState.value.year
-            )
-            _uiState.update { it.copy(isSuccess = true) }
+            try {
+                val book = Book(
+                    bookId = "",
+                    title = _uiState.value.title,
+                    author = _uiState.value.author,
+                    cover = _uiState.value.cover,
+                    description = _uiState.value.description,
+                    totalPages = _uiState.value.totalPages,
+                    publisher = _uiState.value.publisher,
+                    year = _uiState.value.year
+                )
+                upsertBook.invoke(
+                    bookId = _uiState.value.bookId,
+                    book = book
+                )
+                _eventChannel.send(BookEditEvent.GoHome)
+            } catch (e: InvalidBookException) {
+                _eventChannel.send(BookEditEvent.ShowSnackbar(e.message ?: "Failed save book"))
+            }
         }
     }
 }
