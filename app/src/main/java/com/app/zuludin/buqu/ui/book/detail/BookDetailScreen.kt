@@ -49,6 +49,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
 import com.app.zuludin.buqu.core.icons.PhosphorPencil
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.ui.quote.list.QuoteItem
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun BookDetailScreen(
@@ -60,7 +61,14 @@ fun BookDetailScreen(
     viewModel: BookDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val book = uiState.book
+
+    LaunchedEffect(key1 = true) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                BookDetailEvent.GoHome -> onBack()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -89,78 +97,87 @@ fun BookDetailScreen(
                             Icon(PhosphorCheck, null)
                         }
                     }
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
-        Column(
+        BookDetailContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            BookHeaderCard(
-                cover = book?.cover.orEmpty(),
-                title = book?.title.orEmpty(),
-                author = book?.author.orEmpty(),
-                pages = book?.totalPages ?: 0,
-                year = book?.year ?: 0,
-                quotesCount = uiState.quotes.size,
-                modifier = Modifier.fillMaxWidth()
-            )
+                .verticalScroll(rememberScrollState()),
+            state = uiState,
+            onAddQuoteClick = onAddQuoteClick,
+            onQuoteClick = onQuoteClick,
+            onSaveBook = viewModel::saveBook
+        )
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
+@Composable
+private fun BookDetailContent(
+    modifier: Modifier,
+    state: BookDetailState,
+    onAddQuoteClick: () -> Unit,
+    onQuoteClick: (String) -> Unit,
+    onSaveBook: () -> Unit
+) {
+    val book = state.book
 
-            SynopsisCard(
-                synopsis = book?.description.orEmpty(),
-                publisher = book?.publisher.orEmpty(),
-                modifier = Modifier.fillMaxWidth()
-            )
+    Column(modifier = modifier) {
+        BookHeaderCard(
+            cover = book?.cover.orEmpty(),
+            title = book?.title.orEmpty(),
+            author = book?.author.orEmpty(),
+            pages = book?.totalPages ?: 0,
+            year = book?.year ?: 0,
+            quotesCount = state.quotes.size,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Quotes from this book",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+        SynopsisCard(
+            synopsis = book?.description.orEmpty(),
+            publisher = book?.publisher.orEmpty(),
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
-            if (uiState.quotes.isEmpty()) {
-                EmptyQuotesCard(
-                    onButtonClick = {
-                        if (uiState.fromDatabase) {
-                            onAddQuoteClick()
-                        } else {
-                            viewModel.saveBook()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    fromDatabase = uiState.fromDatabase
-                )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    uiState.quotes.forEach { quote ->
-                        QuoteItem(
-                            quote = quote.quote,
-                            author = quote.author,
-                            book = quote.book,
-                            category = quote.category,
-                            backgroundColor = "#${quote.color}",
-                            imagePath = quote.image,
-                            onClick = { onQuoteClick(quote.quoteId) }
-                        )
+        Text(
+            text = "Quotes from this book",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (state.quotes.isEmpty()) {
+            EmptyQuotesCard(
+                onButtonClick = {
+                    if (state.fromDatabase) {
+                        onAddQuoteClick()
+                    } else {
+                        onSaveBook()
                     }
+                }, modifier = Modifier.fillMaxWidth(), fromDatabase = state.fromDatabase
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                state.quotes.forEach { quote ->
+                    QuoteItem(
+                        quote = quote.quote,
+                        author = quote.author,
+                        book = quote.book,
+                        category = quote.category,
+                        backgroundColor = "#${quote.color}",
+                        imagePath = quote.image,
+                        onClick = { onQuoteClick(quote.quoteId) },
+                    )
                 }
             }
-        }
-    }
-
-    LaunchedEffect(uiState.isDeleted) {
-        if (uiState.isDeleted) {
-            onBack()
         }
     }
 }
@@ -234,8 +251,7 @@ private fun BookHeaderCard(
                             )
                             Spacer(modifier = Modifier.size(6.dp))
                             Text(
-                                text = "$pages pages",
-                                style = MaterialTheme.typography.labelMedium
+                                text = "$pages pages", style = MaterialTheme.typography.labelMedium
                             )
                         }
                     }
@@ -249,8 +265,7 @@ private fun BookHeaderCard(
                             )
                             Spacer(modifier = Modifier.size(6.dp))
                             Text(
-                                text = year.toString(),
-                                style = MaterialTheme.typography.labelMedium
+                                text = year.toString(), style = MaterialTheme.typography.labelMedium
                             )
                         }
                     }
@@ -270,9 +285,7 @@ private fun BookHeaderCard(
 
 @Composable
 private fun SynopsisCard(
-    synopsis: String,
-    publisher: String,
-    modifier: Modifier = Modifier
+    synopsis: String, publisher: String, modifier: Modifier = Modifier
 ) {
     val cleanSynopsis = if (synopsis.isNotBlank()) {
         HtmlCompat.fromHtml(synopsis, HtmlCompat.FROM_HTML_MODE_COMPACT).toString()
@@ -307,8 +320,7 @@ private fun SynopsisCard(
                         if (textLayoutResult.didOverflowHeight) {
                             isClickable = true
                         }
-                    }
-                )
+                    })
                 if (isClickable) {
                     Text(
                         text = if (isExpanded) "Show Less" else "Show More",
@@ -317,8 +329,7 @@ private fun SynopsisCard(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(top = 4.dp)
-                            .clickable { isExpanded = !isExpanded }
-                    )
+                            .clickable { isExpanded = !isExpanded })
                 }
             }
 
@@ -336,9 +347,7 @@ private fun SynopsisCard(
 
 @Composable
 private fun EmptyQuotesCard(
-    onButtonClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    fromDatabase: Boolean
+    onButtonClick: () -> Unit, modifier: Modifier = Modifier, fromDatabase: Boolean
 ) {
     Card(
         modifier = modifier,
