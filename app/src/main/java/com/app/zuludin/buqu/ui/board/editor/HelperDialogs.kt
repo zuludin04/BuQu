@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,7 +76,6 @@ import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.core.icons.PhosphorXCircle
 import com.app.zuludin.buqu.domain.models.Book
-import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
@@ -352,8 +349,7 @@ fun QuoteImportDialog(
     onDismiss: () -> Unit,
     onQuoteSelected: (Quote) -> Unit,
     onImportQuotes: () -> Unit,
-    quotes: List<Quote>,
-    categories: List<Category>
+    quotes: List<Quote>
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
@@ -417,34 +413,6 @@ fun QuoteImportDialog(
                 }
             ) { paddingValues ->
                 Column(modifier = Modifier.padding(paddingValues)) {
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(categories) { category ->
-                            FilterChip(
-                                selected = selectedCategory == category.categoryId,
-                                onClick = {
-                                    selectedCategory =
-                                        if (selectedCategory == category.categoryId) null else category.categoryId
-                                },
-                                label = { Text(category.name) },
-                                leadingIcon = if (selectedCategory == category.categoryId) {
-                                    {
-                                        Icon(
-                                            PhosphorCheck,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                } else null
-                            )
-                        }
-                    }
-
                     Divider()
 
                     if (filteredQuotes.isEmpty()) {

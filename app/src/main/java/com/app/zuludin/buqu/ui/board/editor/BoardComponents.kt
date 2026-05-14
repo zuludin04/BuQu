@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +41,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -65,8 +67,6 @@ fun NoteCardComponent(
     onSelect: (NoteCard) -> Unit,
     onGetSize: (IntSize) -> Unit,
     onPopupMenu: (Offset) -> Unit,
-    onUpdateNote: (String) -> Unit,
-    onChangeContent: (String, String) -> Unit,
     onDragEnd: () -> Unit
 ) {
     var isDragging by remember { mutableStateOf(false) }
@@ -108,7 +108,6 @@ fun NoteCardComponent(
                             Offset(updatedOffset.x + offset.x, updatedOffset.y + offset.y)
                         onPopupMenu(popupPos)
                     },
-                    onDoubleTap = { onUpdateNote(note.noteId) }
                 )
             }
             .pointerInput(note.noteId) {
@@ -164,11 +163,14 @@ fun NoteCardComponent(
                     )
                 }
             } else {
-                BasicTextField(
-                    value = note.title,
-                    onValueChange = { onChangeContent(note.noteId, it) },
+                Text(
+                    text = note.title,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
                     maxLines = 6,
-                    enabled = note.isUpdate
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

@@ -96,8 +96,7 @@ fun ConnectedNoteCardEntity.toExternal() = NoteCard(
     boardId = boardId,
     color = color,
     size = IntSize(width, height),
-    image = image,
-    isConnected = isConnected == 1
+    image = image
 )
 
 @JvmName("externalToLocalNoteCard")

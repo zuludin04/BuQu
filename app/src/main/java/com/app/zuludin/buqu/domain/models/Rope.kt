@@ -12,5 +12,6 @@ data class Rope(
     val sourceSize: IntSize,
     val targetX: Float,
     val targetY: Float,
-    val targetSize: IntSize
+    val targetSize: IntSize,
+    val status: String = "active"
 )

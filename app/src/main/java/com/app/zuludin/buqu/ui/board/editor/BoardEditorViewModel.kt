@@ -6,110 +6,108 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.core.utils.BoardEngine
-import com.app.zuludin.buqu.data.repositories.BoardRepository
-import com.app.zuludin.buqu.data.repositories.BookRepository
-import com.app.zuludin.buqu.data.repositories.CategoryRepository
-import com.app.zuludin.buqu.data.repositories.NoteCardRepository
-import com.app.zuludin.buqu.data.repositories.QuoteRepository
-import com.app.zuludin.buqu.data.repositories.RopeRepository
 import com.app.zuludin.buqu.domain.models.Board
-import com.app.zuludin.buqu.domain.models.Book
-import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
-import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.models.Rope
+import com.app.zuludin.buqu.domain.usecase.board.GetBoardUseCase
+import com.app.zuludin.buqu.domain.usecase.board.UpsertBoardUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
-data class BoardEditorUiState(
-    val notes: List<NoteCard> = emptyList(),
-    val board: Board? = null,
-    val ropes: List<Rope> = emptyList(),
-    val sourceNote: NoteCard? = null,
-    val selectedNoteIds: List<String> = emptyList(),
-    val deletedNotes: List<NoteCard> = emptyList(),
-    val deletedRopes: List<Rope> = emptyList(),
-    val errorConnectSameNote: Boolean = false,
-    val successSaveBoard: Boolean = false,
-    val quotes: List<Quote> = emptyList(),
-    val books: List<Book> = emptyList(),
-    val categories: List<Category> = emptyList(),
-    val showGrid: Boolean = true,
-    val noteHighlightId: String? = null,
-    val previewRope: Rope? = null
-)
-
 @HiltViewModel
 class BoardEditorViewModel @Inject constructor(
-    private val boardRepository: BoardRepository,
-    private val noteRepository: NoteCardRepository,
-    private val ropeRepository: RopeRepository,
-    private val quoteRepository: QuoteRepository,
-    private val bookRepository: BookRepository,
-    private val categoryRepository: CategoryRepository,
+    private val getBoard: GetBoardUseCase,
+    private val upsertBoard: UpsertBoardUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boardId: String? = savedStateHandle[BuquDestinationArgs.BOARD_ID_ARG]
     private val engine = BoardEngine()
 
-    private val _uiState = MutableStateFlow(BoardEditorUiState())
-    val uiState: StateFlow<BoardEditorUiState> = _uiState
+    private val _uiState = MutableStateFlow(BoardEditorState())
+    val uiState: StateFlow<BoardEditorState> = _uiState
 
-    private lateinit var currentBoardId: String
+    private val _eventChannel = Channel<BoardEditorEvent>()
+    val events = _eventChannel.receiveAsFlow()
+
+    private var currentBoardId: String
 
     init {
-        if (boardId != null) {
-            loadData(boardId)
-        } else {
-            currentBoardId = UUID.randomUUID().toString()
-        }
-        loadQuotes()
-        loadBooks()
-        loadCategories()
+        loadData(boardId)
+        currentBoardId = UUID.randomUUID().toString()
     }
 
-    fun loadData(boardId: String) {
-        loadBoard(boardId)
-        loadNotes(boardId)
-        loadRopes(boardId)
-    }
-
-    private fun loadBoard(boardId: String) {
+    fun loadData(boardId: String?) {
         viewModelScope.launch {
-            boardRepository.getBoardById(boardId).let { board ->
-                if (board != null) {
-                    _uiState.update {
-                        it.copy(board = board)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun loadNotes(boardId: String) {
-        viewModelScope.launch {
-            noteRepository.getNotesByBoard(boardId).let { notes ->
+            getBoard.invoke(boardId).let { data ->
                 _uiState.update {
-                    it.copy(notes = notes)
+                    it.copy(
+                        board = data.board,
+                        notes = data.notes,
+                        ropes = data.ropes,
+                        quotes = data.quotes,
+                        books = data.books
+                    )
                 }
             }
         }
     }
 
-    private fun loadRopes(boardId: String) {
-        viewModelScope.launch {
-            ropeRepository.getConnectedRopes(boardId).let { ropes ->
-                _uiState.update {
-                    it.copy(ropes = ropes)
-                }
+    fun dragNoteCard(note: NoteCard, current: Offset) {
+        val result = engine.drag(note, _uiState.value.notes, _uiState.value.ropes, current)
+        val previewRope = createPreviewRope(note, result.nearestNote)
+
+        _uiState.update {
+            it.copy(
+                notes = result.notes,
+                ropes = result.ropes,
+                noteHighlightId = result.nearestNote?.noteId,
+                previewRope = previewRope
+            )
+        }
+    }
+
+    fun onDragEnd() {
+        val ropes = _uiState.value.ropes.toMutableList()
+        val rope = _uiState.value.previewRope
+
+        if (rope != null) {
+            ropes.add(rope)
+            _uiState.update { it.copy(ropes = ropes) }
+        }
+
+        _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
+    }
+
+    fun tidyUpNotes(boardWidth: Float, boardHeight: Float) {
+        val notes = _uiState.value.notes
+        val ropes = _uiState.value.ropes
+        val tidiedResult = engine.tidyUpNotes(notes, ropes, boardWidth, boardHeight)
+
+        _uiState.update { it.copy(notes = tidiedResult.notes, ropes = tidiedResult.ropes) }
+    }
+
+    fun toggleGrid() {
+        val isShown = _uiState.value.showGrid
+        _uiState.update { it.copy(showGrid = !isShown) }
+    }
+
+    fun getCardSize(size: IntSize, index: Int) {
+        val notes = _uiState.value.notes.mapIndexed { i, card ->
+            if (index == i) {
+                card.copy(size = size)
+            } else {
+                card
             }
         }
+        _uiState.update { it.copy(notes = notes) }
     }
 
     fun addNote(
@@ -141,68 +139,37 @@ class BoardEditorViewModel @Inject constructor(
         }
     }
 
-    fun dragNoteCard(note: NoteCard, current: Offset) {
-        val result = engine.drag(note, _uiState.value.notes, _uiState.value.ropes, current)
-        val previewRope = createPreviewRope(note, result.nearestNote)
-
-        _uiState.update {
-            it.copy(
-                notes = result.notes,
-                ropes = result.ropes,
-                noteHighlightId = result.nearestNote?.noteId,
-                previewRope = previewRope
-            )
-        }
-    }
-
-    fun tidyUpNotes(boardWidth: Float, boardHeight: Float) {
-        val notes = _uiState.value.notes
-        val ropes = _uiState.value.ropes
-        val tidiedResult = engine.tidyUpNotes(notes, ropes, boardWidth, boardHeight)
-
-        _uiState.update { it.copy(notes = tidiedResult.notes, ropes = tidiedResult.ropes) }
-    }
-
-    fun getCardSize(size: IntSize, index: Int) {
-        val note = _uiState.value.notes[index]
-        val newNote = note.copy(size = size)
+    fun updateNote(noteId: String, text: String, image: String, color: String) {
         val notes = _uiState.value.notes.toMutableList()
-        notes[index] = newNote
+        val note = notes.first { it.noteId == noteId }.copy(
+            title = text,
+            image = image,
+            color = color
+        )
+        notes[notes.indexOfFirst { it.noteId == noteId }] = note
         _uiState.update { it.copy(notes = notes) }
     }
 
     fun saveBoardAndCards(name: String, color: String = "000000") {
         viewModelScope.launch {
-            boardRepository.upsertBoard(boardId ?: currentBoardId, name, color)
-            _uiState.update {
-                it.copy(
-                    board = Board(boardId ?: currentBoardId, name, color),
-                    successSaveBoard = true
-                )
-            }
-
-            val ropes = _uiState.value.ropes
-            ropeRepository.upsertRopes(ropes)
-
+            val board = Board(boardId ?: currentBoardId, name, color)
             val notes = _uiState.value.notes
-            noteRepository.upsertNotes(notes)
+            val ropes = _uiState.value.ropes
 
-            if (_uiState.value.deletedNotes.isNotEmpty()) {
-                noteRepository.deleteSelectedNotes(_uiState.value.deletedNotes)
-            }
-
-            if (_uiState.value.deletedRopes.isNotEmpty()) {
-                ropeRepository.deleteSelectedRopes(_uiState.value.deletedRopes)
-            }
+            upsertBoard.invoke(board, notes, ropes)
+            _eventChannel.send(BoardEditorEvent.SuccessSaveBoard)
         }
     }
 
     fun changeNoteSelectionStatus(noteId: String) {
-        val note = _uiState.value.notes.first { it.noteId == noteId }
-        val isSelected = note.isSelected
-        val newNote = note.copy(isSelected = !isSelected)
-        val notes = _uiState.value.notes.toMutableList()
-        notes[notes.indexOf(note)] = newNote
+        val notes = _uiState.value.notes.map {
+            if (it.noteId == noteId) {
+                val isSelected = it.isSelected
+                it.copy(isSelected = !isSelected)
+            } else {
+                it
+            }
+        }
 
         val noteIds = _uiState.value.selectedNoteIds.toMutableList()
         if (noteIds.contains(noteId)) {
@@ -214,71 +181,35 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(notes = notes, selectedNoteIds = noteIds) }
     }
 
-    fun clearNoteIds() {
-        val noteIds = _uiState.value.selectedNoteIds.toMutableList()
-        noteIds.clear()
-
-        val ropes = _uiState.value.ropes
-        val notes = _uiState.value.notes.map { note ->
-            val hasRope =
-                ropes.any { it.sourceNoteId == note.noteId || it.targetNoteId == note.noteId }
-            note.copy(isSelected = false, isConnected = hasRope)
-        }
-
-        _uiState.update { it.copy(notes = notes, selectedNoteIds = noteIds) }
-    }
-
     fun deleteSelectedNotes() {
-        val notes = _uiState.value.notes.toMutableList()
-        val ropes = _uiState.value.ropes.toMutableList()
         val selectedNoteIds = _uiState.value.selectedNoteIds
 
-        val deletedNotes = _uiState.value.notes.filter { selectedNoteIds.contains(it.noteId) }
-        val deletedRopes = _uiState.value.ropes.filter {
-            selectedNoteIds.contains(it.sourceNoteId) || selectedNoteIds.contains(it.targetNoteId)
-        }
-
-        notes.removeAll { selectedNoteIds.contains(it.noteId) }
-        ropes.removeAll { selectedNoteIds.contains(it.sourceNoteId) || selectedNoteIds.contains(it.targetNoteId) }
-
-
-        _uiState.update {
-            it.copy(
-                notes = notes,
-                ropes = ropes,
-                deletedNotes = deletedNotes,
-                deletedRopes = deletedRopes
-            )
-        }
-
-        clearNoteIds()
-    }
-
-    fun snackbarMessageShown() {
-        _uiState.update {
-            it.copy(errorConnectSameNote = false, successSaveBoard = false)
-        }
-    }
-
-    private fun loadQuotes() {
-        viewModelScope.launch {
-            val quotes = quoteRepository.loadQuotes()
-            _uiState.update { it.copy(quotes = quotes) }
-        }
-    }
-
-    private fun loadBooks() {
-        viewModelScope.launch {
-            bookRepository.observeBooks().collect { books ->
-                _uiState.update { it.copy(books = books) }
+        val notes = _uiState.value.notes.map {
+            if (selectedNoteIds.contains(it.noteId)) {
+                it.copy(status = "deleted", isSelected = false)
+            } else {
+                it.copy(isSelected = false)
             }
         }
+        val ropes = _uiState.value.ropes.map {
+            if (selectedNoteIds.contains(it.sourceNoteId) || selectedNoteIds.contains(it.targetNoteId)) {
+                it.copy(status = "deleted")
+            } else {
+                it
+            }
+        }
+
+        _uiState.update {
+            it.copy(notes = notes, ropes = ropes, selectedNoteIds = emptyList())
+        }
     }
 
-    private fun loadCategories() {
-        viewModelScope.launch {
-            val categories = categoryRepository.getCategories()
-            _uiState.update { it.copy(categories = categories) }
+    fun resetSelectedNotes() {
+        val notes = _uiState.value.notes.map { note ->
+            note.copy(isSelected = false)
+        }
+        _uiState.update {
+            it.copy(notes = notes, selectedNoteIds = emptyList())
         }
     }
 
@@ -289,11 +220,7 @@ class BoardEditorViewModel @Inject constructor(
             addNote(q.quote, q.image, q.color, posX = space)
         }
 
-        val quotes = _uiState.value.quotes.toMutableList()
-        quotes.forEachIndexed { index, quote ->
-            val newQuote = quote.copy(isSelected = false)
-            quotes[index] = newQuote
-        }
+        val quotes = _uiState.value.quotes.map { it.copy(isSelected = false) }
         _uiState.update { it.copy(quotes = quotes) }
     }
 
@@ -313,77 +240,18 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(books = books) }
     }
 
-
-    fun resetSelectedNotes() {
-        val ropes = _uiState.value.ropes
-        val notes = _uiState.value.notes.map { note ->
-            val hasRope =
-                ropes.any { it.sourceNoteId == note.noteId || it.targetNoteId == note.noteId }
-            note.copy(isSelected = false, isConnected = hasRope)
-        }
-        _uiState.update {
-            it.copy(notes = notes, sourceNote = null)
-        }
-    }
-
     fun selectImportQuote(quoteId: String) {
-        val quotes = _uiState.value.quotes.toMutableList()
-        val quote = quotes.first { it.quoteId == quoteId }
-        val isSelected = quote.isSelected
-        quotes[quotes.indexOf(quote)] = quote.copy(isSelected = !isSelected)
+        val quotes = _uiState.value.quotes.map {
+            if (it.quoteId == quoteId) it.copy(isSelected = !it.isSelected) else it
+        }
         _uiState.update { it.copy(quotes = quotes) }
     }
 
     fun selectImportBook(bookId: String) {
-        val books = _uiState.value.books.toMutableList()
-        val book = books.first { it.bookId == bookId }
-        val isSelected = book.isSelected
-        books[books.indexOf(book)] = book.copy(isSelected = !isSelected)
-        _uiState.update { it.copy(books = books) }
-    }
-
-    fun updateNote(noteId: String, text: String, image: String, color: String) {
-        val notes = _uiState.value.notes.toMutableList()
-        val note = notes.first { it.noteId == noteId }.copy(
-            title = text,
-            image = image,
-            color = color
-        )
-        notes[notes.indexOfFirst { it.noteId == noteId }] = note
-        _uiState.update { it.copy(notes = notes) }
-    }
-
-    fun toggleGrid() {
-        val isShown = _uiState.value.showGrid
-        _uiState.update { it.copy(showGrid = !isShown) }
-    }
-
-    fun toggleUpdateNote(noteId: String) {
-        val note = _uiState.value.notes.first { it.noteId == noteId }
-        val newNote = note.copy(isUpdate = true)
-        val notes = _uiState.value.notes.toMutableList()
-        notes[notes.indexOf(note)] = newNote
-        _uiState.update { it.copy(notes = notes) }
-    }
-
-    fun updateNoteContent(noteId: String, content: String) {
-        val note = _uiState.value.notes.first { it.noteId == noteId }
-        val newNote = note.copy(title = content)
-        val notes = _uiState.value.notes.toMutableList()
-        notes[notes.indexOf(note)] = newNote
-        _uiState.update { it.copy(notes = notes) }
-    }
-
-    fun onDragEnd() {
-        val ropes = _uiState.value.ropes.toMutableList()
-        val rope = _uiState.value.previewRope
-
-        if (rope != null) {
-            ropes.add(rope)
-            _uiState.update { it.copy(ropes = ropes) }
+        val books = _uiState.value.books.map {
+            if (it.bookId == bookId) it.copy(isSelected = !it.isSelected) else it
         }
-
-        _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
+        _uiState.update { it.copy(books = books) }
     }
 
     private fun createPreviewRope(source: NoteCard, target: NoteCard?): Rope? {

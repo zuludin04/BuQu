@@ -12,6 +12,6 @@ data class NoteCard(
     val isSelected: Boolean = false,
     val color: String,
     val image: String,
-    val isConnected: Boolean = false,
-    val isUpdate: Boolean = false
+    val isUpdate: Boolean = false,
+    val status: String = "active"
 )

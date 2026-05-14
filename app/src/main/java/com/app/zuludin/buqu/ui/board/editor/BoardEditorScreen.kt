@@ -45,6 +45,7 @@ import com.app.zuludin.buqu.core.utils.convertPathFileToUri
 import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -74,7 +75,6 @@ fun BoardEditorScreen(
     }
 
     var note by remember { mutableStateOf<NoteCard?>(null) }
-
     var boardSize by remember { mutableStateOf(IntSize.Zero) }
 
     Scaffold(
@@ -89,7 +89,6 @@ fun BoardEditorScreen(
                         onClick = {
                             if (uiState.selectedNoteIds.isNotEmpty()) {
                                 viewModel.resetSelectedNotes()
-                                viewModel.clearNoteIds()
                             } else {
                                 onBack()
                             }
@@ -135,8 +134,7 @@ fun BoardEditorScreen(
                         size = IntSize.Zero,
                         isSelected = false,
                         color = "",
-                        image = "",
-                        isConnected = false
+                        image = ""
                     )
                     note = n
                     showAddNoteSheet = true
@@ -182,20 +180,14 @@ fun BoardEditorScreen(
             }
 
             BoardEditor(
-                notes = uiState.notes,
-                ropes = uiState.ropes,
+                notes = uiState.notes.filter { it.status == "active" },
+                ropes = uiState.ropes.filter { it.status == "active" },
                 onDragNote = { note, current -> viewModel.dragNoteCard(note, current) },
                 scale = camera.zoom,
                 offset = camera.offset,
                 onSelectedCard = { viewModel.changeNoteSelectionStatus(it) },
                 onGetSize = { size, index ->
                     viewModel.getCardSize(size, index)
-                },
-                onUpdateNote = {
-                    viewModel.toggleUpdateNote(it)
-                },
-                onChangeContent = { noteId, content ->
-                    viewModel.updateNoteContent(noteId, content)
                 },
                 onAddQuickNote = {
                     viewModel.addNote(
@@ -236,15 +228,13 @@ fun BoardEditorScreen(
         }
     }
 
-    LaunchedEffect(uiState) {
-        if (uiState.errorConnectSameNote) {
-            scaffoldState.snackbarHostState.showSnackbar("Can't connect to same note")
-            viewModel.snackbarMessageShown()
-        }
-
-        if (uiState.successSaveBoard) {
-            scaffoldState.snackbarHostState.showSnackbar("Your board is saved")
-            viewModel.snackbarMessageShown()
+    LaunchedEffect(key1 = true) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                BoardEditorEvent.SuccessSaveBoard -> {
+                    scaffoldState.snackbarHostState.showSnackbar("Your board is saved")
+                }
+            }
         }
     }
 
@@ -307,7 +297,6 @@ fun BoardEditorScreen(
                 viewModel.importQuotes()
                 showImportQuotesDialog = !showImportQuotesDialog
             },
-            categories = uiState.categories
         )
     }
 
@@ -357,8 +346,6 @@ fun BoardEditor(
     scale: Float,
     offset: Offset,
     onSelectedCard: (String) -> Unit,
-    onUpdateNote: (String) -> Unit,
-    onChangeContent: (String, String) -> Unit,
     onAddQuickNote: (Offset) -> Unit,
     onDragEnd: () -> Unit,
     noteHighlightedId: String?,
@@ -400,8 +387,6 @@ fun BoardEditor(
                     popupOffset = off
                     showMenu = true
                 },
-                onUpdateNote = onUpdateNote,
-                onChangeContent = onChangeContent,
                 onDragEnd = onDragEnd,
                 scale = scale,
                 isHighlighted = n.noteId == noteHighlightedId
