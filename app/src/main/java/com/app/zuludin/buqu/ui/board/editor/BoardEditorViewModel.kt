@@ -44,6 +44,44 @@ class BoardEditorViewModel @Inject constructor(
         currentBoardId = UUID.randomUUID().toString()
     }
 
+    fun onAction(action: BoardEditorAction) {
+        when (action) {
+            BoardEditorAction.OnOpenBookDialog -> {
+                _uiState.update { it.copy(dialogState = BoardDialogState.ImportBooks) }
+            }
+
+            BoardEditorAction.OnOpenQuoteDialog -> {
+                _uiState.update { it.copy(dialogState = BoardDialogState.ImportQuotes) }
+            }
+
+            BoardEditorAction.DismissDialog -> {
+                _uiState.update { it.copy(dialogState = BoardDialogState.None) }
+            }
+
+            BoardEditorAction.OnImportBooks -> importBooks()
+            BoardEditorAction.OnImportQuotes -> importQuotes()
+            is BoardEditorAction.OnOpenNewBoardDialog -> {
+                _uiState.update { it.copy(dialogState = BoardDialogState.NewBoard) }
+            }
+
+            is BoardEditorAction.OnSaveBoard -> {
+                saveBoardAndCards(action.title, action.color)
+                _uiState.update { it.copy(dialogState = BoardDialogState.None) }
+            }
+
+            is BoardEditorAction.OnOpenAddNoteDialog -> {
+                _uiState.update {
+                    it.copy(
+                        dialogState = BoardDialogState.AddNote(
+                            action.note,
+                            action.isUpdate
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     fun loadData(boardId: String?) {
         viewModelScope.launch {
             getBoard.invoke(boardId).let { data ->
@@ -135,7 +173,7 @@ class BoardEditorViewModel @Inject constructor(
         val notes = _uiState.value.notes.toMutableList()
         notes.add(note)
         _uiState.update {
-            it.copy(notes = notes)
+            it.copy(notes = notes, dialogState = BoardDialogState.None)
         }
     }
 
@@ -147,10 +185,10 @@ class BoardEditorViewModel @Inject constructor(
             color = color
         )
         notes[notes.indexOfFirst { it.noteId == noteId }] = note
-        _uiState.update { it.copy(notes = notes) }
+        _uiState.update { it.copy(notes = notes, dialogState = BoardDialogState.None) }
     }
 
-    fun saveBoardAndCards(name: String, color: String = "000000") {
+    fun saveBoardAndCards(name: String, color: String) {
         viewModelScope.launch {
             val board = Board(boardId ?: currentBoardId, name, color)
             val notes = _uiState.value.notes
@@ -221,7 +259,7 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         val quotes = _uiState.value.quotes.map { it.copy(isSelected = false) }
-        _uiState.update { it.copy(quotes = quotes) }
+        _uiState.update { it.copy(quotes = quotes, dialogState = BoardDialogState.None) }
     }
 
     fun importBooks() {
@@ -237,7 +275,7 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         val books = _uiState.value.books.map { it.copy(isSelected = false) }
-        _uiState.update { it.copy(books = books) }
+        _uiState.update { it.copy(books = books, dialogState = BoardDialogState.None) }
     }
 
     fun selectImportQuote(quoteId: String) {

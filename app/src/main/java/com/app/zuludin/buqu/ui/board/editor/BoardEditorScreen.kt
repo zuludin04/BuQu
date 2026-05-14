@@ -26,7 +26,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -35,16 +34,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.core.colors
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
-import com.app.zuludin.buqu.core.compose.ImagePickDialog
-import com.app.zuludin.buqu.core.compose.saveImageToInternalStorage
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
-import com.app.zuludin.buqu.core.utils.convertPathFileToUri
 import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.DismissDialog
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnImportBooks
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnImportQuotes
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenBookDialog
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenNewBoardDialog
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenQuoteDialog
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnSaveBoard
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -57,14 +60,6 @@ fun BoardEditorScreen(
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    var showAddNoteSheet by remember { mutableStateOf(false) }
-    var showUpdateNoteImage by remember { mutableStateOf(false) }
-    var showBoardNameDialog by remember { mutableStateOf(false) }
-    var showImportQuotesDialog by remember { mutableStateOf(false) }
-    var showImportBooksDialog by remember { mutableStateOf(false) }
-    var isUpdateNote by remember { mutableStateOf(false) }
 
     var camera by remember { mutableStateOf(Camera()) }
     val state = rememberTransformableState { zoomChange, offsetChange, _ ->
@@ -74,7 +69,6 @@ fun BoardEditorScreen(
         camera = newCamera
     }
 
-    var note by remember { mutableStateOf<NoteCard?>(null) }
     var boardSize by remember { mutableStateOf(IntSize.Zero) }
 
     Scaffold(
@@ -111,9 +105,14 @@ fun BoardEditorScreen(
                         IconButton(
                             onClick = {
                                 if (uiState.board == null) {
-                                    showBoardNameDialog = true
+                                    viewModel.onAction(OnOpenNewBoardDialog)
                                 } else {
-                                    viewModel.saveBoardAndCards(uiState.board?.name ?: "Board")
+                                    viewModel.onAction(
+                                        OnSaveBoard(
+                                            uiState.board?.name ?: "Board",
+                                            uiState.board?.color ?: "000000"
+                                        )
+                                    )
                                 }
                             },
                             content = { Icon(PhosphorCheck, null) },
@@ -136,10 +135,16 @@ fun BoardEditorScreen(
                         color = "",
                         image = ""
                     )
-                    note = n
-                    showAddNoteSheet = true
+                    viewModel.onAction(BoardEditorAction.OnOpenAddNoteDialog(n, false))
                 },
-                onAddNote = { showAddNoteSheet = true },
+                onAddNote = {
+                    viewModel.onAction(
+                        BoardEditorAction.OnOpenAddNoteDialog(
+                            null,
+                            false
+                        )
+                    )
+                },
                 onSaveImage = { path, color ->
                     val random = Random.Default
                     val minX = boardSize.width * 0.2f
@@ -222,8 +227,8 @@ fun BoardEditorScreen(
                     camera = Camera()
                 },
                 scale = camera.zoom,
-                onImportQuotes = { showImportQuotesDialog = true },
-                onImportBooks = { showImportBooksDialog = true },
+                onImportQuotes = { viewModel.onAction(OnOpenQuoteDialog) },
+                onImportBooks = { viewModel.onAction(OnOpenBookDialog) },
             )
         }
     }
@@ -238,101 +243,70 @@ fun BoardEditorScreen(
         }
     }
 
-    if (showBoardNameDialog) {
-        BoardNameDialog(
-            onDismiss = { showBoardNameDialog = !showBoardNameDialog },
-            onConfirm = { name, color ->
-                viewModel.saveBoardAndCards(name, color)
-                showBoardNameDialog = !showBoardNameDialog
-            },
-        )
-    }
+    when (val dialog = uiState.dialogState) {
+        BoardDialogState.None -> Unit
+        BoardDialogState.ImportBooks -> {
+            BookImportDialog(
+                books = uiState.books,
+                onDismiss = { viewModel.onAction(DismissDialog) },
+                onBookSelected = { viewModel.selectImportBook(it.bookId) },
+                onImportBooks = { viewModel.onAction(OnImportBooks) },
+            )
+        }
 
-    if (showAddNoteSheet) {
-        NoteInputDialog(
-            onDismiss = {
-                showAddNoteSheet = !showAddNoteSheet
-                isUpdateNote = !isUpdateNote
-            },
-            note = note,
-            isUpdate = isUpdateNote,
-            onConfirm = { content, color ->
-                if (!isUpdateNote) {
-                    val random = Random.Default
-                    val minX = boardSize.width * 0.2f
-                    val maxX = boardSize.width * 0.6f
-                    val minY = boardSize.height * 0.2f
-                    val maxY = boardSize.height * 0.6f
+        BoardDialogState.ImportQuotes -> {
+            QuoteImportDialog(
+                quotes = uiState.quotes,
+                onDismiss = { viewModel.onAction(DismissDialog) },
+                onQuoteSelected = { viewModel.selectImportQuote(it.quoteId) },
+                onImportQuotes = { viewModel.onAction(OnImportQuotes) },
+            )
+        }
 
-                    val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
-                        .toFloat() else minX
-                    val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
-                        .toFloat() else minY
+        BoardDialogState.NewBoard -> {
+            BoardNameDialog(
+                onDismiss = { viewModel.onAction(DismissDialog) },
+                onConfirm = { name, color ->
+                    viewModel.onAction(OnSaveBoard(name, color))
+                },
+            )
+        }
 
-                    viewModel.addNote(
-                        title = content,
-                        image = "",
-                        color = color,
-                        posX = (rx - camera.offset.x) / camera.zoom,
-                        posY = (ry - camera.offset.y) / camera.zoom
-                    )
-                } else {
-                    viewModel.updateNote(
-                        noteId = note!!.noteId, text = content, image = "", color = color
-                    )
-                    isUpdateNote = false
-                    note = null
-                }
-                showAddNoteSheet = !showAddNoteSheet
-            },
-        )
-    }
+        is BoardDialogState.AddNote -> {
+            NoteInputDialog(
+                onDismiss = { viewModel.onAction(DismissDialog) },
+                note = dialog.note,
+                isUpdate = dialog.isUpdate,
+                onConfirm = { content, color ->
+                    if (!dialog.isUpdate) {
+                        val random = Random.Default
+                        val minX = boardSize.width * 0.2f
+                        val maxX = boardSize.width * 0.6f
+                        val minY = boardSize.height * 0.2f
+                        val maxY = boardSize.height * 0.6f
 
-    if (showImportQuotesDialog) {
-        QuoteImportDialog(
-            quotes = uiState.quotes,
-            onDismiss = { showImportQuotesDialog = !showImportQuotesDialog },
-            onQuoteSelected = { viewModel.selectImportQuote(it.quoteId) },
-            onImportQuotes = {
-                viewModel.importQuotes()
-                showImportQuotesDialog = !showImportQuotesDialog
-            },
-        )
-    }
+                        val rx =
+                            if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
+                                .toFloat() else minX
+                        val ry =
+                            if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
+                                .toFloat() else minY
 
-    if (showImportBooksDialog) {
-        BookImportDialog(
-            books = uiState.books,
-            onDismiss = { showImportBooksDialog = !showImportBooksDialog },
-            onBookSelected = { viewModel.selectImportBook(it.bookId) },
-            onImportBooks = {
-                viewModel.importBooks()
-                showImportBooksDialog = !showImportBooksDialog
-            },
-        )
-    }
-
-    if (showUpdateNoteImage) {
-        ImagePickDialog(
-            uri = note!!.image.convertPathFileToUri(),
-            onDismiss = {
-                showUpdateNoteImage = !showUpdateNoteImage
-                isUpdateNote = false
-                note = null
-            },
-            showScanText = false,
-            color = note!!.color,
-            onSaveImage = { selectedColor, uri ->
-                val path = saveImageToInternalStorage(context, uri)
-                if (path != null) {
-                    viewModel.updateNote(note!!.noteId, "", path, selectedColor)
-                }
-                showUpdateNoteImage = !showUpdateNoteImage
-                isUpdateNote = false
-                note = null
-            },
-            onScanText = { },
-        )
+                        viewModel.addNote(
+                            title = content,
+                            image = "",
+                            color = color,
+                            posX = (rx - camera.offset.x) / camera.zoom,
+                            posY = (ry - camera.offset.y) / camera.zoom
+                        )
+                    } else {
+                        viewModel.updateNote(
+                            noteId = dialog.note!!.noteId, text = content, image = "", color = color
+                        )
+                    }
+                },
+            )
+        }
     }
 }
 
@@ -402,7 +376,7 @@ fun BoardEditor(
                     Column(modifier = Modifier.widthIn(max = 150.dp)) {
                         OverflowMenuItem(
                             title = "Update Note",
-                            onClick = {},
+                            onClick = { },
                         )
                     }
                 },

@@ -16,4 +16,13 @@ data class BoardEditorState(
     val previewRope: Rope? = null,
     val selectedNoteIds: List<String> = emptyList(),
     val showGrid: Boolean = true,
+    val dialogState: BoardDialogState = BoardDialogState.None
 )
+
+sealed interface BoardDialogState {
+    object None : BoardDialogState
+    object ImportQuotes : BoardDialogState
+    object ImportBooks : BoardDialogState
+    object NewBoard : BoardDialogState
+    data class AddNote(val note: NoteCard?, val isUpdate: Boolean) : BoardDialogState
+}
