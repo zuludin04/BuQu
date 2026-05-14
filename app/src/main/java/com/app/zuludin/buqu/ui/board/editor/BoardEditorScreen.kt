@@ -58,7 +58,6 @@ fun BoardEditorScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var showConnectionSheet by remember { mutableStateOf(false) }
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var showUpdateNoteImage by remember { mutableStateOf(false) }
     var showBoardNameDialog by remember { mutableStateOf(false) }
@@ -189,10 +188,6 @@ fun BoardEditorScreen(
                 scale = camera.zoom,
                 offset = camera.offset,
                 onSelectedCard = { viewModel.changeNoteSelectionStatus(it) },
-                onConnectCard = { note ->
-                    viewModel.updateSourceNote(note)
-                    showConnectionSheet = true
-                },
                 onGetSize = { size, index ->
                     viewModel.getCardSize(size, index)
                 },
@@ -259,20 +254,6 @@ fun BoardEditorScreen(
             onConfirm = { name, color ->
                 viewModel.saveBoardAndCards(name, color)
                 showBoardNameDialog = !showBoardNameDialog
-            },
-        )
-    }
-
-    if (showConnectionSheet) {
-        NoteConnectDialog(
-            source = uiState.sourceNote!!,
-            notes = uiState.notes,
-            onDismiss = {
-                showConnectionSheet = !showConnectionSheet
-                if (it != null) {
-                    val note = uiState.notes.first { n -> n.noteId == it.noteId }
-                    viewModel.connectNoteWithRope(note)
-                }
             },
         )
     }
@@ -375,7 +356,6 @@ fun BoardEditor(
     onGetSize: (IntSize, Int) -> Unit,
     scale: Float,
     offset: Offset,
-    onConnectCard: (NoteCard) -> Unit,
     onSelectedCard: (String) -> Unit,
     onUpdateNote: (String) -> Unit,
     onChangeContent: (String, String) -> Unit,
@@ -386,7 +366,6 @@ fun BoardEditor(
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
-    var selectedNote by remember { mutableStateOf<NoteCard?>(null) }
 
     Box(
         modifier = modifier
@@ -412,13 +391,8 @@ fun BoardEditor(
         notes.forEachIndexed { index, n ->
             NoteCardComponent(
                 note = n,
-                onPositionChanged = { note ->
-                    val offset = Offset(
-                        x = note.posX + note.size.width / 2f,
-                        y = note.posY + note.size.height / 2f
-                    )
-
-                    onDragNote(note, offset)
+                onPositionChanged = { pos ->
+                    onDragNote(n, pos)
                 },
                 onGetSize = { size -> onGetSize(size, index) },
                 onSelect = { t -> onSelectedCard(t.noteId) },
@@ -441,13 +415,6 @@ fun BoardEditor(
                 onDismissRequest = { showMenu = false },
                 content = {
                     Column(modifier = Modifier.widthIn(max = 150.dp)) {
-                        OverflowMenuItem(
-                            title = "Connect Note",
-                            onClick = {
-                                onConnectCard(selectedNote!!)
-                                showMenu = false
-                            },
-                        )
                         OverflowMenuItem(
                             title = "Update Note",
                             onClick = {},

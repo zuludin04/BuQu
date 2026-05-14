@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.zuludin.buqu.core.utils.BoardEngine
 import com.app.zuludin.buqu.data.repositories.BoardRepository
 import com.app.zuludin.buqu.data.repositories.BookRepository
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
-import kotlin.math.sqrt
 
 data class BoardEditorUiState(
     val notes: List<NoteCard> = emptyList(),
@@ -56,6 +56,7 @@ class BoardEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boardId: String? = savedStateHandle[BuquDestinationArgs.BOARD_ID_ARG]
+    private val engine = BoardEngine()
 
     private val _uiState = MutableStateFlow(BoardEditorUiState())
     val uiState: StateFlow<BoardEditorUiState> = _uiState
@@ -141,12 +142,25 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     fun dragNoteCard(note: NoteCard, current: Offset) {
-        val notes = _uiState.value.notes.toMutableList()
-        val index = notes.indexOfFirst { it.noteId == note.noteId }
-        notes[index] = note
-        _uiState.update { it.copy(notes = notes) }
-        highlightNearestNode(current, note)
-        updateRopePosition(note)
+        val result = engine.drag(note, _uiState.value.notes, _uiState.value.ropes, current)
+        val previewRope = createPreviewRope(note, result.nearestNote)
+
+        _uiState.update {
+            it.copy(
+                notes = result.notes,
+                ropes = result.ropes,
+                noteHighlightId = result.nearestNote?.noteId,
+                previewRope = previewRope
+            )
+        }
+    }
+
+    fun tidyUpNotes(boardWidth: Float, boardHeight: Float) {
+        val notes = _uiState.value.notes
+        val ropes = _uiState.value.ropes
+        val tidiedResult = engine.tidyUpNotes(notes, ropes, boardWidth, boardHeight)
+
+        _uiState.update { it.copy(notes = tidiedResult.notes, ropes = tidiedResult.ropes) }
     }
 
     fun getCardSize(size: IntSize, index: Int) {
@@ -179,75 +193,6 @@ class BoardEditorViewModel @Inject constructor(
 
             if (_uiState.value.deletedRopes.isNotEmpty()) {
                 ropeRepository.deleteSelectedRopes(_uiState.value.deletedRopes)
-            }
-        }
-    }
-
-    fun connectNoteWithRope(target: NoteCard) {
-        val source = _uiState.value.sourceNote
-
-        if (source != null) {
-            val rope = Rope(
-                ropeId = UUID.randomUUID().toString(),
-                sourceNoteId = source.noteId,
-                targetNoteId = target.noteId,
-                boardId = boardId ?: currentBoardId,
-                sourceX = source.posX,
-                sourceY = source.posY,
-                targetX = target.posX,
-                targetY = target.posY,
-                targetSize = target.size,
-                sourceSize = source.size
-            )
-
-            val ropes = _uiState.value.ropes.toMutableList()
-            ropes.add(rope)
-
-            val notes = _uiState.value.notes.map {
-                if (it.noteId == source.noteId || it.noteId == target.noteId) {
-                    it.copy(isConnected = true)
-                } else {
-                    it
-                }
-            }
-
-            _uiState.update {
-                it.copy(ropes = ropes, notes = notes, sourceNote = null)
-            }
-        }
-    }
-
-    fun updateSourceNote(note: NoteCard) {
-        val n = _uiState.value.notes.first { it.noteId == note.noteId }
-        _uiState.update { it.copy(sourceNote = n) }
-    }
-
-    private fun updateRopePosition(note: NoteCard) {
-        val ropes = _uiState.value.ropes
-
-        if (ropes.isNotEmpty()) {
-            val sourceRope = ropes.filter { it.sourceNoteId == note.noteId }
-            if (sourceRope.isNotEmpty()) {
-                sourceRope.forEach { rope ->
-                    val r = rope.copy(sourceX = note.posX, sourceY = note.posY)
-                    val selected = ropes.first { it.ropeId == rope.ropeId }
-                    val index = ropes.indexOf(selected)
-                    val rs = _uiState.value.ropes.toMutableList()
-                    rs[index] = r
-                    _uiState.update { it.copy(ropes = rs) }
-                }
-            }
-
-            val targetRope = ropes.filter { it.targetNoteId == note.noteId }
-            if (targetRope.isNotEmpty()) {
-                targetRope.forEach { rope ->
-                    val r = rope.copy(targetX = note.posX, targetY = note.posY)
-                    val selected = ropes.first { it.ropeId == rope.ropeId }
-                    val index = ropes.indexOf(selected)
-                    val rs = _uiState.value.ropes.toMutableList()
-                    rs[index] = r
-                    _uiState.update { it.copy(ropes = rs) }
-                }
             }
         }
     }
@@ -408,65 +353,6 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(notes = notes) }
     }
 
-    fun tidyUpNotes(boardWidth: Float, boardHeight: Float) {
-        val notes = _uiState.value.notes
-        if (notes.isEmpty()) return
-
-        val columnCount = 3
-        val padding = 32f
-
-        val columnWidths = FloatArray(columnCount)
-        notes.forEachIndexed { index, note ->
-            val column = index % columnCount
-            val width = if (note.size.width > 0) note.size.width.toFloat() else 300f
-            columnWidths[column] = maxOf(columnWidths[column], width)
-        }
-
-        val totalWidth = columnWidths.sum() + (columnCount - 1) * padding
-        val startX = (boardWidth - totalWidth) / 2
-
-        val columnXOffsets = FloatArray(columnCount)
-        columnXOffsets[0] = startX
-        for (i in 1 until columnCount) {
-            columnXOffsets[i] = columnXOffsets[i - 1] + columnWidths[i - 1] + padding
-        }
-
-        val tempHeights = FloatArray(columnCount)
-        notes.forEachIndexed { index, note ->
-            val column = index % columnCount
-            val height = if (note.size.height > 0) note.size.height.toFloat() else 250f
-            tempHeights[column] += height + padding
-        }
-        val totalHeight = tempHeights.maxOrNull() ?: 0f
-        val startY = (boardHeight - totalHeight) / 2
-
-        val columnHeights = FloatArray(columnCount) { startY }
-
-        val tidiedNotes = notes.mapIndexed { index, note ->
-            val column = index % columnCount
-            val x = columnXOffsets[column]
-            val y = columnHeights[column]
-
-            val height = if (note.size.height > 0) note.size.height.toFloat() else 250f
-            columnHeights[column] += height + padding
-
-            note.copy(posX = x, posY = y)
-        }
-
-        val tidiedRopes = _uiState.value.ropes.map { rope ->
-            val sourceNote = tidiedNotes.find { it.noteId == rope.sourceNoteId }
-            val targetNote = tidiedNotes.find { it.noteId == rope.targetNoteId }
-            rope.copy(
-                sourceX = sourceNote?.posX ?: rope.sourceX,
-                sourceY = sourceNote?.posY ?: rope.sourceY,
-                targetX = targetNote?.posX ?: rope.targetX,
-                targetY = targetNote?.posY ?: rope.targetY
-            )
-        }
-
-        _uiState.update { it.copy(notes = tidiedNotes, ropes = tidiedRopes) }
-    }
-
     fun toggleGrid() {
         val isShown = _uiState.value.showGrid
         _uiState.update { it.copy(showGrid = !isShown) }
@@ -488,25 +374,6 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(notes = notes) }
     }
 
-    fun highlightNearestNode(current: Offset, note: NoteCard) {
-        val notes = _uiState.value.notes.toMutableList()
-        val nearest = findNearestNode(current, notes, note.noteId)
-
-        if (nearest != null) {
-            val ropes = _uiState.value.ropes
-            val connectedRope =
-                ropes.firstOrNull { (it.sourceNoteId == note.noteId && it.targetNoteId == nearest.noteId) || (it.sourceNoteId == nearest.noteId && it.targetNoteId == note.noteId) }
-            if (connectedRope == null) {
-                _uiState.update { it.copy(noteHighlightId = nearest.noteId) }
-                createPreviewRope(note, nearest)
-            } else {
-                _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
-            }
-        } else {
-            _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
-        }
-    }
-
     fun onDragEnd() {
         val ropes = _uiState.value.ropes.toMutableList()
         val rope = _uiState.value.previewRope
@@ -519,52 +386,22 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
     }
 
-    private fun createPreviewRope(source: NoteCard, target: NoteCard) {
-//        val ropes = _uiState.value.ropes
-        val rope = Rope(
-            ropeId = UUID.randomUUID().toString(),
-            sourceNoteId = source.noteId,
-            targetNoteId = target.noteId,
-            boardId = boardId ?: currentBoardId,
-            sourceX = source.posX,
-            sourceY = source.posY,
-            targetX = target.posX,
-            targetY = target.posY,
-            targetSize = target.size,
-            sourceSize = source.size
-        )
-
-        _uiState.update { it.copy(previewRope = rope) }
-    }
-
-    private fun findNearestNode(
-        current: Offset,
-        nodes: List<NoteCard>,
-        excludeId: String? = null,
-    ): NoteCard? {
-
-        var minDistance = Float.MAX_VALUE
-        var nearest: NoteCard? = null
-
-        nodes.forEach { node ->
-            if (node.noteId == excludeId) return@forEach
-
-            val nodeCenter = Offset(
-                node.posX + node.size.width / 2f,
-                node.posY + node.size.height / 2f
+    private fun createPreviewRope(source: NoteCard, target: NoteCard?): Rope? {
+        if (target != null) {
+            return Rope(
+                ropeId = UUID.randomUUID().toString(),
+                sourceNoteId = source.noteId,
+                targetNoteId = target.noteId,
+                boardId = boardId ?: currentBoardId,
+                sourceX = source.posX,
+                sourceY = source.posY,
+                targetX = target.posX,
+                targetY = target.posY,
+                targetSize = target.size,
+                sourceSize = source.size
             )
-
-            val dx = nodeCenter.x - current.x
-            val dy = nodeCenter.y - current.y
-            val distance = sqrt(dx * dx + dy * dy)
-
-            if (distance < minDistance) {
-                minDistance = distance
-                nearest = node
-            }
+        } else {
+            return null
         }
-
-        val threshold = 600f
-        return if (minDistance < threshold) nearest else null
     }
 }

@@ -61,7 +61,7 @@ fun NoteCardComponent(
     note: NoteCard,
     scale: Float,
     isHighlighted: Boolean,
-    onPositionChanged: (NoteCard) -> Unit,
+    onPositionChanged: (Offset) -> Unit,
     onSelect: (NoteCard) -> Unit,
     onGetSize: (IntSize) -> Unit,
     onPopupMenu: (Offset) -> Unit,
@@ -78,7 +78,7 @@ fun NoteCardComponent(
         Color("#${note.color}".toColorInt()).darken(
             when {
                 isHighlighted -> 1.1f
-                note.isSelected || note.isConnected -> 1f
+                note.isSelected -> 1f
                 else -> 0.95f
             }
         )
@@ -104,7 +104,8 @@ fun NoteCardComponent(
                         isDragging = false
                     },
                     onLongPress = { offset ->
-                        val popupPos = Offset(note.posX + offset.x, note.posY + offset.y)
+                        val popupPos =
+                            Offset(updatedOffset.x + offset.x, updatedOffset.y + offset.y)
                         onPopupMenu(popupPos)
                     },
                     onDoubleTap = { onUpdateNote(note.noteId) }
@@ -125,9 +126,8 @@ fun NoteCardComponent(
                         val worldDy = dragAmount.y / scale
 
                         val newOffset = updatedOffset + Offset(worldDx, worldDy)
-                        val n = note.copy(posX = newOffset.x, posY = newOffset.y)
 
-                        updatedOnPositionChanged(n)
+                        updatedOnPositionChanged(newOffset)
                     }
                 )
             }
