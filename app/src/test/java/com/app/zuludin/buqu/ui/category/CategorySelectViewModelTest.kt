@@ -5,6 +5,7 @@ import com.app.zuludin.buqu.MainDispatcherRule
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.domain.models.Category
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -23,6 +24,9 @@ class CategorySelectViewModelTest {
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
     @Mock
     private lateinit var repository: CategoryRepository
 
@@ -30,40 +34,44 @@ class CategorySelectViewModelTest {
 
     @Before
     fun setUp() {
+        `when`(repository.observeCategories()).thenReturn(flowOf(emptyList()))
         viewModel = CategorySelectViewModel(repository)
     }
 
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
-
     @Test
     fun createCategory_successfullyCreateNewCategory() = runTest {
-        val category =
-            Category(categoryId = "", name = "Vision", color = "000000", type = "Quote")
-        viewModel.upsertCategory(category.color, category.name)
+        val name = "Vision"
+        val color = "000000"
+        viewModel.upsertCategory(name, color)
         verify(repository).upsertCategory(
-            category.categoryId,
-            category.name,
-            category.color,
-            category.type
+            categoryId = null,
+            name = name,
+            color = color,
+            type = "Quote"
         )
     }
 
     @Test
     fun deleteCategory_successfullyDeleteCategory() = runTest {
-        `when`(repository.deleteCategory("cat1")).thenReturn(true)
+        val category = Category("cat1", "Motivation", "000000", "Quote")
+        viewModel.selectCategory(category)
+
+        `when`(repository.deleteCategory("cat1")).thenReturn(false) // returns false if NOT in use (successfully deleted)
 
         viewModel.deleteCategory()
         verify(repository).deleteCategory("cat1")
-        assertTrue(repository.deleteCategory("cat1"))
+        assertFalse(viewModel.categoryInUse.value)
     }
 
     @Test
-    fun deleteCategory_failedDeleteCategory() = runTest {
-        `when`(repository.deleteCategory("cat1")).thenReturn(false)
+    fun deleteCategory_failedDeleteCategoryBecauseInUse() = runTest {
+        val category = Category("cat1", "Motivation", "000000", "Quote")
+        viewModel.selectCategory(category)
+
+        `when`(repository.deleteCategory("cat1")).thenReturn(true) // returns true if IN USE
 
         viewModel.deleteCategory()
         verify(repository).deleteCategory("cat1")
-        assertFalse(repository.deleteCategory("cat1"))
+        assertTrue(viewModel.categoryInUse.value)
     }
 }
