@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor
 
+import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -38,10 +39,10 @@ import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
-import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.DismissDialog
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetBoardSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnImportBooks
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnImportQuotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenBookDialog
@@ -50,7 +51,6 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenQuoteDialog
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnSaveBoard
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 @Composable
 fun BoardEditorScreen(
@@ -60,178 +60,19 @@ fun BoardEditorScreen(
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    var camera by remember { mutableStateOf(Camera()) }
     val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-        val zoom = camera.zoom * zoomChange
-        val offset = camera.offset + offsetChange
-        val newCamera = camera.copy(zoom = zoom, offset = offset)
-        camera = newCamera
+        viewModel.onAction(BoardEditorAction.OnTransformChange(zoomChange, offsetChange))
     }
 
-    var boardSize by remember { mutableStateOf(IntSize.Zero) }
-
-    Scaffold(
+    BoardEditorContent(
         scaffoldState = scaffoldState,
-        backgroundColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            BuQuToolbar(
-                title = if (uiState.selectedNoteIds.isNotEmpty()) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
-                    ?: topAppBarTitle),
-                backButton = {
-                    IconButton(
-                        onClick = {
-                            if (uiState.selectedNoteIds.isNotEmpty()) {
-                                viewModel.resetSelectedNotes()
-                            } else {
-                                onBack()
-                            }
-                        },
-                        content = {
-                            Icon(
-                                if (uiState.selectedNoteIds.isNotEmpty()) PhosphorX else PhosphorArrowLeft,
-                                null
-                            )
-                        },
-                    )
-                },
-                actions = {
-                    if (uiState.selectedNoteIds.isNotEmpty()) {
-                        IconButton(
-                            onClick = { viewModel.deleteSelectedNotes() },
-                            content = { Icon(PhosphorTrash, null) },
-                        )
-                    } else {
-                        IconButton(
-                            onClick = {
-                                if (uiState.board == null) {
-                                    viewModel.onAction(OnOpenNewBoardDialog)
-                                } else {
-                                    viewModel.onAction(
-                                        OnSaveBoard(
-                                            uiState.board?.name ?: "Board",
-                                            uiState.board?.color ?: "000000"
-                                        )
-                                    )
-                                }
-                            },
-                            content = { Icon(PhosphorCheck, null) },
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            BottomBarEditor(
-                onTextResult = { text ->
-                    val n = NoteCard(
-                        noteId = "",
-                        boardId = "",
-                        title = text,
-                        posX = 0f,
-                        posY = 0f,
-                        size = IntSize.Zero,
-                        isSelected = false,
-                        color = "",
-                        image = ""
-                    )
-                    viewModel.onAction(BoardEditorAction.OnOpenAddNoteDialog(n, false))
-                },
-                onAddNote = {
-                    viewModel.onAction(
-                        BoardEditorAction.OnOpenAddNoteDialog(
-                            null,
-                            false
-                        )
-                    )
-                },
-                onSaveImage = { path, color ->
-                    val random = Random.Default
-                    val minX = boardSize.width * 0.2f
-                    val maxX = boardSize.width * 0.6f
-                    val minY = boardSize.height * 0.2f
-                    val maxY = boardSize.height * 0.6f
-
-                    val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
-                        .toFloat() else minX
-                    val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
-                        .toFloat() else minY
-
-                    viewModel.addNote(
-                        title = "",
-                        image = path,
-                        color = color,
-                        posX = (rx - camera.offset.x) / camera.zoom,
-                        posY = (ry - camera.offset.y) / camera.zoom
-                    )
-                },
-                onTidyUp = {
-                    viewModel.tidyUpNotes(
-                        boardSize.width.toFloat(), boardSize.height.toFloat()
-                    )
-                },
-                onToggleGrid = { viewModel.toggleGrid() },
-            )
-        },
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .onSizeChanged { boardSize = it }
-                .transformable(state)) {
-            if (uiState.showGrid) {
-                DotBackgroundComponent(scale = camera.zoom, offset = camera.offset)
-            }
-
-            BoardEditor(
-                notes = uiState.notes.filter { it.status == "active" },
-                ropes = uiState.ropes.filter { it.status == "active" },
-                onDragNote = { note, current -> viewModel.dragNoteCard(note, current) },
-                scale = camera.zoom,
-                offset = camera.offset,
-                onSelectedCard = { viewModel.changeNoteSelectionStatus(it) },
-                onGetSize = { size, index ->
-                    viewModel.getCardSize(size, index)
-                },
-                onAddQuickNote = {
-                    viewModel.addNote(
-                        title = "",
-                        image = "",
-                        color = colors[0],
-                        posX = (it.x - camera.offset.x) / camera.zoom,
-                        posY = (it.y - camera.offset.y) / camera.zoom,
-                        isQuickAdd = true
-                    )
-                },
-                onDragEnd = { viewModel.onDragEnd() },
-                noteHighlightedId = uiState.noteHighlightId,
-                previewRope = uiState.previewRope
-            )
-
-            BoardTools(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                onZoomIn = {
-                    val scale = (camera.zoom - 0.1f).coerceAtLeast(0.5f)
-                    val newZoomCamera = camera.copy(zoom = scale)
-                    camera = newZoomCamera
-                },
-                onZoomOut = {
-                    val scale = (camera.zoom + 0.1f).coerceAtMost(3f)
-                    val newZoomCamera = camera.copy(zoom = scale)
-                    camera = newZoomCamera
-                },
-                onResetZoom = {
-                    camera = Camera()
-                },
-                scale = camera.zoom,
-                onImportQuotes = { viewModel.onAction(OnOpenQuoteDialog) },
-                onImportBooks = { viewModel.onAction(OnOpenBookDialog) },
-            )
-        }
-    }
+        title = if (uiState.selectedNoteIds.isNotEmpty()) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
+            ?: topAppBarTitle),
+        uiState = uiState,
+        onAction = viewModel::onAction,
+        state = state,
+        onBack = onBack
+    )
 
     LaunchedEffect(key1 = true) {
         viewModel.events.collectLatest { event ->
@@ -279,25 +120,10 @@ fun BoardEditorScreen(
                 isUpdate = dialog.isUpdate,
                 onConfirm = { content, color ->
                     if (!dialog.isUpdate) {
-                        val random = Random.Default
-                        val minX = boardSize.width * 0.2f
-                        val maxX = boardSize.width * 0.6f
-                        val minY = boardSize.height * 0.2f
-                        val maxY = boardSize.height * 0.6f
-
-                        val rx =
-                            if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
-                                .toFloat() else minX
-                        val ry =
-                            if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
-                                .toFloat() else minY
-
                         viewModel.addNote(
                             title = content,
                             image = "",
-                            color = color,
-                            posX = (rx - camera.offset.x) / camera.zoom,
-                            posY = (ry - camera.offset.y) / camera.zoom
+                            color = color
                         )
                     } else {
                         viewModel.updateNote(
@@ -305,6 +131,142 @@ fun BoardEditorScreen(
                         )
                     }
                 },
+            )
+        }
+    }
+}
+
+@Composable
+fun BoardEditorContent(
+    scaffoldState: ScaffoldState,
+    title: String,
+    uiState: BoardEditorState,
+    onAction: (BoardEditorAction) -> Unit,
+    state: TransformableState,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        scaffoldState = scaffoldState,
+        backgroundColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            BuQuToolbar(
+                title = title,
+                backButton = {
+                    IconButton(
+                        onClick = {
+                            if (uiState.selectedNoteIds.isNotEmpty()) {
+                                onAction(BoardEditorAction.OnResetSelectedNotes)
+                            } else {
+                                onBack()
+                            }
+                        },
+                        content = {
+                            Icon(
+                                if (uiState.selectedNoteIds.isNotEmpty()) PhosphorX else PhosphorArrowLeft,
+                                null
+                            )
+                        },
+                    )
+                },
+                actions = {
+                    if (uiState.selectedNoteIds.isNotEmpty()) {
+                        IconButton(
+                            onClick = { onAction(BoardEditorAction.OnDeleteSelectedNotes) },
+                            content = { Icon(PhosphorTrash, null) },
+                        )
+                    } else {
+                        IconButton(
+                            onClick = {
+                                if (uiState.board == null) {
+                                    onAction(OnOpenNewBoardDialog)
+                                } else {
+                                    onAction(
+                                        OnSaveBoard(uiState.board.name, uiState.board.color)
+                                    )
+                                }
+                            },
+                            content = { Icon(PhosphorCheck, null) },
+                        )
+                    }
+                },
+            )
+        },
+        bottomBar = {
+            BottomBarEditor(
+                onTextResult = { text ->
+                    val n = NoteCard(
+                        noteId = "",
+                        boardId = "",
+                        title = text,
+                        posX = 0f,
+                        posY = 0f,
+                        size = IntSize.Zero,
+                        isSelected = false,
+                        color = "",
+                        image = ""
+                    )
+                    onAction(BoardEditorAction.OnOpenAddNoteDialog(n, false))
+                },
+                onAddNote = {
+                    onAction(BoardEditorAction.OnOpenAddNoteDialog(null, false))
+                },
+                onSaveImage = { path, color ->
+                    onAction(BoardEditorAction.OnAddNote("", path, color))
+                },
+                onTidyUp = { onAction(BoardEditorAction.OnTidyUpNotes) },
+                onToggleGrid = { onAction(BoardEditorAction.OnToggleGrid) },
+            )
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .onSizeChanged { onAction(OnGetBoardSize(it)) }
+                .transformable(state)) {
+            if (uiState.showGrid) {
+                DotBackgroundComponent(scale = uiState.camera.zoom, offset = uiState.camera.offset)
+            }
+
+            BoardEditor(
+                notes = uiState.notes.filter { it.status == "active" },
+                ropes = uiState.ropes.filter { it.status == "active" },
+                onDragNote = { note, current ->
+                    onAction(BoardEditorAction.OnDragNote(note, current))
+                },
+                scale = uiState.camera.zoom,
+                offset = uiState.camera.offset,
+                onSelectedCard = { onAction(BoardEditorAction.OnSelectNote(it)) },
+                onGetSize = { size, index ->
+                    onAction(BoardEditorAction.OnGetNoteSize(size, index))
+                },
+                onAddQuickNote = {
+                    onAction(
+                        BoardEditorAction.OnAddNote(
+                            title = "",
+                            image = "",
+                            color = colors[0],
+                            posX = (it.x - uiState.camera.offset.x) / uiState.camera.zoom,
+                            posY = (it.y - uiState.camera.offset.y) / uiState.camera.zoom,
+                            isQuickAdd = true
+                        )
+                    )
+                },
+                onDragEnd = { onAction(BoardEditorAction.OnDragEnd) },
+                noteHighlightedId = uiState.noteHighlightId,
+                previewRope = uiState.previewRope
+            )
+
+            BoardTools(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                onZoomIn = { onAction(BoardEditorAction.OnChangeCameraZoom(true)) },
+                onZoomOut = { onAction(BoardEditorAction.OnChangeCameraZoom(false)) },
+                onResetZoom = { onAction(BoardEditorAction.OnResetCamera) },
+                scale = uiState.camera.zoom,
+                onImportQuotes = { onAction(OnOpenQuoteDialog) },
+                onImportBooks = { onAction(OnOpenBookDialog) },
             )
         }
     }

@@ -7,11 +7,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.core.utils.BoardEngine
 import com.app.zuludin.buqu.domain.models.Board
+import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.domain.usecase.board.GetBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.UpsertBoardUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.AddNote
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportBooks
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportQuotes
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.NewBoard
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.None
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +27,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class BoardEditorViewModel @Inject constructor(
@@ -47,38 +54,101 @@ class BoardEditorViewModel @Inject constructor(
     fun onAction(action: BoardEditorAction) {
         when (action) {
             BoardEditorAction.OnOpenBookDialog -> {
-                _uiState.update { it.copy(dialogState = BoardDialogState.ImportBooks) }
+                _uiState.update { it.copy(dialogState = ImportBooks) }
             }
 
             BoardEditorAction.OnOpenQuoteDialog -> {
-                _uiState.update { it.copy(dialogState = BoardDialogState.ImportQuotes) }
+                _uiState.update { it.copy(dialogState = ImportQuotes) }
             }
 
             BoardEditorAction.DismissDialog -> {
-                _uiState.update { it.copy(dialogState = BoardDialogState.None) }
+                _uiState.update { it.copy(dialogState = None) }
             }
 
             BoardEditorAction.OnImportBooks -> importBooks()
             BoardEditorAction.OnImportQuotes -> importQuotes()
             is BoardEditorAction.OnOpenNewBoardDialog -> {
-                _uiState.update { it.copy(dialogState = BoardDialogState.NewBoard) }
+                _uiState.update { it.copy(dialogState = NewBoard) }
             }
 
             is BoardEditorAction.OnSaveBoard -> {
                 saveBoardAndCards(action.title, action.color)
-                _uiState.update { it.copy(dialogState = BoardDialogState.None) }
+                _uiState.update { it.copy(dialogState = None) }
             }
 
             is BoardEditorAction.OnOpenAddNoteDialog -> {
                 _uiState.update {
                     it.copy(
-                        dialogState = BoardDialogState.AddNote(
+                        dialogState = AddNote(
                             action.note,
                             action.isUpdate
                         )
                     )
                 }
             }
+
+            is BoardEditorAction.OnGetBoardSize -> {
+                _uiState.update { it.copy(boardSize = action.size) }
+            }
+
+            is BoardEditorAction.OnTransformChange -> {
+                val camera = _uiState.value.camera
+                val zoom = camera.zoom * action.zoom
+                val offset = camera.offset + action.offset
+                _uiState.update { it.copy(camera = camera.copy(offset = offset, zoom = zoom)) }
+            }
+
+            is BoardEditorAction.OnChangeCameraZoom -> {
+                val camera = _uiState.value.camera
+                val scale = if (action.isZoomIn) {
+                    (camera.zoom - 0.1f).coerceAtLeast(0.5f)
+                } else {
+                    (camera.zoom + 0.1f).coerceAtMost(3f)
+                }
+                _uiState.update { it.copy(camera = camera.copy(zoom = scale)) }
+            }
+
+            BoardEditorAction.OnResetCamera -> {
+                _uiState.update { it.copy(camera = Camera()) }
+            }
+
+            BoardEditorAction.OnDeleteSelectedNotes -> deleteSelectedNotes()
+            is BoardEditorAction.OnDragNote -> {
+                dragNoteCard(action.note, action.offset)
+            }
+
+            is BoardEditorAction.OnGetNoteSize -> {
+                getCardSize(action.size, action.index)
+            }
+
+            is BoardEditorAction.OnSelectNote -> {
+                changeNoteSelectionStatus(action.noteId)
+            }
+
+            BoardEditorAction.OnTidyUpNotes -> tidyUpNotes()
+            BoardEditorAction.OnToggleGrid -> toggleGrid()
+            is BoardEditorAction.OnAddNote -> {
+                addNote(
+                    title = action.title,
+                    image = action.image,
+                    color = action.color,
+                    posX = action.posX,
+                    posY = action.posY,
+                    isQuickAdd = action.isQuickAdd
+                )
+            }
+
+            is BoardEditorAction.OnUpdateNote -> {
+                updateNote(
+                    noteId = action.noteId,
+                    text = action.text,
+                    image = action.image,
+                    color = action.color
+                )
+            }
+
+            BoardEditorAction.OnDragEnd -> onDragEnd()
+            BoardEditorAction.OnResetSelectedNotes -> resetSelectedNotes()
         }
     }
 
@@ -124,10 +194,12 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
     }
 
-    fun tidyUpNotes(boardWidth: Float, boardHeight: Float) {
+    fun tidyUpNotes() {
+        val boardSize = _uiState.value.boardSize
         val notes = _uiState.value.notes
         val ropes = _uiState.value.ropes
-        val tidiedResult = engine.tidyUpNotes(notes, ropes, boardWidth, boardHeight)
+        val tidiedResult =
+            engine.tidyUpNotes(notes, ropes, boardSize.width.toFloat(), boardSize.height.toFloat())
 
         _uiState.update { it.copy(notes = tidiedResult.notes, ropes = tidiedResult.ropes) }
     }
@@ -156,8 +228,24 @@ class BoardEditorViewModel @Inject constructor(
         posY: Float? = null,
         isQuickAdd: Boolean = false
     ) {
-        val randomX = (100..600).random().toFloat()
-        val randomY = (100..1000).random().toFloat()
+        val boardSize = _uiState.value.boardSize
+        val camera = _uiState.value.camera
+
+        val random = Random.Default
+        val minX = boardSize.width * 0.2f
+        val maxX = boardSize.width * 0.6f
+        val minY = boardSize.height * 0.2f
+        val maxY = boardSize.height * 0.6f
+
+        val rx =
+            if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
+                .toFloat() else minX
+        val ry =
+            if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
+                .toFloat() else minY
+
+        val randomX = (rx - camera.offset.x) / camera.zoom
+        val randomY = (ry - camera.offset.y) / camera.zoom
 
         val note = NoteCard(
             noteId = UUID.randomUUID().toString(),
@@ -173,7 +261,7 @@ class BoardEditorViewModel @Inject constructor(
         val notes = _uiState.value.notes.toMutableList()
         notes.add(note)
         _uiState.update {
-            it.copy(notes = notes, dialogState = BoardDialogState.None)
+            it.copy(notes = notes, dialogState = None)
         }
     }
 
@@ -185,7 +273,7 @@ class BoardEditorViewModel @Inject constructor(
             color = color
         )
         notes[notes.indexOfFirst { it.noteId == noteId }] = note
-        _uiState.update { it.copy(notes = notes, dialogState = BoardDialogState.None) }
+        _uiState.update { it.copy(notes = notes, dialogState = None) }
     }
 
     fun saveBoardAndCards(name: String, color: String) {
@@ -259,7 +347,7 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         val quotes = _uiState.value.quotes.map { it.copy(isSelected = false) }
-        _uiState.update { it.copy(quotes = quotes, dialogState = BoardDialogState.None) }
+        _uiState.update { it.copy(quotes = quotes, dialogState = None) }
     }
 
     fun importBooks() {
@@ -275,7 +363,7 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         val books = _uiState.value.books.map { it.copy(isSelected = false) }
-        _uiState.update { it.copy(books = books, dialogState = BoardDialogState.None) }
+        _uiState.update { it.copy(books = books, dialogState = None) }
     }
 
     fun selectImportQuote(quoteId: String) {
