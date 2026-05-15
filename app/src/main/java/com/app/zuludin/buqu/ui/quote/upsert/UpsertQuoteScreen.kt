@@ -267,7 +267,7 @@ private fun UpsertQuoteContent(
 
             if (!uiState.isSavingAsImage) {
                 TitleInputField(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("QuoteField"),
                     singleLine = false,
                     label = stringResource(R.string.quote),
                     capitalization = KeyboardCapitalization.Sentences,
@@ -290,14 +290,14 @@ private fun UpsertQuoteContent(
             }
 
             BookSpinner(
-                modifier = Modifier.padding(top = 12.dp),
+                modifier = Modifier.padding(top = 12.dp).testTag("BookField"),
                 currentBookId = uiState.field.bookId,
                 books = uiState.books,
                 onSelectBook = { onAction(UpsertQuoteAction.SelectBook(it)) }
             )
 
             ColorSpinner(
-                modifier = Modifier.padding(top = 12.dp),
+                modifier = Modifier.padding(top = 12.dp).testTag("CategoryField"),
                 currentCategoryId = uiState.field.categoryId,
                 categories = uiState.categories,
                 onSelectCategory = { onAction(UpsertQuoteAction.SelectCategory(it)) }

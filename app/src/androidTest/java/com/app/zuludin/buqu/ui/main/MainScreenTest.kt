@@ -47,7 +47,7 @@ class MainScreenTest {
         hiltRule.inject()
 
         composeTestRule.setContent {
-            BuQuTheme {
+            BuQuTheme(dynamicColor = false) {
                 navController = TestNavHostController(LocalContext.current)
                 navController.navigatorProvider.addNavigator(ComposeNavigator())
                 MainScreen(navController = navController)
@@ -57,34 +57,84 @@ class MainScreenTest {
 
     @Test
     fun changeScreenBetweenNavigation() = runTest {
-        // check home screen initial state
-        composeTestRule.onNodeWithText("Save the Greatest Quote").assertIsDisplayed()
+        // check quote navigation initial state
+        composeTestRule.onNodeWithText("No Quotes Found").assertIsDisplayed()
+
+        // go to books nav
+        composeTestRule.onNodeWithText("Books").performClick()
+        composeTestRule.onNodeWithText("Your books will appear here").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Online").performClick()
+        composeTestRule.onNodeWithText("Search online").assertIsDisplayed()
+
+        // go to board nav
+        composeTestRule.onNodeWithText("Board").performClick()
+        composeTestRule.onNodeWithText("Create Your First Board").assertIsDisplayed()
 
         // go to settings nav
         composeTestRule.onNodeWithText("Settings").performClick()
-
-        // check setting menu
         composeTestRule.onNodeWithText("Category").assertIsDisplayed()
         composeTestRule.onNodeWithText("Reset").assertIsDisplayed()
         composeTestRule.onNodeWithText("Rate").assertIsDisplayed()
 
-        // go back to home nav
-        composeTestRule.onNodeWithText("Home").performClick()
+        // go back to quote nav
+        composeTestRule.onNodeWithText("Quotes").performClick()
     }
 
     @Test
-    fun goToUpsertScreenFromHomePage() {
+    fun goToUpsertQuoteFromMain() {
         // check home screen initial state
-        composeTestRule.onNodeWithText("Save the Greatest Quote").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No Quotes Found").assertIsDisplayed()
 
         // click FAB upsert
-        composeTestRule.onNodeWithTag("UpsertQuote").assertHasClickAction()
-        composeTestRule.onNodeWithTag("UpsertQuote").performClick()
+        composeTestRule.onNodeWithTag("AddButton").assertHasClickAction()
+        composeTestRule.onNodeWithTag("AddButton").performClick()
 
-        // check upsert screen is display
-        composeTestRule.onNodeWithText("Quote").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Book").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Page").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Author").assertIsDisplayed()
+        // check upsert quote screen is display
+        composeTestRule.onNodeWithTag("QuoteField").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("BookField").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("CategoryField").assertIsDisplayed()
+    }
+
+    @Test
+    fun goToUpsertBookFromMain() {
+        // check home screen initial state
+        composeTestRule.onNodeWithText("No Quotes Found").assertIsDisplayed()
+
+        // go to book nav and click FAB then select input manual
+        composeTestRule.onNodeWithText("Books").performClick()
+        composeTestRule.onNodeWithTag("AddButton").assertHasClickAction()
+        composeTestRule.onNodeWithTag("AddButton").performClick()
+        composeTestRule.onNodeWithText("Manual Input").assertHasClickAction()
+        composeTestRule.onNodeWithText("Manual Input").performClick()
+
+        // check upsert quote screen is display
+        composeTestRule.onNodeWithText("Book Title *").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Author *").assertIsDisplayed()
+    }
+
+    @Test
+    fun goToUpsertBoardFromMain() {
+        // check home screen initial state
+        composeTestRule.onNodeWithText("No Quotes Found").assertIsDisplayed()
+
+        // click FAB upsert
+        composeTestRule.onNodeWithText("Board").performClick()
+        composeTestRule.onNodeWithTag("AddButton").assertHasClickAction()
+        composeTestRule.onNodeWithTag("AddButton").performClick()
+
+        // check board tools is displayed
+        composeTestRule.onNodeWithTag("BoardTools").assertIsDisplayed()
+    }
+
+    @Test
+    fun goToCategoryFromMain() {
+        // check home screen initial state
+        composeTestRule.onNodeWithText("No Quotes Found").assertIsDisplayed()
+
+        // check and click category menu
+        composeTestRule.onNodeWithText("Settings").performClick()
+        composeTestRule.onNodeWithText("Category").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Category").assertHasClickAction()
+        composeTestRule.onNodeWithText("Category").performClick()
     }
 }

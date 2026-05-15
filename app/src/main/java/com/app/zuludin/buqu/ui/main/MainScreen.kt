@@ -50,7 +50,7 @@ fun MainScreen(
             if (currentRoute in bottomBarRoutes && currentRoute != BuquDestinations.SETTING_ROUTE) {
                 Box {
                     FloatingActionButton(
-                        modifier = Modifier.testTag("UpsertQuote"),
+                        modifier = Modifier.testTag("AddButton"),
                         onClick = {
                             when (currentRoute) {
                                 BuquDestinations.QUOTES_ROUTE -> navActions.navigateToUpsertQuote(

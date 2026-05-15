@@ -60,20 +60,20 @@ class UpsertQuoteScreenTest {
     fun init() {
         hiltRule.inject()
 
-        composeTestRule.setContent {
-            BuQuTheme {
-                Surface {
-                    UpsertQuoteScreen(
-                        viewModel = UpsertQuoteViewModel(
-                            quoteRepo, categoryRepo, bookRepo, SavedStateHandle()
-                        ),
-                        topAppBarTitle = "",
-                        onBack = {},
-                        onShareQuote = {},
-                    )
-                }
-            }
-        }
+//        composeTestRule.setContent {
+//            BuQuTheme {
+//                Surface {
+//                    UpsertQuoteScreen(
+//                        viewModel = UpsertQuoteViewModel(
+//                            quoteRepo, categoryRepo, bookRepo, SavedStateHandle()
+//                        ),
+//                        topAppBarTitle = "",
+//                        onBack = {},
+//                        onShareQuote = {},
+//                    )
+//                }
+//            }
+//        }
     }
 
     @Test

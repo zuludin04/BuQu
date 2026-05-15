@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -260,7 +261,8 @@ fun BoardEditorContent(
             BoardTools(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .testTag("BoardTools"),
                 onZoomIn = { onAction(BoardEditorAction.OnChangeCameraZoom(true)) },
                 onZoomOut = { onAction(BoardEditorAction.OnChangeCameraZoom(false)) },
                 onResetZoom = { onAction(BoardEditorAction.OnResetCamera) },
