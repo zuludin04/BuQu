@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.quote
+package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.compose.material.Surface
 import androidx.compose.ui.test.assertHasClickAction
@@ -12,8 +12,6 @@ import com.app.zuludin.buqu.HiltTestActivity
 import com.app.zuludin.buqu.core.theme.BuQuTheme
 import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
-import com.app.zuludin.buqu.ui.quote.list.QuoteScreen
-import com.app.zuludin.buqu.ui.quote.list.QuoteViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.test.runTest
@@ -26,7 +24,7 @@ import javax.inject.Inject
 @RunWith(AndroidJUnit4::class)
 @MediumTest
 @HiltAndroidTest
-class HomeScreenTest {
+class QuoteScreenTest {
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
@@ -48,7 +46,7 @@ class HomeScreenTest {
     fun showInitialEmptyState() = runTest {
         setContent()
 
-        composeTestRule.onNodeWithText("Save the Greatest Quote").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No Quotes Found").assertIsDisplayed()
     }
 
     @Test
@@ -58,8 +56,11 @@ class HomeScreenTest {
 
         setContent()
 
-        composeTestRule.onNodeWithText("Fida").assertIsDisplayed()
+        composeTestRule.onNodeWithText("\"Fida\"").assertIsDisplayed()
         composeTestRule.onNodeWithText("Dsa").assertIsDisplayed()
+
+        composeTestRule.onNodeWithTag("QuoteItem").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("QuoteItem").assertHasClickAction()
     }
 
     @Test
@@ -68,7 +69,7 @@ class HomeScreenTest {
 
         setContent()
 
-        composeTestRule.onNodeWithText("Fida").assertIsDisplayed()
+        composeTestRule.onNodeWithText("\"Fida\"").assertIsDisplayed()
         composeTestRule.onNodeWithText("Dsa").assertIsDisplayed()
 
         composeTestRule.onNodeWithTag("QuoteItem").assertIsDisplayed()

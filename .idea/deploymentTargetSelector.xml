@@ -13,7 +13,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="displayNewCategoryItem()">
+      <SelectionState runConfigName="showInitialEmptyState()">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">
           <Target type="DEFAULT_BOOT">
@@ -24,7 +24,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="CategorySelectScreenTest">
+      <SelectionState runConfigName="checkQuoteItemIsClickable()">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">
           <Target type="DEFAULT_BOOT">
@@ -35,7 +35,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="changeScreenBetweenNavigation()">
+      <SelectionState runConfigName="QuoteScreenTest">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">
           <Target type="DEFAULT_BOOT">
@@ -46,7 +46,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="goToUpsertQuoteFromHome()">
+      <SelectionState runConfigName="showQuoteFromDatabase() (1)">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">
           <Target type="DEFAULT_BOOT">
@@ -57,7 +57,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="goToCategoryFromMain()">
+      <SelectionState runConfigName="showInitialEmptyState() (1)">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">
           <Target type="DEFAULT_BOOT">
