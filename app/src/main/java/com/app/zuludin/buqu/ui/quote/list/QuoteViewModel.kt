@@ -8,24 +8,11 @@ import com.app.zuludin.buqu.data.repositories.QuoteRepository
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.Quote
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-
-data class QuoteUiState(
-    val quotes: List<Quote> = emptyList(),
-    val categories: List<Category> = emptyList(),
-    val selectedCategory: Category? = null,
-    val searchQuery: String = "",
-    val isLoading: Boolean = false,
-    val userMessage: String? = null,
-    val showCategoryFilter: Boolean = false
-)
 
 @HiltViewModel
 class QuoteViewModel @Inject constructor(
@@ -35,34 +22,25 @@ class QuoteViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow<Category?>(null)
     private val _searchQuery = MutableStateFlow("")
 
-    private val baseState: Flow<QuoteUiState> = combine(
-        quoteRepository.observeQuotes(),
-        categoryRepository.observeCategories()
-    ) { quotes, categories ->
-        QuoteUiState(quotes = quotes, categories = categories, isLoading = false)
-    }
-        .onStart { emit(QuoteUiState(isLoading = true)) }
-        .catch { e -> emit(QuoteUiState(userMessage = e.message, isLoading = false)) }
-
-    val uiState: StateFlow<QuoteUiState> =
+    val uiState: StateFlow<QuoteState> =
         combine(
-            baseState,
+            quoteRepository.observeQuotes(),
+            categoryRepository.observeCategories(),
             _selectedCategory,
             _searchQuery
-        ) { state, cat, query ->
-            val filteredQuotes = filterQuote(state.quotes, cat, query)
-            state.copy(
+        ) { quotes, categories, cat, query ->
+            val filteredQuotes = filterQuote(quotes, cat, query)
+            QuoteState(
                 quotes = filteredQuotes,
-                selectedCategory = cat,
-                searchQuery = query,
+                categories = categories,
                 isLoading = false,
-                showCategoryFilter = state.quotes.isNotEmpty()
+                showCategoryFilter = quotes.isNotEmpty()
             )
         }
             .stateIn(
                 scope = viewModelScope,
                 started = WhileUiSubscribed,
-                initialValue = QuoteUiState(isLoading = true)
+                initialValue = QuoteState(isLoading = true)
             )
 
     fun filterQuotes(category: Category?) {

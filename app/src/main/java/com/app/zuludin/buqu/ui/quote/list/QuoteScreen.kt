@@ -20,6 +20,7 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -76,20 +77,18 @@ fun QuoteScreen(
             }
         },
     ) { paddingValues ->
-        Column(
+        HomeContent(
             modifier = Modifier
                 .padding(paddingValues)
-                .fillMaxSize()
-        ) {
-            HomeContent(
-                quotes = uiState.quotes,
-                categories = uiState.categories,
-                selectedCategory = uiState.selectedCategory,
-                onQuoteClick = onQuoteClick,
-                onSelectCategory = { viewModel.filterQuotes(it) },
-                showCategoryFilter = uiState.showCategoryFilter
-            )
-        }
+                .fillMaxSize(),
+            quotes = uiState.quotes,
+            categories = uiState.categories,
+            selectedCategory = uiState.selectedCategory,
+            onQuoteClick = onQuoteClick,
+            onSelectCategory = { viewModel.filterQuotes(it) },
+            showCategoryFilter = uiState.showCategoryFilter,
+            isLoading = uiState.isLoading
+        )
     }
 }
 
@@ -106,9 +105,13 @@ private fun HomeContent(
     selectedCategory: Category?,
     onSelectCategory: (Category?) -> Unit,
     onQuoteClick: (String) -> Unit,
-    showCategoryFilter: Boolean
+    showCategoryFilter: Boolean,
+    isLoading: Boolean,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         if (showCategoryFilter) {
             LazyRow(
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
@@ -130,27 +133,31 @@ private fun HomeContent(
             }
         }
 
-        if (quotes.isEmpty()) {
-            TasksEmptyContent(icon = PhosphorLightbulb, message = R.string.empty_quote_message)
+        if (isLoading) {
+            CircularProgressIndicator()
         } else {
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalItemSpacing = 16.dp
-            ) {
-                items(quotes.size) {
-                    QuoteItem(
-                        modifier = Modifier.testTag("QuoteItem"),
-                        quote = quotes[it].quote,
-                        backgroundColor = "#${quotes[it].color}",
-                        book = quotes[it].book,
-                        author = quotes[it].author,
-                        imagePath = quotes[it].image,
-                        category = quotes[it].category
-                    ) {
-                        onQuoteClick(quotes[it].quoteId)
+            if (quotes.isEmpty()) {
+                TasksEmptyContent(icon = PhosphorLightbulb, message = R.string.empty_quote_message)
+            } else {
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2),
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalItemSpacing = 16.dp
+                ) {
+                    items(quotes.size) {
+                        QuoteItem(
+                            modifier = Modifier.testTag("QuoteItem"),
+                            quote = quotes[it].quote,
+                            backgroundColor = "#${quotes[it].color}",
+                            book = quotes[it].book,
+                            author = quotes[it].author,
+                            imagePath = quotes[it].image,
+                            category = quotes[it].category
+                        ) {
+                            onQuoteClick(quotes[it].quoteId)
+                        }
                     }
                 }
             }
