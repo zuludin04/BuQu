@@ -2,118 +2,115 @@ package com.app.zuludin.buqu.ui.book.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.zuludin.buqu.core.utils.WhileUiSubscribed
-import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.repositories.IBookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-enum class BookSearchScope {
-    Saved,
-    Online
-}
-
-data class BookUiState(
-    val books: List<Book> = emptyList(),
-    val query: String = "",
-    val scope: BookSearchScope = BookSearchScope.Saved,
-    val savedResults: List<Book> = emptyList(),
-    val onlineResults: List<Book> = emptyList(),
-    val isOnlineLoading: Boolean = false,
-    val onlineErrorMessage: String? = null,
-    val isLoading: Boolean = false
-)
 
 @HiltViewModel
 class BookViewModel @Inject constructor(
     private val bookRepository: IBookRepository
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(BookState())
+    val uiState: StateFlow<BookState> = _uiState
 
-    private val query = MutableStateFlow("")
-    private val scope = MutableStateFlow(BookSearchScope.Saved)
+    private val _eventChannel = Channel<BookEvent>()
+    val events = _eventChannel.receiveAsFlow()
 
-    private val onlineResults = MutableStateFlow<List<Book>>(emptyList())
-    private val isOnlineLoading = MutableStateFlow(false)
-    private val onlineErrorMessage = MutableStateFlow<String?>(null)
-
-    private data class OnlineState(
-        val results: List<Book>,
-        val isLoading: Boolean,
-        val errorMessage: String?
-    )
-
-    private val onlineState = combine(
-        onlineResults,
-        isOnlineLoading,
-        onlineErrorMessage
-    ) { results, isLoading, errorMessage ->
-        OnlineState(results = results, isLoading = isLoading, errorMessage = errorMessage)
+    init {
+        loadInitialData()
     }
 
-    val uiState: StateFlow<BookUiState> = combine(
-        bookRepository.observeBooks(),
-        query,
-        scope,
-        onlineState
-    ) { books, query, scope, online ->
-        val trimmedQuery = query.trim()
-        val savedResults = if (trimmedQuery.isBlank()) {
-            books
-        } else {
-            val q = trimmedQuery.lowercase()
-            books.filter { book ->
-                book.title.lowercase().contains(q) || book.author.lowercase().contains(q)
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            bookRepository.observeBooks().collect { books ->
+                _uiState.update {
+                    it.copy(
+                        bookDatabase = it.bookDatabase.copy(
+                            isLoading = false,
+                            books = books
+                        )
+                    )
+                }
             }
         }
-
-        BookUiState(
-            books = books,
-            query = query,
-            scope = scope,
-            savedResults = savedResults,
-            onlineResults = online.results,
-            isOnlineLoading = online.isLoading,
-            onlineErrorMessage = online.errorMessage,
-            isLoading = false
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileUiSubscribed,
-        initialValue = BookUiState(isLoading = true)
-    )
-
-    fun onQueryChange(newQuery: String) {
-        query.value = newQuery
     }
 
-    fun clearQuery() {
-        query.value = ""
-        onlineErrorMessage.value = null
+    fun onAction(action: BookAction) {
+        when (action) {
+            is BookAction.ChangeScope -> setScope(action.scope)
+            is BookAction.SearchBooks -> {
+                onQueryChange(action.query)
+                if (_uiState.value.scope == BookSearchScope.Online) {
+                    searchOnline(action.query)
+                } else {
+                    searchDatabase(action.query)
+                }
+            }
+
+            BookAction.ClearQuery -> clearQuery()
+            is BookAction.BookSearchCta -> {
+                setScope(BookSearchScope.Online)
+                onQueryChange(_uiState.value.query)
+                searchOnline(_uiState.value.query)
+            }
+        }
     }
 
-    fun setScope(newScope: BookSearchScope) {
-        scope.value = newScope
+    private fun onQueryChange(newQuery: String) {
+        _uiState.update { it.copy(query = newQuery) }
     }
 
-    fun searchOnline() {
-        val q = query.value.trim()
+    private fun clearQuery() {
+        _uiState.update { it.copy(query = "") }
+        searchDatabase("")
+    }
+
+    private fun setScope(newScope: BookSearchScope) {
+        _uiState.update { it.copy(scope = newScope) }
+    }
+
+    private fun searchDatabase(query: String) {
+        viewModelScope.launch {
+            val trimmedQuery = query.trim()
+            val books = bookRepository.observeBooks().first()
+            val searchResults = if (trimmedQuery.isBlank()) {
+                books
+            } else {
+                val q = trimmedQuery.lowercase()
+                books.filter { book ->
+                    book.title.lowercase().contains(q) || book.author.lowercase().contains(q)
+                }
+            }
+            _uiState.update { it.copy(bookDatabase = it.bookDatabase.copy(books = searchResults)) }
+        }
+    }
+
+    private fun searchOnline(query: String) {
+        val q = query.trim()
         if (q.isBlank()) return
+        _uiState.update { it.copy(bookOnline = it.bookOnline.copy(isLoading = true)) }
 
         viewModelScope.launch {
-            isOnlineLoading.value = true
-            onlineErrorMessage.value = null
             try {
-                onlineResults.value = bookRepository.searchBooks(q)
+                val results = bookRepository.searchBooks(q)
+                _uiState.update {
+                    it.copy(
+                        bookOnline = it.bookOnline.copy(
+                            isLoading = false,
+                            books = results
+                        )
+                    )
+                }
             } catch (t: Throwable) {
-                onlineErrorMessage.value = t.message ?: "Failed to search online."
-                onlineResults.value = emptyList()
-            } finally {
-                isOnlineLoading.value = false
+                val message = t.message ?: "Failed to search online."
+                _eventChannel.send(BookEvent.ErrorOnline(message))
             }
         }
     }
