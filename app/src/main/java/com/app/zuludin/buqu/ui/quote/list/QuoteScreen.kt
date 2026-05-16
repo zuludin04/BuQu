@@ -2,6 +2,7 @@ package com.app.zuludin.buqu.ui.quote.list
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -134,7 +135,9 @@ private fun HomeContent(
         }
 
         if (isLoading) {
-            CircularProgressIndicator()
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         } else {
             if (quotes.isEmpty()) {
                 TasksEmptyContent(icon = PhosphorLightbulb, message = R.string.empty_quote_message)
