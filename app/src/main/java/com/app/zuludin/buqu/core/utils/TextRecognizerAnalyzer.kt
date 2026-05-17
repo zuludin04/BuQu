@@ -15,8 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class TextRecognitionAnalyzer(
     private val onDetectedTextUpdated: (String) -> Unit
@@ -37,7 +37,7 @@ class TextRecognitionAnalyzer(
             val inputImage: InputImage =
                 InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
-            suspendCoroutine { continuation ->
+            suspendCancellableCoroutine { continuation ->
                 textRecognizer.process(inputImage)
                     .addOnSuccessListener { visionText: Text ->
                         val detectedText: String = visionText.text
