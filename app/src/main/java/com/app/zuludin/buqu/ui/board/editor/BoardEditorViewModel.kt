@@ -10,6 +10,7 @@ import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
+import com.app.zuludin.buqu.domain.usecase.board.DeleteBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.GetBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.UpsertBoardUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
@@ -33,6 +34,7 @@ import kotlin.random.Random
 class BoardEditorViewModel @Inject constructor(
     private val getBoard: GetBoardUseCase,
     private val upsertBoard: UpsertBoardUseCase,
+    private val deleteBoard: DeleteBoardUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boardId: String? = savedStateHandle[BuquDestinationArgs.BOARD_ID_ARG]
@@ -149,6 +151,7 @@ class BoardEditorViewModel @Inject constructor(
 
             BoardEditorAction.OnDragEnd -> onDragEnd()
             BoardEditorAction.OnResetSelectedNotes -> resetSelectedNotes()
+            BoardEditorAction.DeleteBoard -> deleteBoard()
         }
     }
 
@@ -161,7 +164,8 @@ class BoardEditorViewModel @Inject constructor(
                         notes = data.notes,
                         ropes = data.ropes,
                         quotes = data.quotes,
-                        books = data.books
+                        books = data.books,
+                        showDelete = boardId != null
                     )
                 }
             }
@@ -378,6 +382,13 @@ class BoardEditorViewModel @Inject constructor(
             if (it.bookId == bookId) it.copy(isSelected = !it.isSelected) else it
         }
         _uiState.update { it.copy(books = books) }
+    }
+
+    fun deleteBoard() {
+        viewModelScope.launch {
+            deleteBoard.invoke(boardId!!)
+            _eventChannel.send(BoardEditorEvent.GoHome)
+        }
     }
 
     private fun createPreviewRope(source: NoteCard, target: NoteCard?): Rope? {

@@ -35,4 +35,8 @@ class NoteCardRepository @Inject constructor(
     override suspend fun deleteSelectedNotes(notes: List<NoteCard>) {
         localSource.deleteSelectedNotes(notes.toLocal())
     }
+
+    override suspend fun deleteNotesInBoard(boardId: String) {
+        localSource.deleteNotesInBoard(boardId)
+    }
 }

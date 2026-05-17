@@ -20,7 +20,8 @@ data class BoardEditorState(
     val showGrid: Boolean = true,
     val dialogState: BoardDialogState = BoardDialogState.None,
     val boardSize: IntSize = IntSize.Zero,
-    val camera: Camera = Camera()
+    val camera: Camera = Camera(),
+    val showDelete: Boolean = false
 )
 
 sealed interface BoardDialogState {

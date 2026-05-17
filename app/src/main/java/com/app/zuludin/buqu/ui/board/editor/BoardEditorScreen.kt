@@ -81,6 +81,8 @@ fun BoardEditorScreen(
                 BoardEditorEvent.SuccessSaveBoard -> {
                     scaffoldState.snackbarHostState.showSnackbar("Your board is saved")
                 }
+
+                BoardEditorEvent.GoHome -> onBack()
             }
         }
     }
@@ -216,6 +218,8 @@ fun BoardEditorContent(
                 },
                 onTidyUp = { onAction(BoardEditorAction.OnTidyUpNotes) },
                 onToggleGrid = { onAction(BoardEditorAction.OnToggleGrid) },
+                showDelete = uiState.showDelete,
+                onDeleteBoard = { onAction(BoardEditorAction.DeleteBoard) }
             )
         },
     ) { paddingValues ->

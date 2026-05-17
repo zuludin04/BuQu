@@ -10,4 +10,6 @@ interface IRopeRepository {
     suspend fun getConnectedRopes(boardId: String): List<Rope>
 
     suspend fun deleteSelectedRopes(ropes: List<Rope>)
+
+    suspend fun deleteRopesInBoard(boardId: String)
 }

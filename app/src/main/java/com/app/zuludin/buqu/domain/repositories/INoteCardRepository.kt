@@ -10,4 +10,6 @@ interface INoteCardRepository {
     suspend fun deleteNote(noteId: String)
 
     suspend fun deleteSelectedNotes(notes: List<NoteCard>)
+
+    suspend fun deleteNotesInBoard(boardId: String)
 }

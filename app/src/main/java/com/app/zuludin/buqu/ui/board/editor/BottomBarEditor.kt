@@ -25,6 +25,7 @@ import com.app.zuludin.buqu.core.icons.PhosphorAperture
 import com.app.zuludin.buqu.core.icons.PhosphorDotsThreeVertical
 import com.app.zuludin.buqu.core.icons.PhosphorImage
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import kotlin.math.roundToInt
 
 @Composable
@@ -33,13 +34,20 @@ fun BottomBarEditor(
     onAddNote: () -> Unit,
     onSaveImage: (String, String) -> Unit,
     onTidyUp: () -> Unit,
-    onToggleGrid: () -> Unit
+    onToggleGrid: () -> Unit,
+    showDelete: Boolean,
+    onDeleteBoard: () -> Unit
 ) {
     var showOverflowMenu by remember { mutableStateOf(false) }
     var overflowMenuPosition by remember { mutableStateOf(Offset.Zero) }
 
     BottomAppBar(
         actions = {
+            if (showDelete)
+                IconButton(
+                    onClick = onDeleteBoard,
+                    content = { Icon(PhosphorTrash, null) }
+                )
             MediaFileScanner(
                 imageVector = PhosphorAperture,
                 isOpenCamera = true,

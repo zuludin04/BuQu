@@ -39,4 +39,5 @@ sealed interface BoardEditorAction {
     ): BoardEditorAction
     object OnDragEnd: BoardEditorAction
     object OnResetSelectedNotes: BoardEditorAction
+    object DeleteBoard: BoardEditorAction
 }

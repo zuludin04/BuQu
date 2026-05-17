@@ -35,4 +35,8 @@ class RopeRepository @Inject constructor(
     override suspend fun deleteSelectedRopes(ropes: List<Rope>) {
         localSource.deleteSelectedRopes(ropes.toLocal())
     }
+
+    override suspend fun deleteRopesInBoard(boardId: String) {
+        localSource.deleteNotesInBoard(boardId)
+    }
 }
