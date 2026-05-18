@@ -101,7 +101,7 @@ class BoardEditorViewModelTest {
         )
         
         val event = viewModel.events.first()
-        assertEquals(BoardEditorEvent.SuccessSaveBoard, event)
+        assertEquals(BoardEditorEvent.ShowSnackbar, event)
     }
 
     @Test

@@ -201,15 +201,21 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     fun onDragEnd() {
-        val ropes = _uiState.value.ropes.toMutableList()
         val rope = _uiState.value.previewRope
 
         if (rope != null) {
-            ropes.add(rope)
-            _uiState.update { it.copy(ropes = ropes) }
+            viewModelScope.launch {
+                _eventChannel.send(BoardEditorEvent.CreateConnectedRope(rope))
+            }
         }
 
         _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
+    }
+
+    fun createConnectedRope(rope: Rope) {
+        val ropes = _uiState.value.ropes.toMutableList()
+        ropes.add(rope)
+        _uiState.update { it.copy(ropes = ropes) }
     }
 
     fun tidyUpNotes() {

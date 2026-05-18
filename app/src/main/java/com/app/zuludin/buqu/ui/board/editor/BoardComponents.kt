@@ -178,7 +178,7 @@ fun NoteCardComponent(
 }
 
 @Composable
-fun RopeComponent(rope: Rope, curveLine: Boolean = false) {
+fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
     val progress = remember { Animatable(0f) }
 
     LaunchedEffect(rope.ropeId) {
@@ -219,7 +219,7 @@ fun RopeComponent(rope: Rope, curveLine: Boolean = false) {
 
             drawPath(
                 path = outPath,
-                color = Color(0xFF7D5260),
+                color = Color(0xFF7D5260).copy(alpha = if (isPreview) 0.5f else 1f),
                 style = Stroke(width = 8f, cap = StrokeCap.Round)
             )
         }
@@ -237,7 +237,7 @@ fun RopeComponent(rope: Rope, curveLine: Boolean = false) {
             val animatedEnd = start + (end - start) * progress.value
 
             drawLine(
-                color = Color(0xFF7D5260),
+                color = Color(0xFF7D5260).copy(alpha = if (isPreview) 0.5f else 1f),
                 start = start,
                 end = animatedEnd,
                 strokeWidth = 8f,

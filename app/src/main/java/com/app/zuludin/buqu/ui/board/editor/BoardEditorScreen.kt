@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +54,7 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenNewBoardDial
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenQuoteDialog
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnSaveBoard
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -64,6 +68,7 @@ fun BoardEditorScreen(
     val state = rememberTransformableState { zoomChange, offsetChange, _ ->
         viewModel.onAction(BoardEditorAction.OnTransformChange(zoomChange, offsetChange))
     }
+    val scope = rememberCoroutineScope()
 
     BoardEditorContent(
         scaffoldState = scaffoldState,
@@ -83,6 +88,24 @@ fun BoardEditorScreen(
                 }
 
                 BoardEditorEvent.GoHome -> onBack()
+
+                is BoardEditorEvent.CreateConnectedRope -> {
+                    scope.launch {
+                        val result = scaffoldState.snackbarHostState.showSnackbar(
+                            message = "Create rope to connect two notes?",
+                            actionLabel = "Confirm",
+                            duration = SnackbarDuration.Long
+                        )
+
+                        when (result) {
+                            SnackbarResult.ActionPerformed -> {
+                                viewModel.createConnectedRope(event.rope)
+                            }
+
+                            SnackbarResult.Dismissed -> {}
+                        }
+                    }
+                }
             }
         }
     }
@@ -303,10 +326,10 @@ fun BoardEditor(
             },
     ) {
         ropes.forEach {
-            RopeComponent(it)
+            RopeComponent(it, false)
         }
 
-        if (previewRope != null) RopeComponent(previewRope)
+        if (previewRope != null) RopeComponent(previewRope, true)
 
         notes.forEachIndexed { index, n ->
             NoteCardComponent(
