@@ -29,5 +29,5 @@ sealed interface BoardDialogState {
     object ImportQuotes : BoardDialogState
     object ImportBooks : BoardDialogState
     object NewBoard : BoardDialogState
-    data class AddNote(val note: NoteCard?, val isUpdate: Boolean) : BoardDialogState
+    data class NoteInput(val note: NoteCard?, val isUpdate: Boolean) : BoardDialogState
 }

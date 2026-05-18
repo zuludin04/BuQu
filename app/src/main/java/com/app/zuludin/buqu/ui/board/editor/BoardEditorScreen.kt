@@ -116,7 +116,7 @@ fun BoardEditorScreen(
             )
         }
 
-        is BoardDialogState.AddNote -> {
+        is BoardDialogState.NoteInput -> {
             NoteInputDialog(
                 onDismiss = { viewModel.onAction(DismissDialog) },
                 note = dialog.note,
@@ -197,24 +197,13 @@ fun BoardEditorContent(
         bottomBar = {
             BottomBarEditor(
                 onTextResult = { text ->
-                    val n = NoteCard(
-                        noteId = "",
-                        boardId = "",
-                        title = text,
-                        posX = 0f,
-                        posY = 0f,
-                        size = IntSize.Zero,
-                        isSelected = false,
-                        color = "",
-                        image = ""
-                    )
-                    onAction(BoardEditorAction.OnOpenAddNoteDialog(n, false))
+                    onAction(BoardEditorAction.OnInputNoteDialog(null, text))
                 },
                 onAddNote = {
-                    onAction(BoardEditorAction.OnOpenAddNoteDialog(null, false))
+                    onAction(BoardEditorAction.OnInputNoteDialog(null))
                 },
                 onSaveImage = { path, color ->
-                    onAction(BoardEditorAction.OnAddNote("", path, color))
+                    onAction(BoardEditorAction.OnConfirmInputNote("", path, color))
                 },
                 onTidyUp = { onAction(BoardEditorAction.OnTidyUpNotes) },
                 onToggleGrid = { onAction(BoardEditorAction.OnToggleGrid) },
@@ -247,19 +236,19 @@ fun BoardEditorContent(
                 },
                 onAddQuickNote = {
                     onAction(
-                        BoardEditorAction.OnAddNote(
+                        BoardEditorAction.OnConfirmInputNote(
                             title = "",
                             image = "",
                             color = colors[0],
                             posX = (it.x - uiState.camera.offset.x) / uiState.camera.zoom,
                             posY = (it.y - uiState.camera.offset.y) / uiState.camera.zoom,
-                            isQuickAdd = true
                         )
                     )
                 },
                 onDragEnd = { onAction(BoardEditorAction.OnDragEnd) },
                 noteHighlightedId = uiState.noteHighlightId,
-                previewRope = uiState.previewRope
+                previewRope = uiState.previewRope,
+                onUpdateNote = { onAction(BoardEditorAction.OnInputNoteDialog(it)) }
             )
 
             BoardTools(
@@ -292,9 +281,11 @@ fun BoardEditor(
     onDragEnd: () -> Unit,
     noteHighlightedId: String?,
     previewRope: Rope?,
+    onUpdateNote: (String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var popupOffset by remember { mutableStateOf(Offset.Zero) }
+    var noteId by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = modifier
@@ -328,6 +319,7 @@ fun BoardEditor(
                 onPopupMenu = { off ->
                     popupOffset = off
                     showMenu = true
+                    noteId = n.noteId
                 },
                 onDragEnd = onDragEnd,
                 scale = scale,
@@ -339,12 +331,18 @@ fun BoardEditor(
             val screenOffset = Offset(x = popupOffset.x * scale, y = popupOffset.y * scale)
             Popup(
                 offset = IntOffset(screenOffset.x.roundToInt(), screenOffset.y.roundToInt()),
-                onDismissRequest = { showMenu = false },
+                onDismissRequest = {
+                    showMenu = false
+                    noteId = null
+                },
                 content = {
                     Column(modifier = Modifier.widthIn(max = 150.dp)) {
                         OverflowMenuItem(
                             title = "Update Note",
-                            onClick = { },
+                            onClick = {
+                                onUpdateNote(noteId!!)
+                                showMenu = false
+                            },
                         )
                     }
                 },

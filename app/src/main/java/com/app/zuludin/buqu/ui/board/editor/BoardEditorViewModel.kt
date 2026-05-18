@@ -14,11 +14,11 @@ import com.app.zuludin.buqu.domain.usecase.board.DeleteBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.GetBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.UpsertBoardUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
-import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.AddNote
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportBooks
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportQuotes
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.NewBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.None
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.NoteInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,12 +78,27 @@ class BoardEditorViewModel @Inject constructor(
                 _uiState.update { it.copy(dialogState = None) }
             }
 
-            is BoardEditorAction.OnOpenAddNoteDialog -> {
+            is BoardEditorAction.OnInputNoteDialog -> {
                 _uiState.update {
+                    val n = if (action.noteId == null && action.content.isNotBlank()) {
+                        NoteCard(
+                            noteId = "",
+                            boardId = "",
+                            title = action.content,
+                            posX = 0f,
+                            posY = 0f,
+                            size = IntSize.Zero,
+                            isSelected = false,
+                            color = "",
+                            image = ""
+                        )
+                    } else {
+                        _uiState.value.notes.firstOrNull { note -> note.noteId == action.noteId }
+                    }
                     it.copy(
-                        dialogState = AddNote(
-                            action.note,
-                            action.isUpdate
+                        dialogState = NoteInput(
+                            n,
+                            action.noteId != null
                         )
                     )
                 }
@@ -129,14 +144,13 @@ class BoardEditorViewModel @Inject constructor(
 
             BoardEditorAction.OnTidyUpNotes -> tidyUpNotes()
             BoardEditorAction.OnToggleGrid -> toggleGrid()
-            is BoardEditorAction.OnAddNote -> {
+            is BoardEditorAction.OnConfirmInputNote -> {
                 addNote(
                     title = action.title,
                     image = action.image,
                     color = action.color,
                     posX = action.posX,
                     posY = action.posY,
-                    isQuickAdd = action.isQuickAdd
                 )
             }
 
