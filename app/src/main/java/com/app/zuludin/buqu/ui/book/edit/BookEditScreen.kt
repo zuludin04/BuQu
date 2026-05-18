@@ -70,6 +70,7 @@ fun BookEditScreen(
 
     Scaffold(
         scaffoldState = scaffoldState,
+        backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
                 title = topAppBarTitle,
