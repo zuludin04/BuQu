@@ -12,7 +12,7 @@ import com.app.zuludin.buqu.domain.models.Camera
 enum class BackgroundType { Line, Dot }
 
 @Composable
-fun GridBackground(type: BackgroundType, camera: Camera) {
+fun BoardBackground(type: BackgroundType, camera: Camera) {
     when (type) {
         BackgroundType.Line -> GridBackgroundComponent(camera.zoom, camera.offset)
         BackgroundType.Dot -> DotBackgroundComponent(camera.zoom, camera.offset)

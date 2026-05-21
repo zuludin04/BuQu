@@ -40,7 +40,7 @@ fun BoardInfiniteCanvas(
             .onSizeChanged { onGetBoardSize(it) }
             .transformable(state)
     ) {
-        if (showGrid) GridBackground(backgroundType, camera)
+        if (showGrid) BoardBackground(backgroundType, camera)
 
         Box(
             modifier = Modifier
