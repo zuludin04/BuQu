@@ -14,20 +14,26 @@ data class BoardEditorState(
     val ropes: List<Rope> = emptyList(),
     val quotes: List<Quote> = emptyList(),
     val books: List<Book> = emptyList(),
+    val selectedNoteIds: List<String> = emptyList(),
+    val dialogState: BoardDialogState = BoardDialogState.None,
+    val camera: Camera = Camera(),
+    val showGrid: Boolean = true,
+    val boardSize: IntSize = IntSize.Zero,
     val noteHighlightId: String? = null,
     val previewRope: Rope? = null,
-    val selectedNoteIds: List<String> = emptyList(),
-    val showGrid: Boolean = true,
-    val dialogState: BoardDialogState = BoardDialogState.None,
-    val boardSize: IntSize = IntSize.Zero,
-    val camera: Camera = Camera(),
-    val showDelete: Boolean = false
 )
 
 sealed interface BoardDialogState {
     object None : BoardDialogState
+    data class InputNoteDialog(
+        val noteId: String?,
+        val title: String,
+        val color: String
+    ) : BoardDialogState
+
+    data class UpsertBoardDialog(val name: String? = null, val color: String? = null) :
+        BoardDialogState
+
     object ImportQuotes : BoardDialogState
     object ImportBooks : BoardDialogState
-    object NewBoard : BoardDialogState
-    data class NoteInput(val note: NoteCard?, val isUpdate: Boolean) : BoardDialogState
 }

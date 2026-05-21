@@ -14,13 +14,15 @@ class BoardEngine {
     ): BoardEngineResult {
         val ns = notes.map { n ->
             if (n.noteId == note.noteId) {
-                n.copy(posX = worldPos.x, posY = worldPos.y)
+                n.copy(posX = n.posX + worldPos.x, posY = n.posY + worldPos.y)
             } else {
                 n
             }
         }
-        val rs = updateRopePosition(note.noteId, ropes, worldPos)
-        val nearest = highlightNearestNode(worldPos, notes, ropes, note)
+        val n = ns.first { it.noteId == note.noteId }
+        val position = Offset(n.posX, n.posY)
+        val rs = updateRopePosition(note.noteId, ropes, position)
+        val nearest = highlightNearestNode(position, ns, rs, note)
 
         return BoardEngineResult(notes = ns, ropes = rs, nearestNote = nearest)
     }

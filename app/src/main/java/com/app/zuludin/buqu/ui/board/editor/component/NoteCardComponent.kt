@@ -1,8 +1,5 @@
-package com.app.zuludin.buqu.ui.board.editor
+package com.app.zuludin.buqu.ui.board.editor.component
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,11 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,10 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathMeasure
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -47,32 +39,33 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
 import com.app.zuludin.buqu.core.utils.darken
-import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.NoteCard
-import com.app.zuludin.buqu.domain.models.Rope
 import java.io.File
 import kotlin.math.roundToInt
 
 @Composable
 fun NoteCardComponent(
     note: NoteCard,
-    scale: Float,
     isHighlighted: Boolean,
     onPositionChanged: (Offset) -> Unit,
-    onSelect: (NoteCard) -> Unit,
+    onSelect: (String) -> Unit,
     onGetSize: (IntSize) -> Unit,
-    onPopupMenu: (Offset) -> Unit,
-    onDragEnd: () -> Unit
+    onDragEnd: () -> Unit,
+    onUpdateNote: (NoteCard) -> Unit,
+    scale: Float,
 ) {
     var isDragging by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var popupPosition by remember { mutableStateOf(Offset.Zero) }
 
-    val updatedOffset by rememberUpdatedState(Offset(note.posX, note.posY))
-    val updatedOnPositionChanged by rememberUpdatedState(onPositionChanged)
+    val notePosition by rememberUpdatedState(Offset(note.posX, note.posY))
+    val cameraZoom by rememberUpdatedState(scale)
 
     val backgroundColor =
         Color("#${note.color}".toColorInt()).darken(
@@ -88,7 +81,7 @@ fun NoteCardComponent(
         modifier = Modifier
             .widthIn(max = 180.dp)
             .onSizeChanged { onGetSize(it) }
-            .offset { IntOffset(note.posX.roundToInt(), note.posY.roundToInt()) }
+            .offset { IntOffset(notePosition.x.roundToInt(), notePosition.y.roundToInt()) }
             .graphicsLayer {
                 val scaleValue =
                     if (isDragging || note.isSelected) 1.03f else 1f
@@ -100,13 +93,12 @@ fun NoteCardComponent(
             .pointerInput(note.noteId) {
                 detectTapGestures(
                     onTap = {
-                        onSelect(note)
+                        onSelect(note.noteId)
                         isDragging = false
                     },
                     onLongPress = { offset ->
-                        val popupPos =
-                            Offset(updatedOffset.x + offset.x, updatedOffset.y + offset.y)
-                        onPopupMenu(popupPos)
+                        popupPosition = (notePosition + offset) * cameraZoom
+                        showMenu = true
                     },
                 )
             }
@@ -118,15 +110,8 @@ fun NoteCardComponent(
                         onDragEnd()
                     },
                     onDragCancel = { isDragging = false },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-
-                        val worldDx = dragAmount.x / scale
-                        val worldDy = dragAmount.y / scale
-
-                        val newOffset = updatedOffset + Offset(worldDx, worldDy)
-
-                        updatedOnPositionChanged(newOffset)
+                    onDrag = { _, dragAmount ->
+                        onPositionChanged(dragAmount)
                     }
                 )
             }
@@ -175,124 +160,23 @@ fun NoteCardComponent(
             }
         }
     }
-}
 
-@Composable
-fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
-    val progress = remember { Animatable(0f) }
-
-    LaunchedEffect(rope.ropeId) {
-        progress.animateTo(1f, animationSpec = tween(if (isPreview) 0 else 250))
-    }
-
-    val sourceSize = rope.sourceSize
-    val targetSize = rope.targetSize
-    val initialRope = Offset(rope.sourceX, rope.sourceY)
-    val targetRope = Offset(rope.targetX, rope.targetY)
-
-    if (curveLine) {
-        val pathMeasure = remember { PathMeasure() }
-
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val startCenterOffset = Offset(
-                sourceSize.width.pxToDp().toPx() / 2, sourceSize.height.pxToDp().toPx() / 2
-            )
-            val targetCenterOffset = Offset(
-                targetSize.width.pxToDp().toPx() / 2, targetSize.height.pxToDp().toPx() / 2
-            )
-
-            val start = initialRope + startCenterOffset
-            val end = targetRope + targetCenterOffset
-
-            val path = Path().apply {
-                moveTo(start.x, start.y)
-                cubicTo(
-                    x1 = start.x, y1 = (start.y + end.y) / 2,
-                    x2 = end.x, y2 = (start.y + end.y) / 2,
-                    x3 = end.x, y3 = end.y
-                )
-            }
-
-            pathMeasure.setPath(path, false)
-            val outPath = Path()
-            pathMeasure.getSegment(0f, pathMeasure.length * progress.value, outPath)
-
-            drawPath(
-                path = outPath,
-                color = Color(0xFF7D5260).copy(alpha = if (isPreview) 0.5f else 1f),
-                style = Stroke(width = 8f, cap = StrokeCap.Round)
-            )
-        }
-    } else {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val startCenterOffset = Offset(
-                sourceSize.width.pxToDp().toPx() / 2, sourceSize.height.pxToDp().toPx() / 2
-            )
-            val targetCenterOffset = Offset(
-                targetSize.width.pxToDp().toPx() / 2, targetSize.height.pxToDp().toPx() / 2
-            )
-
-            val start = initialRope + startCenterOffset
-            val end = targetRope + targetCenterOffset
-            val animatedEnd = start + (end - start) * progress.value
-
-            drawLine(
-                color = Color(0xFF7D5260).copy(alpha = if (isPreview) 0.5f else 1f),
-                start = start,
-                end = animatedEnd,
-                strokeWidth = 8f,
-                cap = StrokeCap.Round
-            )
-        }
-    }
-}
-
-@Composable
-fun GridBackgroundComponent(scale: Float, offset: Offset) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val gridSize = 40.dp.toPx()
-        val scaledGridSize = gridSize * scale
-
-        val startX = (offset.x % scaledGridSize)
-        val startY = (offset.y % scaledGridSize)
-
-        for (x in startX.toInt()..size.width.toInt() step scaledGridSize.toInt()) {
-            drawLine(
-                color = Color.LightGray.copy(alpha = 0.2f),
-                start = Offset(x.toFloat(), 0f),
-                end = Offset(x.toFloat(), size.height),
-                strokeWidth = 1f
-            )
-        }
-        for (y in startY.toInt()..size.height.toInt() step scaledGridSize.toInt()) {
-            drawLine(
-                color = Color.LightGray.copy(alpha = 0.2f),
-                start = Offset(0f, y.toFloat()),
-                end = Offset(size.width, y.toFloat()),
-                strokeWidth = 1f
-            )
-        }
-    }
-}
-
-@Composable
-fun DotBackgroundComponent(scale: Float, offset: Offset) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val gridSize = 40.dp.toPx()
-        val scaledGridSize = gridSize * scale
-
-        val startX = (offset.x % scaledGridSize)
-        val startY = (offset.y % scaledGridSize)
-
-        for (x in startX.toInt()..size.width.toInt() step scaledGridSize.toInt()) {
-            for (y in startY.toInt()..size.height.toInt() step scaledGridSize.toInt()) {
-                drawCircle(
-                    color = Color.Gray.copy(alpha = 0.3f),
-                    radius = 2f,
-                    center = Offset(x = x.toFloat(), y = y.toFloat())
-                )
-            }
-        }
+    if (showMenu) {
+        Popup(
+            offset = IntOffset(popupPosition.x.roundToInt(), popupPosition.y.roundToInt()),
+            onDismissRequest = { showMenu = !showMenu },
+            content = {
+                Column(modifier = Modifier.widthIn(max = 150.dp)) {
+                    OverflowMenuItem(
+                        title = "Update Note",
+                        onClick = {
+                            onUpdateNote(note)
+                            showMenu = !showMenu
+                        },
+                    )
+                }
+            },
+        )
     }
 }
 

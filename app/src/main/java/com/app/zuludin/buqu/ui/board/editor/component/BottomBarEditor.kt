@@ -1,4 +1,4 @@
-package com.app.zuludin.buqu.ui.board.editor
+package com.app.zuludin.buqu.ui.board.editor.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
