@@ -17,10 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,9 +45,11 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.app.zuludin.buqu.R
-import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
-import com.app.zuludin.buqu.core.icons.PhosphorNote
-import com.app.zuludin.buqu.core.icons.PhosphorTrash
+import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.icons.PhosphorCheck
+import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
+import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
+import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
 import java.io.File
@@ -80,53 +80,49 @@ fun QuoteImportDialog(
         ) {
             Scaffold(
                 topBar = {
-                    SearchBar(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        onSearch = { },
-                        active = false,
-                        onActiveChange = { },
-                        placeholder = { Text("Search by quote or author...") },
-                        leadingIcon = {
-                            IconButton(onClick = onDismiss) {
-                                Icon(PhosphorArrowLeft, contentDescription = null)
-                            }
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(PhosphorTrash, contentDescription = null)
+                    Column {
+                        BuQuToolbar(
+                            title = "Import Quotes",
+                            backButton = {
+                                IconButton(onClick = onDismiss) {
+                                    Icon(PhosphorX, null)
+                                }
+                            },
+                            actions = {
+                                IconButton(onClick = {
+                                    val results = mutableQuotes.filter { it.isSelected }
+                                    onImportQuotes(results)
+                                }) {
+                                    Icon(PhosphorCheck, null)
                                 }
                             }
-                        }
-                    ) {}
-                },
-                bottomBar = {
-                    Surface(tonalElevation = 8.dp) {
-                        Button(
-                            onClick = {
-                                val results = mutableQuotes.filter { it.isSelected }
-                                onImportQuotes(results)
-                            },
+                        )
+
+                        SearchBar(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Text("Import Selected Quote")
-                        }
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onSearch = { },
+                            active = false,
+                            onActiveChange = { },
+                            placeholder = { Text("Search by quote or author...") },
+                            leadingIcon = {
+                                IconButton(onClick = onDismiss) {
+                                    Icon(PhosphorMagnifyingGlass, contentDescription = null)
+                                }
+                            },
+                        ) {}
                     }
-                }
+                },
             ) { paddingValues ->
                 Column(modifier = Modifier.padding(paddingValues)) {
-                    Divider()
-
                     if (filteredQuotes.isEmpty()) {
-                        TasksEmptyContent(icon = PhosphorNote, message = R.string.note_not_found)
+                        TasksEmptyContent(
+                            icon = PhosphorLightbulb,
+                            message = R.string.note_not_found
+                        )
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
