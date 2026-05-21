@@ -36,4 +36,5 @@ sealed interface BoardDialogState {
 
     object ImportQuotes : BoardDialogState
     object ImportBooks : BoardDialogState
+    object BoardSettings: BoardDialogState
 }

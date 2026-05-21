@@ -22,12 +22,15 @@ import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.core.icons.PhosphorX
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.ConfirmImportBooks
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.ConfirmImportQuotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.ConfirmInputNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.ConfirmUpsertBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.DeleteBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.DragNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnCheckBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDeleteSelectedNotes
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDragEnd
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetBoardSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetNoteSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenDialog
@@ -41,6 +44,7 @@ import com.app.zuludin.buqu.ui.board.editor.component.BoardInfiniteCanvas
 import com.app.zuludin.buqu.ui.board.editor.component.BottomBarEditor
 import com.app.zuludin.buqu.ui.board.editor.component.NoteCardComponent
 import com.app.zuludin.buqu.ui.board.editor.component.RopeComponent
+import com.app.zuludin.buqu.ui.board.editor.dialog.BoardSettingDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.BookImportDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteInputDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.QuoteImportDialog
@@ -154,10 +158,9 @@ fun BoardEditorScreen(
                 onSaveImage = { path, color ->
                     viewModel.onAction(ConfirmInputNote(null, "", path, color))
                 },
-                onTidyUp = { viewModel.onAction(OnTidyUpNotes) },
-                onToggleGrid = { viewModel.onAction(OnToggleGrid) },
                 showDelete = uiState.board != null,
-                onDeleteBoard = { viewModel.onAction(DeleteBoard) }
+                onDeleteBoard = { viewModel.onAction(DeleteBoard) },
+                onBoardSettings = { viewModel.onAction(OnOpenDialog(BoardDialogState.BoardSettings)) }
             )
         },
     ) { paddingValues ->
@@ -192,13 +195,19 @@ fun BoardEditorScreen(
         BoardDialogState.ImportBooks -> BookImportDialog(
             books = uiState.books,
             onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
-            onImportBooks = { viewModel.onAction(BoardEditorAction.ConfirmImportBooks(it)) },
+            onImportBooks = { viewModel.onAction(ConfirmImportBooks(it)) },
         )
 
         BoardDialogState.ImportQuotes -> QuoteImportDialog(
             quotes = uiState.quotes,
             onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
-            onImportQuotes = { viewModel.onAction(BoardEditorAction.ConfirmImportQuotes(it)) },
+            onImportQuotes = { viewModel.onAction(ConfirmImportQuotes(it)) },
+        )
+
+        BoardDialogState.BoardSettings -> BoardSettingDialog(
+            onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
+            onTidyUp = { viewModel.onAction(OnTidyUpNotes) },
+            onToggleGrid = { viewModel.onAction(OnToggleGrid) },
         )
     }
 }
@@ -232,7 +241,7 @@ private fun BoardEditorContent(
                 },
                 onGetSize = { size -> onAction(OnGetNoteSize(size, index)) },
                 onSelect = { noteId -> onAction(OnSelectNote(noteId)) },
-                onDragEnd = { onAction(BoardEditorAction.OnDragEnd) },
+                onDragEnd = { onAction(OnDragEnd) },
                 onUpdateNote = { note ->
                     onAction(
                         OnOpenDialog(

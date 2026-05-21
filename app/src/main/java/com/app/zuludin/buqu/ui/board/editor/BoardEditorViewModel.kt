@@ -250,12 +250,18 @@ class BoardEditorViewModel @Inject constructor(
         val tidiedResult =
             engine.tidyUpNotes(notes, ropes, boardSize.width.toFloat(), boardSize.height.toFloat())
 
-        _uiState.update { it.copy(notes = tidiedResult.notes, ropes = tidiedResult.ropes) }
+        _uiState.update {
+            it.copy(
+                notes = tidiedResult.notes,
+                ropes = tidiedResult.ropes,
+                dialogState = BoardDialogState.None
+            )
+        }
     }
 
     private fun toggleGrid() {
         val isShown = _uiState.value.showGrid
-        _uiState.update { it.copy(showGrid = !isShown) }
+        _uiState.update { it.copy(showGrid = !isShown, dialogState = BoardDialogState.None) }
     }
 
     fun createConnectedRope(rope: Rope) {
