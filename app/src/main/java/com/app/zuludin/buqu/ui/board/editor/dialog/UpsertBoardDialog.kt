@@ -14,13 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -51,62 +49,57 @@ fun SaveBoardDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) 
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
         content = {
-            Surface(
-                shape = RoundedCornerShape(28.dp),
-                tonalElevation = 6.dp
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text("Please enter a name and pick a color for this board.")
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text("Please enter a name and pick a color for this board.")
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    TextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        placeholder = { Text("Board Name") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = { Text("Board Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                    Text("Board Theme", style = MaterialTheme.typography.labelLarge)
-                    Spacer(modifier = Modifier.height(12.dp))
+                Text("Board Theme", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        colors.forEach { color ->
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(Color("#${color}".toColorInt()))
-                                    .border(
-                                        width = if (selectedColor == color) 3.dp else 1.dp,
-                                        color = if (selectedColor == color) MaterialTheme.colorScheme.primary
-                                        else Color.LightGray.copy(alpha = 0.5f),
-                                        shape = CircleShape
-                                    )
-                                    .clickable { selectedColor = color },
-                            )
-                        }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    colors.forEach { color ->
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color("#${color}".toColorInt()))
+                                .border(
+                                    width = if (selectedColor == color) 3.dp else 1.dp,
+                                    color = if (selectedColor == color) MaterialTheme.colorScheme.primary
+                                    else Color.LightGray.copy(alpha = 0.5f),
+                                    shape = CircleShape
+                                )
+                                .clickable { selectedColor = color },
+                        )
                     }
+                }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+                Row(
+                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+                ) {
+                    Button(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = { if (name.isNotBlank()) onConfirm(name, selectedColor) },
+                        enabled = name.isNotBlank()
                     ) {
-                        Button(onClick = onDismiss) {
-                            Text("Cancel")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(
-                            onClick = { if (name.isNotBlank()) onConfirm(name, selectedColor) },
-                            enabled = name.isNotBlank()
-                        ) {
-                            Text("Save")
-                        }
+                        Text("Save")
                     }
                 }
             }
