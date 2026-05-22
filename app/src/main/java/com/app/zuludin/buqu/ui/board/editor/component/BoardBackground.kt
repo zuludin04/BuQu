@@ -30,7 +30,7 @@ private fun GridBackgroundComponent(scale: Float, offset: Offset) {
 
         for (x in startX.toInt()..size.width.toInt() step scaledGridSize.toInt()) {
             drawLine(
-                color = Color.LightGray.copy(alpha = 0.2f),
+                color = Color.LightGray.copy(alpha = 0.8f),
                 start = Offset(x.toFloat(), 0f),
                 end = Offset(x.toFloat(), size.height),
                 strokeWidth = 1f
@@ -38,7 +38,7 @@ private fun GridBackgroundComponent(scale: Float, offset: Offset) {
         }
         for (y in startY.toInt()..size.height.toInt() step scaledGridSize.toInt()) {
             drawLine(
-                color = Color.LightGray.copy(alpha = 0.2f),
+                color = Color.LightGray.copy(alpha = 0.8f),
                 start = Offset(0f, y.toFloat()),
                 end = Offset(size.width, y.toFloat()),
                 strokeWidth = 1f
@@ -59,7 +59,7 @@ private fun DotBackgroundComponent(scale: Float, offset: Offset) {
         for (x in startX.toInt()..size.width.toInt() step scaledGridSize.toInt()) {
             for (y in startY.toInt()..size.height.toInt() step scaledGridSize.toInt()) {
                 drawCircle(
-                    color = Color.Gray.copy(alpha = 0.3f),
+                    color = Color.Gray.copy(alpha = 0.8f),
                     radius = 2f,
                     center = Offset(x = x.toFloat(), y = y.toFloat())
                 )
