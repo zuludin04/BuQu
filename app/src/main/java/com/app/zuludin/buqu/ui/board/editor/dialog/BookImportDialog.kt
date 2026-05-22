@@ -35,11 +35,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import com.app.zuludin.buqu.R
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
+import com.app.zuludin.buqu.core.icons.PhosphorBookOpen
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
 import com.app.zuludin.buqu.core.icons.PhosphorMagnifyingGlass
 import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.domain.models.Book
+import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,76 +102,93 @@ fun BookImportDialog(
                     }
                 }
             ) { paddingValues ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(filteredBooks) { book ->
-                        Card(
+                Column(modifier = Modifier.padding(paddingValues)) {
+                    if (filteredBooks.isEmpty()) {
+                        TasksEmptyContent(
+                            icon = PhosphorBookOpen,
+                            message = R.string.book_empty
+                        )
+                    } else {
+                        LazyColumn(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val selection = mutableBooks.map {
-                                        if (it.bookId == book.bookId) {
-                                            val isSelected = it.isSelected
-                                            it.copy(isSelected = !isSelected)
-                                        } else {
-                                            it
-                                        }
-                                    }
-                                    mutableBooks = selection
-                                },
-                            border = if (book.isSelected) BorderStroke(
-                                2.dp,
-                                MaterialTheme.colorScheme.primary
-                            ) else null
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                AsyncImage(
-                                    model = book.cover,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(50.dp, 75.dp),
-                                    contentScale = ContentScale.Crop
+                            items(filteredBooks) { book ->
+                                BookImportItem(
+                                    book = book,
+                                    onClick = {
+                                        val selection = mutableBooks.map {
+                                            if (it.bookId == book.bookId) {
+                                                val isSelected = it.isSelected
+                                                it.copy(isSelected = !isSelected)
+                                            } else {
+                                                it
+                                            }
+                                        }
+                                        mutableBooks = selection
+                                    }
                                 )
-                                Column(
-                                    modifier = Modifier
-                                        .padding(start = 12.dp)
-                                        .weight(1f)
-                                ) {
-                                    Text(
-                                        text = book.title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = book.author,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                if (book.isSelected) {
-                                    Icon(
-                                        PhosphorCheck,
-                                        null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(end = 8.dp)
-                                    )
-                                }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BookImportItem(book: Book, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        border = if (book.isSelected) BorderStroke(
+            2.dp,
+            MaterialTheme.colorScheme.primary
+        ) else null
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = book.cover,
+                contentDescription = null,
+                modifier = Modifier.size(50.dp, 75.dp),
+                contentScale = ContentScale.Crop
+            )
+            Column(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = book.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = book.author,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (book.isSelected) {
+                Icon(
+                    PhosphorCheck,
+                    null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
             }
         }
     }
