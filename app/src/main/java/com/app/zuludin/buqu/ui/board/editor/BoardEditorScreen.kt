@@ -46,6 +46,7 @@ import com.app.zuludin.buqu.ui.board.editor.component.NoteCardComponent
 import com.app.zuludin.buqu.ui.board.editor.component.RopeComponent
 import com.app.zuludin.buqu.ui.board.editor.dialog.BoardSettingDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.BookImportDialog
+import com.app.zuludin.buqu.ui.board.editor.dialog.NoteConnectDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteInputDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.QuoteImportDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.SaveBoardDialog
@@ -88,6 +89,10 @@ fun BoardEditorScreen(
                         }
                     }
                 }
+
+                BoardEditorEvent.NoteAlreadyConnected -> scaffoldState.snackbarHostState.showSnackbar(
+                    "Notes already connected by rope"
+                )
             }
         }
     }
@@ -137,9 +142,7 @@ fun BoardEditorScreen(
                     viewModel.onAction(
                         OnOpenDialog(
                             BoardDialogState.InputNoteDialog(
-                                null,
-                                text,
-                                ""
+                                null, text, ""
                             )
                         )
                     )
@@ -148,9 +151,7 @@ fun BoardEditorScreen(
                     viewModel.onAction(
                         OnOpenDialog(
                             BoardDialogState.InputNoteDialog(
-                                null,
-                                "",
-                                ""
+                                null, "", ""
                             )
                         )
                     )
@@ -160,7 +161,7 @@ fun BoardEditorScreen(
                 },
                 showDelete = uiState.board != null,
                 onDeleteBoard = { viewModel.onAction(DeleteBoard) },
-                onBoardSettings = { viewModel.onAction(OnOpenDialog(BoardDialogState.BoardSettings)) }
+                onBoardSettings = { viewModel.onAction(OnOpenDialog(BoardDialogState.BoardSettings)) },
             )
         },
     ) { paddingValues ->
@@ -209,14 +210,24 @@ fun BoardEditorScreen(
             onTidyUp = { viewModel.onAction(OnTidyUpNotes) },
             onToggleGrid = { viewModel.onAction(OnToggleGrid) },
         )
+
+        is BoardDialogState.ConnectNoteDialog -> NoteConnectDialog(
+            source = dialog.note,
+            notes = uiState.notes,
+            onDismiss = { target ->
+                if (target != null) {
+                    viewModel.onAction(BoardEditorAction.OnConfirmConnectNote(dialog.note, target))
+                } else {
+                    viewModel.onAction(OnOpenDialog(BoardDialogState.None))
+                }
+            },
+        )
     }
 }
 
 @Composable
 private fun BoardEditorContent(
-    modifier: Modifier,
-    uiState: BoardEditorState,
-    onAction: (BoardEditorAction) -> Unit
+    modifier: Modifier, uiState: BoardEditorState, onAction: (BoardEditorAction) -> Unit
 ) {
     BoardInfiniteCanvas(
         modifier = modifier,
@@ -246,16 +257,16 @@ private fun BoardEditorContent(
                     onAction(
                         OnOpenDialog(
                             BoardDialogState.InputNoteDialog(
-                                note.noteId,
-                                note.title,
-                                note.color
+                                note.noteId, note.title, note.color
                             )
                         )
                     )
                 },
                 isHighlighted = uiState.noteHighlightId == n.noteId,
                 scale = it.zoom,
-            )
+                onConnectNote = { nt ->
+                    onAction(OnOpenDialog(BoardDialogState.ConnectNoteDialog(nt)))
+                })
         }
     }
 }

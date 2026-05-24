@@ -27,7 +27,8 @@ sealed interface BoardEditorAction {
     data class ConfirmUpsertBoard(val name: String, val color: String) : BoardEditorAction
     data class OnGetBoardSize(val size: IntSize) : BoardEditorAction
     data class OnGetNoteSize(val size: IntSize, val index: Int) : BoardEditorAction
-    data class ConfirmImportBooks(val books: List<Book>): BoardEditorAction
-    data class ConfirmImportQuotes(val quotes: List<Quote>): BoardEditorAction
+    data class ConfirmImportBooks(val books: List<Book>) : BoardEditorAction
+    data class ConfirmImportQuotes(val quotes: List<Quote>) : BoardEditorAction
     object OnDragEnd : BoardEditorAction
+    data class OnConfirmConnectNote(val source: NoteCard, val target: NoteCard) : BoardEditorAction
 }

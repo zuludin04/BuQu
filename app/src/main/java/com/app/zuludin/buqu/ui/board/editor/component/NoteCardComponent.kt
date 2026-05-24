@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -46,12 +47,14 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.app.zuludin.buqu.core.compose.neumorphicShadow
+import com.app.zuludin.buqu.core.icons.PhosphorLinkSimpleHorizontal
 import com.app.zuludin.buqu.core.icons.PhosphorPencil
 import com.app.zuludin.buqu.core.utils.darken
 import com.app.zuludin.buqu.domain.models.NoteCard
@@ -67,6 +70,7 @@ fun NoteCardComponent(
     onGetSize: (IntSize) -> Unit,
     onDragEnd: () -> Unit,
     onUpdateNote: (NoteCard) -> Unit,
+    onConnectNote: (NoteCard) -> Unit,
     scale: Float,
 ) {
     var isDragging by remember { mutableStateOf(false) }
@@ -203,8 +207,17 @@ fun NoteCardComponent(
                         Row(modifier = Modifier.padding(8.dp)) {
                             OverflowMenuItem(
                                 title = "Edit",
+                                icon = PhosphorPencil,
                                 onClick = {
                                     onUpdateNote(note)
+                                    showMenu = !showMenu
+                                },
+                            )
+                            OverflowMenuItem(
+                                title = "Connect",
+                                icon = PhosphorLinkSimpleHorizontal,
+                                onClick = {
+                                    onConnectNote(note)
                                     showMenu = !showMenu
                                 },
                             )
@@ -217,16 +230,21 @@ fun NoteCardComponent(
 }
 
 @Composable
-fun OverflowMenuItem(title: String, onClick: () -> Unit) {
+fun OverflowMenuItem(title: String, icon: ImageVector, onClick: () -> Unit) {
     Column(
-        modifier = Modifier.clickable { onClick() },
+        modifier = Modifier
+            .size(64.dp)
+            .clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(8.dp))
-        Icon(PhosphorPencil, null)
+        Icon(icon, null)
         Text(
             title,
             Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

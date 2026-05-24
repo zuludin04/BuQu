@@ -36,5 +36,6 @@ sealed interface BoardDialogState {
 
     object ImportQuotes : BoardDialogState
     object ImportBooks : BoardDialogState
-    object BoardSettings: BoardDialogState
+    object BoardSettings : BoardDialogState
+    data class ConnectNoteDialog(val note: NoteCard) : BoardDialogState
 }

@@ -93,6 +93,10 @@ class BoardEditorViewModel @Inject constructor(
             is BoardEditorAction.ConfirmImportBooks -> importBooks(action.books)
             is BoardEditorAction.ConfirmImportQuotes -> importQuotes(action.quotes)
             BoardEditorAction.OnDragEnd -> onDragEnd()
+            is BoardEditorAction.OnConfirmConnectNote -> confirmConnectNote(
+                action.source,
+                action.target
+            )
         }
     }
 
@@ -344,5 +348,17 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         _uiState.update { it.copy(noteHighlightId = null, previewRope = null) }
+    }
+
+    private fun confirmConnectNote(source: NoteCard, target: NoteCard?) {
+        val rope = createPreviewRope(source, target)
+        val connectedRopes =
+            _uiState.value.ropes.filter { (source.noteId == it.sourceNoteId || source.noteId == it.targetNoteId) && (target?.noteId == it.sourceNoteId || target?.noteId == it.targetNoteId) }
+        if (connectedRopes.isNotEmpty()) {
+            viewModelScope.launch { _eventChannel.send(BoardEditorEvent.NoteAlreadyConnected) }
+        } else {
+            createConnectedRope(rope!!)
+        }
+        _uiState.update { it.copy(dialogState = BoardDialogState.None) }
     }
 }
