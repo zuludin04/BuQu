@@ -137,4 +137,21 @@ class BoardLocalDataSourceTest {
         val result = localSource.getBoardTotalNote().first()
         assertEquals(localBoards.size, result.size)
     }
+
+    @Test
+    fun deleteNotesInBoard_success() = runTest {
+        localSource.deleteNotesInBoard(boardId)
+        val notes = localSource.getNotesByBoard(boardId)
+        assertTrue(notes.isEmpty())
+    }
+
+    @Test
+    fun deleteRopesInBoard_success() = runTest {
+        val rope = DataDummy.generateRopeDummy(boardId, localNotes[0].noteId, localNotes[1].noteId)
+        localSource.upsertRopes(listOf(rope))
+
+        localSource.deleteRopesInBoard(boardId)
+        val ropes = localSource.getConnectedRopes(boardId)
+        assertTrue(ropes.isEmpty())
+    }
 }

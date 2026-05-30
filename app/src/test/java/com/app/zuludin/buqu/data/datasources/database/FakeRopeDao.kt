@@ -32,6 +32,10 @@ class FakeRopeDao(initialRopes: List<RopeEntity>? = emptyList()) : RopeDao {
     override suspend fun getConnectedRopes(boardId: String): List<ConnectedRopeEntity> {
         return ropes?.filter { it.boardId == boardId }?.map { it.toConnected() } ?: emptyList()
     }
+
+    override suspend fun deleteRopesInBoard(boardId: String) {
+        _ropes?.entries?.removeIf { it.value.boardId == boardId }
+    }
 }
 
 fun RopeEntity.toConnected(): ConnectedRopeEntity {

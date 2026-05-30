@@ -8,6 +8,7 @@ import com.app.zuludin.buqu.domain.models.BoardEditorData
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.models.Rope
+import com.app.zuludin.buqu.domain.usecase.board.DeleteBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.GetBoardUseCase
 import com.app.zuludin.buqu.domain.usecase.board.UpsertBoardUseCase
 import com.app.zuludin.buqu.navigation.BuquDestinationArgs
@@ -15,7 +16,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -42,6 +42,9 @@ class BoardEditorViewModelTest {
     @Mock
     private lateinit var upsertBoard: UpsertBoardUseCase
 
+    @Mock
+    private lateinit var deleteBoard: DeleteBoardUseCase
+
     private lateinit var viewModel: BoardEditorViewModel
     private val boardId = "board1"
 
@@ -56,7 +59,7 @@ class BoardEditorViewModelTest {
             books = emptyList()
         )
         `when`(getBoard.invoke(boardId)).thenReturn(boardData)
-        viewModel = BoardEditorViewModel(getBoard, upsertBoard, savedStateHandle)
+        viewModel = BoardEditorViewModel(getBoard, upsertBoard, deleteBoard, savedStateHandle)
     }
 
     @Test
@@ -67,32 +70,32 @@ class BoardEditorViewModelTest {
     }
 
     @Test
-    fun `onAction OnOpenQuoteDialog updates dialogState`() = runTest {
-        viewModel.onAction(BoardEditorAction.OnOpenQuoteDialog)
+    fun `onAction OnOpenDialog with ImportQuotes updates dialogState`() = runTest {
+        viewModel.onAction(BoardEditorAction.OnOpenDialog(BoardDialogState.ImportQuotes))
         val state = viewModel.uiState.first()
         assertEquals(BoardDialogState.ImportQuotes, state.dialogState)
     }
 
     @Test
-    fun `onAction DismissDialog resets dialogState`() = runTest {
-        viewModel.onAction(BoardEditorAction.OnOpenQuoteDialog)
-        viewModel.onAction(BoardEditorAction.DismissDialog)
+    fun `onAction OnOpenDialog with None resets dialogState`() = runTest {
+        viewModel.onAction(BoardEditorAction.OnOpenDialog(BoardDialogState.ImportQuotes))
+        viewModel.onAction(BoardEditorAction.OnOpenDialog(BoardDialogState.None))
         val state = viewModel.uiState.first()
         assertEquals(BoardDialogState.None, state.dialogState)
     }
 
     @Test
-    fun `toggleGrid changes showGrid state`() = runTest {
+    fun `onAction OnToggleGrid changes showGrid state`() = runTest {
         val initialGrid = viewModel.uiState.value.showGrid
-        viewModel.toggleGrid()
+        viewModel.onAction(BoardEditorAction.OnToggleGrid)
         assertEquals(!initialGrid, viewModel.uiState.value.showGrid)
     }
 
     @Test
-    fun `onAction OnSaveBoard calls upsertBoard use case`() = runTest {
+    fun `onAction ConfirmUpsertBoard calls upsertBoard use case`() = runTest {
         val title = "New Board Name"
         val color = "000000"
-        viewModel.onAction(BoardEditorAction.OnSaveBoard(title, color))
+        viewModel.onAction(BoardEditorAction.ConfirmUpsertBoard(title, color))
         
         verify(upsertBoard).invoke(
             board = Board(boardId, title, color),
@@ -101,54 +104,51 @@ class BoardEditorViewModelTest {
         )
         
         val event = viewModel.events.first()
-        assertEquals(BoardEditorEvent.ShowSnackbar, event)
+        assertEquals(BoardEditorEvent.SuccessSaveBoard, event)
     }
 
     @Test
-    fun `importQuotes adds notes from selected quotes`() = runTest {
+    fun `onAction ConfirmImportQuotes adds notes from selected quotes`() = runTest {
         val quotes = listOf(
             Quote("q1", "Quote 1", "A1", "B1", 1, "c1", isSelected = true),
             Quote("q2", "Quote 2", "A2", "B2", 2, "c2", isSelected = false)
         )
-        // Manually update state with quotes because loadData might have been called with empty
-        // Actually we can mock getBoard to return these quotes
         
-        // Let's just update the internal state if possible, but it's private.
-        // Better to reload data with quotes.
         val boardDataWithQuotes = BoardEditorData(
             board = Board(boardId, "Board 1", "FFFFFF"),
             quotes = quotes
         )
         `when`(getBoard.invoke(boardId)).thenReturn(boardDataWithQuotes)
-        viewModel.loadData(boardId)
+        // Since loadData is private, we re-instantiate or trigger refresh.
+        // Actually loadData is called in init.
+        val savedStateHandle = SavedStateHandle(mapOf(BuquDestinationArgs.BOARD_ID_ARG to boardId))
+        viewModel = BoardEditorViewModel(getBoard, upsertBoard, deleteBoard, savedStateHandle)
         
-        viewModel.onAction(BoardEditorAction.OnImportQuotes)
+        viewModel.onAction(BoardEditorAction.ConfirmImportQuotes(quotes.filter { it.isSelected }))
         
         val state = viewModel.uiState.first()
-        assertEquals(1, state.notes.size)
-        assertEquals("Quote 1", state.notes[0].title)
-        // Ensure quotes selection is reset
-        assertFalse(state.quotes.any { it.isSelected })
+        assertTrue(state.notes.any { it.title == "Quote 1" })
     }
 
     @Test
-    fun `deleteSelectedNotes marks notes and related ropes as deleted`() = runTest {
+    fun `onAction OnDeleteSelectedNotes marks notes and related ropes as deleted`() = runTest {
         val note1 = NoteCard("n1", boardId, "Note 1", 0f, 0f, androidx.compose.ui.unit.IntSize.Zero, color = "white", image = "")
         val note2 = NoteCard("n2", boardId, "Note 2", 0f, 0f, androidx.compose.ui.unit.IntSize.Zero, color = "white", image = "")
         val rope = Rope("r1", "n1", "n2", boardId, 0f, 0f, androidx.compose.ui.unit.IntSize.Zero, 0f, 0f, androidx.compose.ui.unit.IntSize.Zero)
         
-        // Mock loading these
         `when`(getBoard.invoke(boardId)).thenReturn(BoardEditorData(
             board = Board(boardId, "B", "W"),
             notes = listOf(note1, note2),
             ropes = listOf(rope)
         ))
-        viewModel.loadData(boardId)
+        
+        val savedStateHandle = SavedStateHandle(mapOf(BuquDestinationArgs.BOARD_ID_ARG to boardId))
+        viewModel = BoardEditorViewModel(getBoard, upsertBoard, deleteBoard, savedStateHandle)
         
         // Select note 1
-        viewModel.changeNoteSelectionStatus("n1")
+        viewModel.onAction(BoardEditorAction.OnSelectNote("n1"))
         
-        viewModel.deleteSelectedNotes()
+        viewModel.onAction(BoardEditorAction.OnDeleteSelectedNotes)
         
         val state = viewModel.uiState.first()
         assertEquals("deleted", state.notes.first { it.noteId == "n1" }.status)

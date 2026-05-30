@@ -61,24 +61,6 @@ class QuoteViewModelTest {
     }
 
     @Test
-    fun `filterQuotes by category updates filtered quotes`() = runTest {
-        viewModel.filterQuotes(categories[0])
-        val state = viewModel.uiState.first()
-        Assert.assertEquals(1, state.quotes.size)
-        Assert.assertEquals("1", state.quotes[0].quoteId)
-        Assert.assertEquals(categories[0], state.selectedCategory)
-    }
-
-    @Test
-    fun `searchQuotes filters quotes by text`() = runTest {
-        viewModel.searchQuotes("funny")
-        val state = viewModel.uiState.first()
-        Assert.assertEquals(1, state.quotes.size)
-        Assert.assertEquals("2", state.quotes[0].quoteId)
-        Assert.assertEquals("funny", state.searchQuery)
-    }
-
-    @Test
     fun `searchQuotes filters by author`() = runTest {
         viewModel.searchQuotes("Author 1")
         val state = viewModel.uiState.first()

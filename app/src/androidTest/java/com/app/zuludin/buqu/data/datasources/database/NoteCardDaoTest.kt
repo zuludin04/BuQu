@@ -92,4 +92,18 @@ class NoteCardDaoTest {
         assertTrue(connectedNotes.any { it.noteId == notes[0].noteId })
         assertTrue(connectedNotes.any { it.noteId == notes[1].noteId })
     }
+
+    @Test
+    fun deleteNotesInBoard_success() = runTest {
+        val board = DataDummy.generateBoardDummy()[0]
+        database.boardDao().upsert(board)
+
+        val notes = DataDummy.generateNoteCardDummy(board.boardId)
+        database.noteCardDao().upsert(notes)
+
+        database.noteCardDao().deleteNotesInBoard(board.boardId)
+
+        val actual = database.noteCardDao().getNotesByBoard(board.boardId)
+        assertTrue(actual.isEmpty())
+    }
 }

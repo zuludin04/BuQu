@@ -32,6 +32,10 @@ class FakeNoteCardDao(initialNotes: List<NoteCardEntity>? = emptyList()) : NoteC
     override suspend fun getNotesByBoard(boardId: String): List<ConnectedNoteCardEntity> {
         return notes?.filter { it.boardId == boardId }?.map { it.toConnected() } ?: emptyList()
     }
+
+    override suspend fun deleteNotesInBoard(boardId: String) {
+        _notes?.entries?.removeIf { it.value.boardId == boardId }
+    }
 }
 
 fun NoteCardEntity.toConnected(): ConnectedNoteCardEntity {

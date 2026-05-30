@@ -84,4 +84,21 @@ class RopeDaoTest {
         assertEquals(1, actual.size)
         assertEquals(rope2.ropeId, actual[0].ropeId)
     }
+
+    @Test
+    fun deleteRopesInBoard_success() = runTest {
+        val board = DataDummy.generateBoardDummy()[0]
+        database.boardDao().upsert(board)
+
+        val notes = DataDummy.generateNoteCardDummy(board.boardId)
+        database.noteCardDao().upsert(notes)
+
+        val rope = DataDummy.generateRopeDummy(board.boardId, notes[0].noteId, notes[1].noteId)
+        database.ropeDao().upsert(listOf(rope))
+
+        database.ropeDao().deleteRopesInBoard(board.boardId)
+
+        val actual = database.ropeDao().getConnectedRopes(board.boardId)
+        assertTrue(actual.isEmpty())
+    }
 }

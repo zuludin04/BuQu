@@ -13,17 +13,6 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="showInitialEmptyState()">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">
-          <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/zuludin/.android/avd/Pixel_7a_API_33.avd" />
-            </handle>
-          </Target>
-        </DropdownSelection>
-        <DialogSelection />
-      </SelectionState>
       <SelectionState runConfigName="checkQuoteItemIsClickable()">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-12-28T05:56:25.189803Z">

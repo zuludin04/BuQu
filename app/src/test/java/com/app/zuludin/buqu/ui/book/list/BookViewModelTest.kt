@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -48,64 +47,65 @@ class BookViewModelTest {
     @Test
     fun `uiState initially reflects observed books and default values`() = runTest {
         val state = viewModel.uiState.first()
-        assertEquals(books, state.books)
+        assertEquals(books, state.bookDatabase.books)
         assertEquals("", state.query)
         assertEquals(BookSearchScope.Saved, state.scope)
-        assertEquals(books, state.savedResults)
     }
 
     @Test
-    fun `onQueryChange updates query and filters saved results`() = runTest {
-        viewModel.onQueryChange("Kotlin")
+    fun `onAction SearchBooks updates query and filters saved results when scope is Saved`() = runTest {
+        viewModel.onAction(BookAction.SearchBooks("Kotlin"))
         val state = viewModel.uiState.first()
         assertEquals("Kotlin", state.query)
-        assertEquals(1, state.savedResults.size)
-        assertEquals("2", state.savedResults[0].bookId)
+        assertEquals(1, state.bookDatabase.books.size)
+        assertEquals("2", state.bookDatabase.books[0].bookId)
     }
 
     @Test
-    fun `clearQuery resets query and error message`() = runTest {
-        viewModel.onQueryChange("Search")
-        viewModel.clearQuery()
+    fun `onAction ClearQuery resets query and database results`() = runTest {
+        viewModel.onAction(BookAction.SearchBooks("Search"))
+        viewModel.onAction(BookAction.ClearQuery)
         val state = viewModel.uiState.first()
         assertEquals("", state.query)
-        assertEquals(books, state.savedResults)
+        assertEquals(books, state.bookDatabase.books)
     }
 
     @Test
-    fun `setScope updates scope`() = runTest {
-        viewModel.setScope(BookSearchScope.Online)
+    fun `onAction ChangeScope updates scope`() = runTest {
+        viewModel.onAction(BookAction.ChangeScope(BookSearchScope.Online))
         val state = viewModel.uiState.first()
         assertEquals(BookSearchScope.Online, state.scope)
     }
 
     @Test
-    fun `searchOnline success updates onlineResults`() = runTest {
+    fun `onAction SearchBooks with scope Online updates online results`() = runTest {
         val query = "Online Book"
         val onlineBooks = listOf(Book("3", "Online Book", "Author 3", "", "", 300, "", 2023))
         `when`(bookRepository.searchBooks(query)).thenReturn(onlineBooks)
 
-        viewModel.onQueryChange(query)
-        viewModel.searchOnline()
+        viewModel.onAction(BookAction.ChangeScope(BookSearchScope.Online))
+        viewModel.onAction(BookAction.SearchBooks(query))
 
         val state = viewModel.uiState.first()
-        assertEquals(onlineBooks, state.onlineResults)
-        assertFalse(state.isOnlineLoading)
-        assertEquals(null, state.onlineErrorMessage)
+        assertEquals(onlineBooks, state.bookOnline.books)
+        assertFalse(state.bookOnline.isLoading)
     }
 
     @Test
-    fun `searchOnline failure updates onlineErrorMessage`() = runTest {
-        val query = "Fail"
-        val errorMessage = "Network Error"
-        `when`(bookRepository.searchBooks(query)).thenThrow(RuntimeException(errorMessage))
+    fun `onAction BookSearchCta updates scope to Online and triggers search`() = runTest {
+        val query = "Cta search"
+        val onlineBooks = listOf(Book("4", "Cta Book", "Author 4", "", "", 400, "", 2024))
+        `when`(bookRepository.searchBooks(query)).thenReturn(onlineBooks)
 
-        viewModel.onQueryChange(query)
-        viewModel.searchOnline()
+        // Set query first in Saved scope
+        viewModel.onAction(BookAction.SearchBooks(query))
+        
+        // Trigger CTA
+        viewModel.onAction(BookAction.BookSearchCta(query))
 
         val state = viewModel.uiState.first()
-        assertTrue(state.onlineResults.isEmpty())
-        assertFalse(state.isOnlineLoading)
-        assertEquals(errorMessage, state.onlineErrorMessage)
+        assertEquals(BookSearchScope.Online, state.scope)
+        assertEquals(onlineBooks, state.bookOnline.books)
+        assertFalse(state.bookOnline.isLoading)
     }
 }

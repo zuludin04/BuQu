@@ -17,9 +17,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.app.zuludin.buqu.HiltTestActivity
 import com.app.zuludin.buqu.core.theme.BuQuTheme
-import com.app.zuludin.buqu.data.repositories.BookRepository
-import com.app.zuludin.buqu.data.repositories.CategoryRepository
 import com.app.zuludin.buqu.data.repositories.QuoteRepository
+import com.app.zuludin.buqu.domain.usecase.quote.GetDetailQuoteUseCase
+import com.app.zuludin.buqu.domain.usecase.quote.UpsertQuoteUseCase
 import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteScreen
 import com.app.zuludin.buqu.ui.quote.upsert.UpsertQuoteViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -51,29 +51,29 @@ class UpsertQuoteScreenTest {
     lateinit var quoteRepo: QuoteRepository
 
     @Inject
-    lateinit var categoryRepo: CategoryRepository
+    lateinit var getDetailQuote: GetDetailQuoteUseCase
 
     @Inject
-    lateinit var bookRepo: BookRepository
+    lateinit var upsertQuote: UpsertQuoteUseCase
 
     @Before
     fun init() {
         hiltRule.inject()
 
-//        composeTestRule.setContent {
-//            BuQuTheme {
-//                Surface {
-//                    UpsertQuoteScreen(
-//                        viewModel = UpsertQuoteViewModel(
-//                            quoteRepo, categoryRepo, bookRepo, SavedStateHandle()
-//                        ),
-//                        topAppBarTitle = "",
-//                        onBack = {},
-//                        onShareQuote = {},
-//                    )
-//                }
-//            }
-//        }
+        composeTestRule.setContent {
+            BuQuTheme {
+                Surface {
+                    UpsertQuoteScreen(
+                        viewModel = UpsertQuoteViewModel(
+                            quoteRepo, getDetailQuote, upsertQuote, SavedStateHandle()
+                        ),
+                        topAppBarTitle = "",
+                        onBack = {},
+                        onShareQuote = { _, _, _ -> },
+                    )
+                }
+            }
+        }
     }
 
     @Test
