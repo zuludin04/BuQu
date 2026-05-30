@@ -81,7 +81,12 @@ class BookRepository @Inject constructor(
 
     override suspend fun searchBooks(query: String): List<Book> = withContext(dispatcher) {
         try {
-            val response = apiService.searchBooks(query, BuildConfig.GOOGLE_BOOKS_API_KEY)
+            val response =
+                apiService.searchBooks(
+                    query = "intitle:\"$query\"",
+                    key = BuildConfig.GOOGLE_BOOKS_API_KEY,
+                    maxResults = 30,
+                )
             response.items?.map { item ->
                 val year = item.volumeInfo.publishedDate
                     ?.take(4)
