@@ -8,6 +8,8 @@ interface IBookRepository {
 
     suspend fun getBookById(bookId: String): Book?
 
+    fun observeSavedBook(bookId: String): Flow<Boolean>
+
     suspend fun upsertBook(
         bookId: String?,
         title: String,

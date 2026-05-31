@@ -14,6 +14,8 @@ class BookLocalDataSource @Inject constructor(
 
     override suspend fun getBookById(bookId: String): BookEntity? = bookDao.getById(bookId)
 
+    override fun observeSavedBook(bookId: String): Flow<Boolean> = bookDao.observeSavedBook(bookId)
+
     override suspend fun upsertBook(book: BookEntity) = bookDao.upsert(book)
 
     override suspend fun deleteBook(bookId: String) = bookDao.deleteById(bookId)

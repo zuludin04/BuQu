@@ -14,6 +14,9 @@ interface BookDao {
     @Query("SELECT * FROM book WHERE bookId = :bookId")
     suspend fun getById(bookId: String): BookEntity?
 
+    @Query("SELECT EXISTS(SELECT 1 FROM book WHERE bookId = :bookId)")
+    fun observeSavedBook(bookId: String): Flow<Boolean>
+
     @Upsert
     suspend fun upsert(book: BookEntity)
 

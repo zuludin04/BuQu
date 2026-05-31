@@ -35,6 +35,10 @@ class BookRepository @Inject constructor(
         return localBook ?: getDetailBook(bookId)
     }
 
+    override fun observeSavedBook(bookId: String): Flow<Boolean> {
+        return localSource.observeSavedBook(bookId)
+    }
+
     override suspend fun upsertBook(
         bookId: String?,
         title: String,
