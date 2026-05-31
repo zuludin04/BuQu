@@ -45,7 +45,7 @@ object BuquDestinationArgs {
 object BuquDestinations {
     const val QUOTES_ROUTE = QUOTES_SCREEN
     const val UPSERT_QUOTE_ROUTE =
-        "$UPSERT_QUOTE_SCREEN/{$TITLE_ARG}?$QUOTE_ID_ARG={$QUOTE_ID_ARG}"
+        "$UPSERT_QUOTE_SCREEN/{$TITLE_ARG}?$QUOTE_ID_ARG={$QUOTE_ID_ARG}&$BOOK_ID_ARG={$BOOK_ID_ARG}"
     const val SETTING_ROUTE = SETTING_SCREEN
     const val CATEGORY_SELECT_ROUTE = CATEGORY_SELECT_SCREEN
     const val SHARE_ROUTE =
@@ -59,10 +59,17 @@ object BuquDestinations {
 }
 
 class BuquNavigationActions(private val navController: NavController) {
-    fun navigateToUpsertQuote(title: String, quoteId: String?) {
-        navController.navigate("$UPSERT_QUOTE_SCREEN/$title".let {
-            if (quoteId != null) "$it?$QUOTE_ID_ARG=$quoteId" else it
-        })
+    fun navigateToUpsertQuote(title: String, quoteId: String?, bookId: String?) {
+        var path = "$UPSERT_QUOTE_SCREEN/$title"
+        if (quoteId != null) {
+            path += "?$QUOTE_ID_ARG=$quoteId"
+        }
+
+        if (bookId != null) {
+            path += "?$BOOK_ID_ARG=$bookId"
+        }
+
+        navController.navigate(path)
     }
 
     fun navigateToCategorySelect() {

@@ -55,6 +55,7 @@ fun MainScreen(
                             when (currentRoute) {
                                 BuquDestinations.QUOTES_ROUTE -> navActions.navigateToUpsertQuote(
                                     "Insert Quote",
+                                    null,
                                     null
                                 )
 

@@ -55,7 +55,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun BookDetailScreen(
     onBack: () -> Unit,
     topAppBarTitle: String,
-    onAddQuoteClick: () -> Unit,
+    onAddQuoteClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit,
     onEditBook: (String, String) -> Unit,
     viewModel: BookDetailViewModel = hiltViewModel()
@@ -108,7 +108,7 @@ fun BookDetailScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             state = uiState,
-            onAddQuoteClick = onAddQuoteClick,
+            onAddQuoteClick = { onAddQuoteClick(uiState.book!!.bookId) },
             onQuoteClick = onQuoteClick,
             onSaveBook = viewModel::saveBook
         )

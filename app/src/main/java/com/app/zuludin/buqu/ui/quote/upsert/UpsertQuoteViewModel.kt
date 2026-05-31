@@ -28,6 +28,7 @@ class UpsertQuoteViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val quoteId: String? = savedStateHandle[BuquDestinationArgs.QUOTE_ID_ARG]
+    private val bookId: String? = savedStateHandle[BuquDestinationArgs.BOOK_ID_ARG]
 
     private val _uiState = MutableStateFlow(UpsertQuoteState())
     val uiState: StateFlow<UpsertQuoteState> = _uiState
@@ -140,6 +141,11 @@ class UpsertQuoteViewModel @Inject constructor(
         viewModelScope.launch {
             getDetailQuote.invoke(quoteId).let { data ->
                 _uiState.update {
+                    var currentBook: String? = null
+                    if (bookId != null) {
+                        val book = data.books.first { book -> book.bookId == bookId }
+                        currentBook = book.bookId
+                    }
                     if (data.quote != null) {
                         val categoryId =
                             data.quote.categoryId.ifBlank { data.categories.first().categoryId }
@@ -156,7 +162,10 @@ class UpsertQuoteViewModel @Inject constructor(
                         )
                     } else {
                         it.copy(
-                            field = QuoteInputField(categoryId = data.categories.first().categoryId),
+                            field = QuoteInputField(
+                                categoryId = data.categories.first().categoryId,
+                                bookId = currentBook
+                            ),
                             books = data.books,
                             categories = data.categories
                         )

@@ -45,7 +45,7 @@ fun BuquNavGraph(
     ) {
         composable(BuquDestinations.QUOTES_ROUTE) {
             QuoteScreen(
-                onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
+                onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it, null) },
             )
         }
         composable(BuquDestinations.BOARD_ROUTE) {
@@ -63,7 +63,11 @@ fun BuquNavGraph(
                 navArgument(TITLE_ARG) { type = NavType.StringType },
                 navArgument(QUOTE_ID_ARG) {
                     type = NavType.StringType; nullable = true
-                })
+                },
+                navArgument(BOOK_ID_ARG) {
+                    type = NavType.StringType; nullable = true
+                }
+            )
         ) { entry ->
             val title = entry.arguments?.getString(TITLE_ARG)
             UpsertQuoteScreen(
@@ -139,8 +143,8 @@ fun BuquNavGraph(
             BookDetailScreen(
                 onBack = { navController.popBackStack() },
                 topAppBarTitle = title ?: "",
-                onAddQuoteClick = { navActions.navigateToUpsertQuote("Add Quote", null) },
-                onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it) },
+                onAddQuoteClick = { navActions.navigateToUpsertQuote("Add Quote", null, it) },
+                onQuoteClick = { navActions.navigateToUpsertQuote("Update Quote", it, null) },
                 onEditBook = { title, bookId ->
                     navActions.navigateToBookEdit(title, bookId)
                 }
