@@ -47,26 +47,22 @@ import com.app.zuludin.buqu.ui.quote.list.TasksEmptyContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookImportDialog(
-    onDismiss: () -> Unit,
-    onImportBooks: (List<Book>) -> Unit,
-    books: List<Book>
+    onDismiss: () -> Unit, onImportBooks: (List<Book>) -> Unit, books: List<Book>
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var mutableBooks by remember { mutableStateOf(books) }
 
     val filteredBooks = mutableBooks.filter { book ->
-        book.title.contains(searchQuery, ignoreCase = true) ||
-                book.author.contains(searchQuery, ignoreCase = true)
+        book.title.contains(searchQuery, ignoreCase = true) || book.author.contains(
+            searchQuery,
+            ignoreCase = true
+        )
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Scaffold(
                 topBar = {
                     Column {
@@ -84,7 +80,7 @@ fun BookImportDialog(
                                 }) {
                                     Icon(PhosphorCheck, null)
                                 }
-                            }
+                            },
                         )
 
                         SearchBar(
@@ -100,19 +96,18 @@ fun BookImportDialog(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {}
                     }
-                }
+                },
             ) { paddingValues ->
-                Column(modifier = Modifier.padding(paddingValues)) {
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                ) {
                     if (filteredBooks.isEmpty()) {
-                        TasksEmptyContent(
-                            icon = PhosphorBookOpen,
-                            message = R.string.book_empty
-                        )
+                        TasksEmptyContent(icon = PhosphorBookOpen, message = R.string.book_empty)
                     } else {
                         LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(paddingValues),
+                            modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -129,7 +124,7 @@ fun BookImportDialog(
                                             }
                                         }
                                         mutableBooks = selection
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -147,8 +142,7 @@ private fun BookImportItem(book: Book, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         border = if (book.isSelected) BorderStroke(
-            2.dp,
-            MaterialTheme.colorScheme.primary
+            2.dp, MaterialTheme.colorScheme.primary
         ) else null
     ) {
         Row(
