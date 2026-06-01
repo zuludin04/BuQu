@@ -15,6 +15,7 @@ import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.Category
 import com.app.zuludin.buqu.domain.models.NoteCard
+import com.app.zuludin.buqu.domain.models.NoteType
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.models.Rope
 
@@ -85,7 +86,8 @@ fun NoteCard.toLocal() = NoteCardEntity(
     color = color,
     width = size.width,
     height = size.height,
-    image = image
+    image = image,
+    type = type.name
 )
 
 fun ConnectedNoteCardEntity.toExternal() = NoteCard(
@@ -96,7 +98,9 @@ fun ConnectedNoteCardEntity.toExternal() = NoteCard(
     boardId = boardId,
     color = color,
     size = IntSize(width, height),
-    image = image
+    image = image,
+    isConnected = isConnected == 1,
+    type = NoteType.valueOf(type)
 )
 
 @JvmName("externalToLocalNoteCard")

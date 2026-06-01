@@ -9,6 +9,7 @@ import com.app.zuludin.buqu.core.utils.BoardEngine
 import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.Book
 import com.app.zuludin.buqu.domain.models.NoteCard
+import com.app.zuludin.buqu.domain.models.NoteType
 import com.app.zuludin.buqu.domain.models.Quote
 import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.domain.usecase.board.DeleteBoardUseCase
@@ -130,7 +131,8 @@ class BoardEditorViewModel @Inject constructor(
         color: String,
         posX: Float? = null,
         posY: Float? = null,
-        isQuickAdd: Boolean = false
+        isQuickAdd: Boolean = false,
+        type: NoteType? = null
     ) {
         if (noteId == null) {
             val boardSize = _uiState.value.boardSize
@@ -151,6 +153,8 @@ class BoardEditorViewModel @Inject constructor(
 
             val worldPos = camera.screenToWorld(Offset(posX ?: rx, posY ?: ry))
 
+            val calculatedType = type ?: if (image.isNotEmpty()) NoteType.Image else NoteType.Text
+
             val note = NoteCard(
                 noteId = UUID.randomUUID().toString(),
                 boardId = boardId ?: currentBoardId,
@@ -160,7 +164,8 @@ class BoardEditorViewModel @Inject constructor(
                 color = color,
                 size = IntSize.Zero,
                 image = image,
-                isUpdate = isQuickAdd
+                isUpdate = isQuickAdd,
+                type = calculatedType
             )
 
             _uiState.update {
@@ -298,7 +303,14 @@ class BoardEditorViewModel @Inject constructor(
     private fun importQuotes(quotes: List<Quote>) {
         quotes.forEachIndexed { i, q ->
             val space = (i + 1) * 250f
-            upsertNote(null, q.quote, q.image, q.color, posX = space)
+            upsertNote(
+                null,
+                "${q.quote}-${q.author}",
+                q.image,
+                q.color,
+                posX = space,
+                type = NoteType.Quote
+            )
         }
 
         _uiState.update { it.copy(dialogState = BoardDialogState.None) }
@@ -309,10 +321,11 @@ class BoardEditorViewModel @Inject constructor(
             val space = (i + 1) * 250f
             upsertNote(
                 noteId = null,
-                title = b.title,
-                image = "",
+                title = "${b.author}-${b.title}",
+                image = b.cover,
                 color = "E1F5FE",
-                posX = space
+                posX = space,
+                type = NoteType.Book
             )
         }
 

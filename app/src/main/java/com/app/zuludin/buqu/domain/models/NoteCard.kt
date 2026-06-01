@@ -13,5 +13,14 @@ data class NoteCard(
     val color: String,
     val image: String,
     val isUpdate: Boolean = false,
-    val status: String = "active"
+    val isConnected: Boolean = false,
+    val status: String = "active",
+    val type: NoteType = NoteType.Text
 )
+
+enum class NoteType {
+    Text,
+    Image,
+    Quote,
+    Book
+}

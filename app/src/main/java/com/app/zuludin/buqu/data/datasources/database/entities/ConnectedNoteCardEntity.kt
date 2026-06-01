@@ -31,5 +31,8 @@ data class ConnectedNoteCardEntity(
     var image: String,
 
     @ColumnInfo("isConnected")
-    var isConnected: Int
+    var isConnected: Int,
+
+    @ColumnInfo("type")
+    var type: String = "Text"
 )

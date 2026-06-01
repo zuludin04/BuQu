@@ -32,5 +32,8 @@ data class NoteCardEntity(
     var boardId: String,
 
     @ColumnInfo("image")
-    var image: String
+    var image: String,
+
+    @ColumnInfo("type")
+    var type: String = "Text"
 )

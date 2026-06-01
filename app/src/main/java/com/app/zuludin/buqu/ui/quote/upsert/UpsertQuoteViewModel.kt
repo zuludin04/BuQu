@@ -64,11 +64,12 @@ class UpsertQuoteViewModel @Inject constructor(
     private fun saveQuote() = viewModelScope.launch {
         try {
             val field = _uiState.value.field
+            val book = _uiState.value.books.firstOrNull { it.bookId == field.bookId }
             val quote = Quote(
                 quoteId = "",
                 quote = field.quote,
-                author = "",
-                book = "",
+                author = book?.author ?: "",
+                book = book?.title ?: "",
                 page = 0,
                 categoryId = field.categoryId,
                 bookId = field.bookId,
