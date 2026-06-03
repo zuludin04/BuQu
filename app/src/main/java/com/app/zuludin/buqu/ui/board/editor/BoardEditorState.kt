@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.Book
@@ -38,4 +39,6 @@ sealed interface BoardDialogState {
     object ImportBooks : BoardDialogState
     object BoardSettings : BoardDialogState
     data class ConnectNoteDialog(val note: NoteCard) : BoardDialogState
+    data class NotePopup(val popupPosition: Offset, val noteWidth: Int, val cameraZoom: Float) :
+        BoardDialogState
 }

@@ -29,13 +29,13 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.ConfirmUpsertBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.DeleteBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.DragNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnCheckBoard
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnConfirmConnectNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDeleteSelectedNotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDragEnd
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetBoardSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetNoteSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenDialog
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnResetSelectedNotes
-import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnSelectNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnTidyUpNotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnToggleGrid
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.TransformCamera
@@ -46,6 +46,7 @@ import com.app.zuludin.buqu.ui.board.editor.component.NoteCardComponent
 import com.app.zuludin.buqu.ui.board.editor.component.RopeComponent
 import com.app.zuludin.buqu.ui.board.editor.dialog.BoardSettingDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.BookImportDialog
+import com.app.zuludin.buqu.ui.board.editor.dialog.NoteActionDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteConnectDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteInputDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.QuoteImportDialog
@@ -216,11 +217,18 @@ fun BoardEditorScreen(
             notes = uiState.notes,
             onDismiss = { target ->
                 if (target != null) {
-                    viewModel.onAction(BoardEditorAction.OnConfirmConnectNote(dialog.note, target))
+                    viewModel.onAction(OnConfirmConnectNote(dialog.note, target))
                 } else {
                     viewModel.onAction(OnOpenDialog(BoardDialogState.None))
                 }
             },
+        )
+
+        is BoardDialogState.NotePopup -> NoteActionDialog(
+            popupPosition = dialog.popupPosition,
+            noteWidth = dialog.noteWidth,
+            cameraZoom = dialog.cameraZoom,
+            onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
         )
     }
 }
@@ -236,6 +244,7 @@ private fun BoardEditorContent(
         backgroundType = BackgroundType.Line,
         onGetBoardSize = { onAction(OnGetBoardSize(it)) },
         openDialog = { onAction(OnOpenDialog(it)) },
+        onCanvasTap = { onAction(BoardEditorAction.OnCanvasTap(it)) },
         showGrid = uiState.showGrid,
     ) {
         uiState.ropes.filter { r -> r.status == "active" }.forEach { rope ->
@@ -251,22 +260,9 @@ private fun BoardEditorContent(
                     onAction(DragNote(n, pos))
                 },
                 onGetSize = { size -> onAction(OnGetNoteSize(size, index)) },
-                onSelect = { noteId -> onAction(OnSelectNote(noteId)) },
                 onDragEnd = { onAction(OnDragEnd) },
-                onUpdateNote = { note ->
-                    onAction(
-                        OnOpenDialog(
-                            BoardDialogState.InputNoteDialog(
-                                note.noteId, note.title, note.color
-                            )
-                        )
-                    )
-                },
                 isHighlighted = uiState.noteHighlightId == n.noteId,
-                scale = it.zoom,
-                onConnectNote = { nt ->
-                    onAction(OnOpenDialog(BoardDialogState.ConnectNoteDialog(nt)))
-                })
+            )
         }
     }
 }

@@ -98,6 +98,8 @@ class BoardEditorViewModel @Inject constructor(
                 action.source,
                 action.target
             )
+
+            is BoardEditorAction.OnCanvasTap -> handleCanvasTap(action.offset)
         }
     }
 
@@ -373,5 +375,33 @@ class BoardEditorViewModel @Inject constructor(
             createConnectedRope(rope!!)
         }
         _uiState.update { it.copy(dialogState = BoardDialogState.None) }
+    }
+
+    private fun handleCanvasTap(offset: Offset) {
+        val notes = _uiState.value.notes
+        val ropes = _uiState.value.ropes
+        val result = engine.onTap(offset, notes, ropes)
+        val zoom = _uiState.value.camera.zoom
+
+        if (result != null) {
+            if (result.selectedNoteId != null) {
+                val note = notes.first { it.noteId == result.selectedNoteId }
+                val position = Offset(note.posX, note.posY)
+                _uiState.update {
+                    it.copy(
+                        dialogState = BoardDialogState.NotePopup(
+                            position * zoom,
+                            note.size.width,
+                            zoom
+                        )
+                    )
+                }
+            }
+
+//            if (result.selectedRopeId != null) {
+//                val rope = ropes.first { it.ropeId == result.selectedRopeId }
+//
+//            }
+        }
     }
 }

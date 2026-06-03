@@ -3,14 +3,12 @@ package com.app.zuludin.buqu.core.utils
 import androidx.compose.ui.geometry.Offset
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
+import kotlin.math.max
 import kotlin.math.sqrt
 
 class BoardEngine {
     fun drag(
-        note: NoteCard,
-        notes: List<NoteCard>,
-        ropes: List<Rope>,
-        worldPos: Offset
+        note: NoteCard, notes: List<NoteCard>, ropes: List<Rope>, worldPos: Offset
     ): BoardEngineResult {
         val ns = notes.map { n ->
             if (n.noteId == note.noteId) {
@@ -28,9 +26,7 @@ class BoardEngine {
     }
 
     private fun updateRopePosition(
-        noteId: String,
-        ropes: List<Rope>,
-        position: Offset
+        noteId: String, ropes: List<Rope>, position: Offset
     ): List<Rope> {
         return ropes.map { r ->
             if (r.sourceNoteId == noteId) {
@@ -44,14 +40,10 @@ class BoardEngine {
     }
 
     private fun highlightNearestNode(
-        current: Offset,
-        notes: List<NoteCard>,
-        ropes: List<Rope>,
-        note: NoteCard
+        current: Offset, notes: List<NoteCard>, ropes: List<Rope>, note: NoteCard
     ): NoteCard? {
         val offset = Offset(
-            x = current.x + note.size.width / 2f,
-            y = current.y + note.size.height / 2f
+            x = current.x + note.size.width / 2f, y = current.y + note.size.height / 2f
         )
         val nearest = findNearestNode(offset, notes, note.noteId)
 
@@ -81,8 +73,7 @@ class BoardEngine {
             if (node.noteId == excludeId) return@forEach
 
             val nodeCenter = Offset(
-                node.posX + node.size.width / 2f,
-                node.posY + node.size.height / 2f
+                node.posX + node.size.width / 2f, node.posY + node.size.height / 2f
             )
 
             val dx = nodeCenter.x - current.x
@@ -100,10 +91,7 @@ class BoardEngine {
     }
 
     fun tidyUpNotes(
-        notes: List<NoteCard>,
-        ropes: List<Rope>,
-        boardWidth: Float,
-        boardHeight: Float
+        notes: List<NoteCard>, ropes: List<Rope>, boardWidth: Float, boardHeight: Float
     ): BoardEngineResult {
         if (notes.isEmpty()) return BoardEngineResult()
 
@@ -161,10 +149,77 @@ class BoardEngine {
 
         return BoardEngineResult(notes = tidiedNotes, ropes = tidiedRopes)
     }
+
+    fun onTap(position: Offset, notes: List<NoteCard>, ropes: List<Rope>): BoardEngineResult? {
+        val note = findNote(position, notes)
+        if (note != null) {
+            return BoardEngineResult(selectedNoteId = note.noteId)
+        }
+
+        val rope = findRope(position, ropes)
+        if (rope != null) {
+            return BoardEngineResult(selectedRopeId = rope.ropeId)
+        }
+
+        return null
+    }
+
+    private fun findNote(tap: Offset, notes: List<NoteCard>): NoteCard? {
+        return notes.asReversed().firstOrNull { note ->
+            val left = note.posX
+            val top = note.posY
+            val right = left + note.size.width
+            val bottom = top + note.size.height
+            tap.x in left..right && tap.y in top..bottom
+        }
+    }
+
+    private fun findRope(tap: Offset, ropes: List<Rope>): Rope? {
+        return ropes.asReversed().firstOrNull { rope ->
+            val sourceSize = rope.sourceSize
+            val targetSize = rope.targetSize
+            val initialRope = Offset(rope.sourceX, rope.sourceY)
+            val targetRope = Offset(rope.targetX, rope.targetY)
+            val startCenterOffset = Offset(
+                sourceSize.width / 2f, sourceSize.height / 2f
+            )
+            val targetCenterOffset = Offset(
+                targetSize.width / 2f, targetSize.height / 2f
+            )
+            val start = initialRope + startCenterOffset
+            val end = targetRope + targetCenterOffset
+            val touchRadius = max(8f * 2f, 24f / 1)
+            val distance = distancePointToSegment(tap, start, end)
+            distance < touchRadius
+        }
+    }
+
+    private fun distancePointToSegment(
+        point: Offset, start: Offset, end: Offset
+    ): Float {
+        val dx = end.x - start.x
+        val dy = end.y - start.y
+
+        if (dx == 0f && dy == 0f) {
+            return (point - start).getDistance()
+        }
+
+        val t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy)
+
+        val clampedT = t.coerceIn(0f, 1f)
+
+        val nearest = Offset(
+            start.x + clampedT * dx, start.y + clampedT * dy
+        )
+
+        return (point - nearest).getDistance()
+    }
 }
 
 data class BoardEngineResult(
     val notes: List<NoteCard> = emptyList(),
     val ropes: List<Rope> = emptyList(),
-    val nearestNote: NoteCard? = null
+    val nearestNote: NoteCard? = null,
+    val selectedNoteId: String? = null,
+    val selectedRopeId: String? = null
 )

@@ -66,10 +66,10 @@ fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
     } else {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val startCenterOffset = Offset(
-                sourceSize.width.pxToDp().toPx() / 2, sourceSize.height.pxToDp().toPx() / 2
+                sourceSize.width / 2f, sourceSize.height / 2f
             )
             val targetCenterOffset = Offset(
-                targetSize.width.pxToDp().toPx() / 2, targetSize.height.pxToDp().toPx() / 2
+                targetSize.width / 2f, targetSize.height / 2f
             )
 
             val start = initialRope + startCenterOffset

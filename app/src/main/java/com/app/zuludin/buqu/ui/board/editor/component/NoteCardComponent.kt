@@ -1,11 +1,8 @@
 package com.app.zuludin.buqu.ui.board.editor.component
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,9 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -44,18 +39,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
 import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
-import com.app.zuludin.buqu.core.icons.PhosphorLinkSimpleHorizontal
-import com.app.zuludin.buqu.core.icons.PhosphorPencil
 import com.app.zuludin.buqu.core.utils.darken
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.NoteType
@@ -66,19 +55,11 @@ fun NoteCardComponent(
     note: NoteCard,
     isHighlighted: Boolean,
     onPositionChanged: (Offset) -> Unit,
-    onSelect: (String) -> Unit,
     onGetSize: (IntSize) -> Unit,
     onDragEnd: () -> Unit,
-    onUpdateNote: (NoteCard) -> Unit,
-    onConnectNote: (NoteCard) -> Unit,
-    scale: Float,
 ) {
     var isDragging by remember { mutableStateOf(false) }
-    var showMenu by remember { mutableStateOf(false) }
-    var popupPosition by remember { mutableStateOf(Offset.Zero) }
-
     val notePosition by rememberUpdatedState(Offset(note.posX, note.posY))
-    val cameraZoom by rememberUpdatedState(scale)
 
     val backgroundColor = Color("#${note.color}".toColorInt()).darken(
         when {
@@ -96,18 +77,6 @@ fun NoteCardComponent(
                 val scaleValue = if (isDragging || note.isSelected) 1.03f else 1f
                 scaleX = scaleValue
                 scaleY = scaleValue
-            }
-            .pointerInput(note.noteId) {
-                detectTapGestures(
-                    onTap = {
-                        onSelect(note.noteId)
-                        isDragging = false
-                    },
-                    onLongPress = {
-                        popupPosition = notePosition * cameraZoom
-                        showMenu = true
-                    },
-                )
             }
             .pointerInput(note.noteId) {
                 detectDragGestures(
@@ -136,72 +105,6 @@ fun NoteCardComponent(
                 .background(Color.White.copy(alpha = 0.6f), RoundedCornerShape(2.dp))
                 .align(Alignment.TopCenter)
                 .offset(y = (-6).dp)
-        )
-    }
-
-    if (showMenu) {
-        Popup(
-            popupPositionProvider = object : PopupPositionProvider {
-                override fun calculatePosition(
-                    anchorBounds: IntRect,
-                    windowSize: IntSize,
-                    layoutDirection: LayoutDirection,
-                    popupContentSize: IntSize
-                ): IntOffset {
-                    val y = (anchorBounds.top + popupPosition.y) - (popupContentSize.height + 16)
-                    val x =
-                        anchorBounds.left + popupPosition.x + ((note.size.width * cameraZoom) - popupContentSize.width) / 2
-                    return IntOffset(
-                        x.toInt(), y.toInt()
-                    )
-                }
-            },
-            onDismissRequest = { showMenu = !showMenu },
-            content = {
-                val menuBgColor = MaterialTheme.colorScheme.surfaceVariant
-                Box(contentAlignment = Alignment.TopCenter) {
-                    Canvas(
-                        modifier = Modifier
-                            .size(width = 20.dp, height = 10.dp)
-                            .align(Alignment.BottomCenter)
-                    ) {
-                        val path = Path().apply {
-                            moveTo(size.width / 2f, size.height)
-                            lineTo(0f, 0f)
-                            lineTo(size.width, 0f)
-                            close()
-                        }
-
-                        drawPath(path = path, color = menuBgColor)
-                    }
-
-                    Surface(
-                        modifier = Modifier.padding(bottom = 10.dp),
-                        color = menuBgColor,
-                        shape = RoundedCornerShape(12.dp),
-                        shadowElevation = 8.dp
-                    ) {
-                        Row(modifier = Modifier.padding(8.dp)) {
-                            OverflowMenuItem(
-                                title = "Edit",
-                                icon = PhosphorPencil,
-                                onClick = {
-                                    onUpdateNote(note)
-                                    showMenu = !showMenu
-                                },
-                            )
-                            OverflowMenuItem(
-                                title = "Connect",
-                                icon = PhosphorLinkSimpleHorizontal,
-                                onClick = {
-                                    onConnectNote(note)
-                                    showMenu = !showMenu
-                                },
-                            )
-                        }
-                    }
-                }
-            },
         )
     }
 }
@@ -358,25 +261,5 @@ private fun BookNote(note: NoteCard) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun OverflowMenuItem(title: String, icon: ImageVector, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .size(64.dp)
-            .clickable { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
-        Icon(icon, null)
-        Text(
-            title,
-            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }

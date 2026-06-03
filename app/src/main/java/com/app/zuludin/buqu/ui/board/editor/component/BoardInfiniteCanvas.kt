@@ -1,5 +1,6 @@
 package com.app.zuludin.buqu.ui.board.editor.component
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntSize
@@ -25,6 +28,7 @@ fun BoardInfiniteCanvas(
     onCameraChange: (Camera) -> Unit,
     onGetBoardSize: (IntSize) -> Unit,
     openDialog: (BoardDialogState) -> Unit,
+    onCanvasTap: (Offset) -> Unit,
     backgroundType: BackgroundType,
     content: @Composable BoxScope.(Camera) -> Unit
 ) {
@@ -51,6 +55,11 @@ fun BoardInfiniteCanvas(
                     translationX = camera.offset.x,
                     translationY = camera.offset.y,
                 )
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        onCanvasTap(it)
+                    })
+                }
         ) {
             content(camera)
         }
