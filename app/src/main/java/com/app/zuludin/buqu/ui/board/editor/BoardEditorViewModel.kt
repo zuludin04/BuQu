@@ -101,6 +101,10 @@ class BoardEditorViewModel @Inject constructor(
 
             is BoardEditorAction.OnCanvasTap -> handleCanvasTap(action.offset)
             is BoardEditorAction.OnDeleteRope -> deleteRope(action.ropeId)
+            is BoardEditorAction.OnUpdateRope -> updateRope(
+                action.ropeId,
+                action.color
+            )
         }
     }
 
@@ -401,7 +405,7 @@ class BoardEditorViewModel @Inject constructor(
                     it.copy(
                         dialogState = BoardDialogState.RopePopup(
                             camera.worldToScreen(rope.middlePoint()),
-                            result.selectedRopeId
+                            rope
                         ),
                         selectedRopeId = result.selectedRopeId
                     )
@@ -417,5 +421,18 @@ class BoardEditorViewModel @Inject constructor(
             if (it.ropeId == ropeId) it.copy(status = "deleted") else it
         }
         _uiState.update { it.copy(ropes = ropes, dialogState = BoardDialogState.None) }
+    }
+
+    private fun updateRope(ropeId: String, color: String) {
+        val ropes = _uiState.value.ropes.map {
+            if (it.ropeId == ropeId) it.copy(color = color) else it
+        }
+        _uiState.update {
+            it.copy(
+                dialogState = BoardDialogState.None,
+                ropes = ropes,
+                selectedRopeId = null
+            )
+        }
     }
 }

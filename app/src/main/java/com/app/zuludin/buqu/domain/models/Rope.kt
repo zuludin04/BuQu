@@ -14,7 +14,9 @@ data class Rope(
     val targetX: Float,
     val targetY: Float,
     val targetSize: IntSize,
-    val status: String = "active"
+    val color: String = "7D5260",
+    val status: String = "active",
+    val caption: String = "",
 ) {
     fun middlePoint(): Offset {
         val sourceSize = sourceSize

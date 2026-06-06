@@ -33,4 +33,6 @@ sealed interface BoardEditorAction {
     data class OnConfirmConnectNote(val source: NoteCard, val target: NoteCard) : BoardEditorAction
     data class OnCanvasTap(val offset: Offset) : BoardEditorAction
     data class OnDeleteRope(val ropeId: String) : BoardEditorAction
+    data class OnUpdateRope(val ropeId: String, val text: String, val color: String) :
+        BoardEditorAction
 }

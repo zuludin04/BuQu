@@ -28,7 +28,8 @@ import com.app.zuludin.buqu.ui.board.editor.component.PopupMenuItem
 fun RopeActionDialog(
     popupPosition: Offset,
     onDismiss: () -> Unit,
-    onDeleteRope: () -> Unit
+    onDeleteRope: () -> Unit,
+    onUpdateRope: () -> Unit
 ) {
     Popup(
         popupPositionProvider = object : PopupPositionProvider {
@@ -72,7 +73,7 @@ fun RopeActionDialog(
                         PopupMenuItem(
                             title = "Edit",
                             icon = PhosphorPencil,
-                            onClick = { onDismiss() },
+                            onClick = { onUpdateRope() },
                         )
                         PopupMenuItem(
                             title = "Delete",

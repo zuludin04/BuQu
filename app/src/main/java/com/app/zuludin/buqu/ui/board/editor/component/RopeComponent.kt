@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.core.graphics.toColorInt
 import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.Rope
 
@@ -31,7 +32,7 @@ fun RopeComponent(rope: Rope, isPreview: Boolean, isSelected: Boolean, curveLine
     val targetRope = Offset(rope.targetX, rope.targetY)
 
     val ropeAlpha = if (isPreview) 0.5f else if (isSelected) 1f else 0.8f
-    val ropeColor = Color(0xFF7D5260).copy(alpha = ropeAlpha)
+    val ropeColor = Color("#${rope.color}".toColorInt()).copy(alpha = ropeAlpha)
 
     if (curveLine) {
         val pathMeasure = remember { PathMeasure() }
