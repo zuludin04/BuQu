@@ -269,10 +269,14 @@ private fun BoardEditorContent(
         showGrid = uiState.showGrid,
     ) {
         uiState.ropes.filter { r -> r.status == "active" }.forEach { rope ->
-            RopeComponent(rope, false)
+            RopeComponent(rope, false, rope.ropeId == uiState.selectedRopeId)
         }
 
-        if (uiState.previewRope != null) RopeComponent(uiState.previewRope, true)
+        if (uiState.previewRope != null) RopeComponent(
+            rope = uiState.previewRope,
+            isPreview = true,
+            isSelected = false
+        )
 
         uiState.notes.filter { note -> note.status == "active" }.forEachIndexed { index, n ->
             NoteCardComponent(

@@ -18,7 +18,7 @@ import com.app.zuludin.buqu.core.utils.pxToDp
 import com.app.zuludin.buqu.domain.models.Rope
 
 @Composable
-fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
+fun RopeComponent(rope: Rope, isPreview: Boolean, isSelected: Boolean, curveLine: Boolean = false) {
     val progress = remember { Animatable(0f) }
 
     LaunchedEffect(rope.ropeId) {
@@ -29,6 +29,9 @@ fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
     val targetSize = rope.targetSize
     val initialRope = Offset(rope.sourceX, rope.sourceY)
     val targetRope = Offset(rope.targetX, rope.targetY)
+
+    val ropeAlpha = if (isPreview) 0.5f else if (isSelected) 1f else 0.8f
+    val ropeColor = Color(0xFF7D5260).copy(alpha = ropeAlpha)
 
     if (curveLine) {
         val pathMeasure = remember { PathMeasure() }
@@ -59,7 +62,7 @@ fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
 
             drawPath(
                 path = outPath,
-                color = Color(0xFF7D5260).copy(alpha = if (isPreview) 0.5f else 1f),
+                color = ropeColor,
                 style = Stroke(width = 8f, cap = StrokeCap.Round)
             )
         }
@@ -77,7 +80,7 @@ fun RopeComponent(rope: Rope, isPreview: Boolean, curveLine: Boolean = false) {
             val animatedEnd = start + (end - start) * progress.value
 
             drawLine(
-                color = Color(0xFF7D5260).copy(alpha = if (isPreview) 0.5f else 1f),
+                color = ropeColor,
                 start = start,
                 end = animatedEnd,
                 strokeWidth = 8f,

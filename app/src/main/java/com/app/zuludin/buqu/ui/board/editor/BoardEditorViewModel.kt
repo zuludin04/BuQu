@@ -402,10 +402,13 @@ class BoardEditorViewModel @Inject constructor(
                         dialogState = BoardDialogState.RopePopup(
                             camera.worldToScreen(rope.middlePoint()),
                             result.selectedRopeId
-                        )
+                        ),
+                        selectedRopeId = result.selectedRopeId
                     )
                 }
             }
+        } else {
+            _uiState.update { it.copy(selectedRopeId = null) }
         }
     }
 

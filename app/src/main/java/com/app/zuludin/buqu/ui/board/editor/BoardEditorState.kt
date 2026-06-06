@@ -21,6 +21,7 @@ data class BoardEditorState(
     val showGrid: Boolean = true,
     val boardSize: IntSize = IntSize.Zero,
     val noteHighlightId: String? = null,
+    val selectedRopeId: String? = null,
     val previewRope: Rope? = null,
 )
 
