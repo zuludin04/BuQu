@@ -227,9 +227,23 @@ fun BoardEditorScreen(
 
         is BoardDialogState.NotePopup -> NoteActionDialog(
             popupPosition = dialog.popupPosition,
-            noteWidth = dialog.noteWidth,
-            cameraZoom = dialog.cameraZoom,
             onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
+            onEditNote = {
+                viewModel.onAction(
+                    OnOpenDialog(
+                        BoardDialogState.InputNoteDialog(
+                            dialog.note.noteId,
+                            dialog.note.title,
+                            dialog.note.color
+                        )
+                    )
+                )
+            },
+            onConnectNote = {
+                viewModel.onAction(
+                    OnOpenDialog(BoardDialogState.ConnectNoteDialog(dialog.note))
+                )
+            },
         )
 
         is BoardDialogState.RopePopup -> RopeActionDialog(

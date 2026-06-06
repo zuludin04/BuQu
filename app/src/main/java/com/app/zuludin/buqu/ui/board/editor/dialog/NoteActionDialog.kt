@@ -26,10 +26,10 @@ import com.app.zuludin.buqu.ui.board.editor.component.PopupMenuItem
 
 @Composable
 fun NoteActionDialog(
-    onDismiss: () -> Unit,
     popupPosition: Offset,
-    noteWidth: Int,
-    cameraZoom: Float
+    onDismiss: () -> Unit,
+    onEditNote: () -> Unit,
+    onConnectNote: () -> Unit
 ) {
     Popup(
         popupPositionProvider = object : PopupPositionProvider {
@@ -40,11 +40,8 @@ fun NoteActionDialog(
                 popupContentSize: IntSize
             ): IntOffset {
                 val y = popupPosition.y - 16
-                val x =
-                    anchorBounds.left + popupPosition.x + ((noteWidth * cameraZoom) - popupContentSize.width) / 2
-                return IntOffset(
-                    x.toInt(), y.toInt()
-                )
+                val x = popupPosition.x - (popupContentSize.width * 0.5f)
+                return IntOffset(x.toInt(), y.toInt())
             }
         },
         onDismissRequest = { onDismiss() },
@@ -76,12 +73,12 @@ fun NoteActionDialog(
                         PopupMenuItem(
                             title = "Edit",
                             icon = PhosphorPencil,
-                            onClick = { onDismiss() },
+                            onClick = { onEditNote() },
                         )
                         PopupMenuItem(
                             title = "Connect",
                             icon = PhosphorLinkSimpleHorizontal,
-                            onClick = { onDismiss() },
+                            onClick = { onConnectNote() },
                         )
                     }
                 }

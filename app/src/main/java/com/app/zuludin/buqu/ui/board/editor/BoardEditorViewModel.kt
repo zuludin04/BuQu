@@ -382,44 +382,25 @@ class BoardEditorViewModel @Inject constructor(
         val notes = _uiState.value.notes
         val ropes = _uiState.value.ropes
         val result = engine.onTap(offset, notes, ropes)
-        val zoom = _uiState.value.camera.zoom
 
         if (result != null) {
             if (result.selectedNoteId != null) {
                 val note = notes.first { it.noteId == result.selectedNoteId }
-                val position = Offset(note.posX, note.posY)
+                val position = Offset(note.posX + (note.size.width * 0.5f), note.posY)
                 _uiState.update {
                     it.copy(
-                        dialogState = BoardDialogState.NotePopup(
-                            position * zoom,
-                            note.size.width,
-                            zoom
-                        )
+                        dialogState = BoardDialogState.NotePopup(position, note)
                     )
                 }
             }
 
             if (result.selectedRopeId != null) {
                 val rope = ropes.first { it.ropeId == result.selectedRopeId }
-                val sourceSize = rope.sourceSize
-                val targetSize = rope.targetSize
-                val initialRope = Offset(rope.sourceX, rope.sourceY)
-                val targetRope = Offset(rope.targetX, rope.targetY)
-                val startCenterOffset = Offset(
-                    sourceSize.width / 2f, sourceSize.height / 2f
-                )
-                val targetCenterOffset = Offset(
-                    targetSize.width / 2f, targetSize.height / 2f
-                )
-
-                val start = initialRope + startCenterOffset
-                val end = targetRope + targetCenterOffset
-                val middle = start + (end - start) * 0.5f
                 val camera = _uiState.value.camera
                 _uiState.update {
                     it.copy(
                         dialogState = BoardDialogState.RopePopup(
-                            camera.worldToScreen(middle),
+                            camera.worldToScreen(rope.middlePoint()),
                             result.selectedRopeId
                         )
                     )
