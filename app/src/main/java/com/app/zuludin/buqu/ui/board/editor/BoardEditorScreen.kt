@@ -235,6 +235,7 @@ fun BoardEditorScreen(
         is BoardDialogState.RopePopup -> RopeActionDialog(
             popupPosition = dialog.popupPosition,
             onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
+            onDeleteRope = { viewModel.onAction(BoardEditorAction.OnDeleteRope(dialog.ropeId)) }
         )
     }
 }

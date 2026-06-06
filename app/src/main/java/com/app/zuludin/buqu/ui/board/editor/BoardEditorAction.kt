@@ -31,5 +31,6 @@ sealed interface BoardEditorAction {
     data class ConfirmImportQuotes(val quotes: List<Quote>) : BoardEditorAction
     object OnDragEnd : BoardEditorAction
     data class OnConfirmConnectNote(val source: NoteCard, val target: NoteCard) : BoardEditorAction
-    data class OnCanvasTap(val offset: Offset): BoardEditorAction
+    data class OnCanvasTap(val offset: Offset) : BoardEditorAction
+    data class OnDeleteRope(val ropeId: String) : BoardEditorAction
 }

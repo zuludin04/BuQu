@@ -25,7 +25,11 @@ import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.ui.board.editor.component.PopupMenuItem
 
 @Composable
-fun RopeActionDialog(onDismiss: () -> Unit, popupPosition: Offset) {
+fun RopeActionDialog(
+    popupPosition: Offset,
+    onDismiss: () -> Unit,
+    onDeleteRope: () -> Unit
+) {
     Popup(
         popupPositionProvider = object : PopupPositionProvider {
             override fun calculatePosition(
@@ -73,7 +77,7 @@ fun RopeActionDialog(onDismiss: () -> Unit, popupPosition: Offset) {
                         PopupMenuItem(
                             title = "Delete",
                             icon = PhosphorTrash,
-                            onClick = { onDismiss() },
+                            onClick = { onDeleteRope() },
                         )
                     }
                 }

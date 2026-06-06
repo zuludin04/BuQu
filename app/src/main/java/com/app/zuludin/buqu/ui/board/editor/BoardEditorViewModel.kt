@@ -100,6 +100,7 @@ class BoardEditorViewModel @Inject constructor(
             )
 
             is BoardEditorAction.OnCanvasTap -> handleCanvasTap(action.offset)
+            is BoardEditorAction.OnDeleteRope -> deleteRope(action.ropeId)
         }
     }
 
@@ -417,10 +418,20 @@ class BoardEditorViewModel @Inject constructor(
                 val camera = _uiState.value.camera
                 _uiState.update {
                     it.copy(
-                        dialogState = BoardDialogState.RopePopup(camera.worldToScreen(middle))
+                        dialogState = BoardDialogState.RopePopup(
+                            camera.worldToScreen(middle),
+                            result.selectedRopeId
+                        )
                     )
                 }
             }
         }
+    }
+
+    private fun deleteRope(ropeId: String) {
+        val ropes = _uiState.value.ropes.map {
+            if (it.ropeId == ropeId) it.copy(status = "deleted") else it
+        }
+        _uiState.update { it.copy(ropes = ropes, dialogState = BoardDialogState.None) }
     }
 }
