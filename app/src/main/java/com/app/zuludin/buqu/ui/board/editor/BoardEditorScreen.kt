@@ -50,6 +50,7 @@ import com.app.zuludin.buqu.ui.board.editor.dialog.NoteActionDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteConnectDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteInputDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.QuoteImportDialog
+import com.app.zuludin.buqu.ui.board.editor.dialog.RopeActionDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.SaveBoardDialog
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -228,6 +229,11 @@ fun BoardEditorScreen(
             popupPosition = dialog.popupPosition,
             noteWidth = dialog.noteWidth,
             cameraZoom = dialog.cameraZoom,
+            onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
+        )
+
+        is BoardDialogState.RopePopup -> RopeActionDialog(
+            popupPosition = dialog.popupPosition,
             onDismiss = { viewModel.onAction(OnOpenDialog(BoardDialogState.None)) },
         )
     }

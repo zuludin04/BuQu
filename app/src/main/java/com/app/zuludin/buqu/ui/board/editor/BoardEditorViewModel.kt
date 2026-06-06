@@ -398,10 +398,29 @@ class BoardEditorViewModel @Inject constructor(
                 }
             }
 
-//            if (result.selectedRopeId != null) {
-//                val rope = ropes.first { it.ropeId == result.selectedRopeId }
-//
-//            }
+            if (result.selectedRopeId != null) {
+                val rope = ropes.first { it.ropeId == result.selectedRopeId }
+                val sourceSize = rope.sourceSize
+                val targetSize = rope.targetSize
+                val initialRope = Offset(rope.sourceX, rope.sourceY)
+                val targetRope = Offset(rope.targetX, rope.targetY)
+                val startCenterOffset = Offset(
+                    sourceSize.width / 2f, sourceSize.height / 2f
+                )
+                val targetCenterOffset = Offset(
+                    targetSize.width / 2f, targetSize.height / 2f
+                )
+
+                val start = initialRope + startCenterOffset
+                val end = targetRope + targetCenterOffset
+                val middle = start + (end - start) * 0.5f
+                val camera = _uiState.value.camera
+                _uiState.update {
+                    it.copy(
+                        dialogState = BoardDialogState.RopePopup(camera.worldToScreen(middle))
+                    )
+                }
+            }
         }
     }
 }

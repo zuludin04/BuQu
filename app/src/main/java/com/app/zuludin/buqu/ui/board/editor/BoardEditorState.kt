@@ -41,4 +41,6 @@ sealed interface BoardDialogState {
     data class ConnectNoteDialog(val note: NoteCard) : BoardDialogState
     data class NotePopup(val popupPosition: Offset, val noteWidth: Int, val cameraZoom: Float) :
         BoardDialogState
+
+    data class RopePopup(val popupPosition: Offset) : BoardDialogState
 }

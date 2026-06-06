@@ -20,17 +20,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
-import com.app.zuludin.buqu.core.icons.PhosphorLinkSimpleHorizontal
 import com.app.zuludin.buqu.core.icons.PhosphorPencil
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import com.app.zuludin.buqu.ui.board.editor.component.PopupMenuItem
 
 @Composable
-fun NoteActionDialog(
-    onDismiss: () -> Unit,
-    popupPosition: Offset,
-    noteWidth: Int,
-    cameraZoom: Float
-) {
+fun RopeActionDialog(onDismiss: () -> Unit, popupPosition: Offset) {
     Popup(
         popupPositionProvider = object : PopupPositionProvider {
             override fun calculatePosition(
@@ -39,12 +34,9 @@ fun NoteActionDialog(
                 layoutDirection: LayoutDirection,
                 popupContentSize: IntSize
             ): IntOffset {
-                val y = popupPosition.y - 16
-                val x =
-                    anchorBounds.left + popupPosition.x + ((noteWidth * cameraZoom) - popupContentSize.width) / 2
-                return IntOffset(
-                    x.toInt(), y.toInt()
-                )
+                val y = popupPosition.y - 16f
+                val x = popupPosition.x - (popupContentSize.width * 0.5f)
+                return IntOffset(x.toInt(), y.toInt())
             }
         },
         onDismissRequest = { onDismiss() },
@@ -79,8 +71,8 @@ fun NoteActionDialog(
                             onClick = { onDismiss() },
                         )
                         PopupMenuItem(
-                            title = "Connect",
-                            icon = PhosphorLinkSimpleHorizontal,
+                            title = "Delete",
+                            icon = PhosphorTrash,
                             onClick = { onDismiss() },
                         )
                     }
