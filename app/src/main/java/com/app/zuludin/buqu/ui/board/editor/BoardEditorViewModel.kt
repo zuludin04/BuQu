@@ -58,10 +58,7 @@ class BoardEditorViewModel @Inject constructor(
             }
 
             is BoardEditorAction.ConfirmInputNote -> upsertNote(
-                action.noteId,
-                action.content,
-                action.image,
-                action.color
+                action.noteId, action.content, action.image, action.color
             )
 
             is BoardEditorAction.TransformCamera -> updateCamera(action.offset, action.zoom)
@@ -82,8 +79,7 @@ class BoardEditorViewModel @Inject constructor(
             }
 
             is BoardEditorAction.ConfirmUpsertBoard -> upsertBoardAndCards(
-                action.name,
-                action.color
+                action.name, action.color
             )
 
             is BoardEditorAction.OnGetBoardSize -> {
@@ -95,16 +91,13 @@ class BoardEditorViewModel @Inject constructor(
             is BoardEditorAction.ConfirmImportQuotes -> importQuotes(action.quotes)
             BoardEditorAction.OnDragEnd -> onDragEnd()
             is BoardEditorAction.OnConfirmConnectNote -> confirmConnectNote(
-                action.source,
-                action.target
+                action.source, action.target
             )
 
             is BoardEditorAction.OnCanvasTap -> handleCanvasTap(action.offset)
             is BoardEditorAction.OnDeleteRope -> deleteRope(action.ropeId)
             is BoardEditorAction.OnUpdateRope -> updateRope(
-                action.ropeId,
-                action.text,
-                action.color
+                action.ropeId, action.text, action.color
             )
         }
     }
@@ -152,12 +145,10 @@ class BoardEditorViewModel @Inject constructor(
             val minY = boardSize.height * 0.2f
             val maxY = boardSize.height * 0.6f
 
-            val rx =
-                if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
-                    .toFloat() else minX
-            val ry =
-                if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
-                    .toFloat() else minY
+            val rx = if (maxX > minX) random.nextDouble(minX.toDouble(), maxX.toDouble())
+                .toFloat() else minX
+            val ry = if (maxY > minY) random.nextDouble(minY.toDouble(), maxY.toDouble())
+                .toFloat() else minY
 
             val worldPos = camera.screenToWorld(Offset(posX ?: rx, posY ?: ry))
 
@@ -194,19 +185,8 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun dragNoteCard(note: NoteCard, current: Offset) {
-        val activeNotes = _uiState.value.notes.filter { it.status == "active" }
-        val activeRopes = _uiState.value.ropes.filter { it.status == "active" }
-        val result = engine.drag(note, activeNotes, activeRopes, current)
-        val sourceNote = result.notes.first { it.noteId == note.noteId }
-        val previewRope = createPreviewRope(sourceNote, result.nearestNote)
-        _uiState.update {
-            it.copy(
-                notes = result.notes,
-                ropes = result.ropes,
-                noteHighlightId = result.nearestNote?.noteId,
-                previewRope = previewRope
-            )
-        }
+        val result = engine.drag(note, current, boardId ?: currentBoardId, _uiState.value)
+        _uiState.value = result
     }
 
     private fun changeNoteSelectionStatus(noteId: String) {
@@ -261,19 +241,7 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun tidyUpNotes() {
-        val boardSize = _uiState.value.boardSize
-        val notes = _uiState.value.notes
-        val ropes = _uiState.value.ropes
-        val tidiedResult =
-            engine.tidyUpNotes(notes, ropes, boardSize.width.toFloat(), boardSize.height.toFloat())
-
-        _uiState.update {
-            it.copy(
-                notes = tidiedResult.notes,
-                ropes = tidiedResult.ropes,
-                dialogState = BoardDialogState.None
-            )
-        }
+        _uiState.value = engine.tidyUpNotes(_uiState.value)
     }
 
     private fun toggleGrid() {
@@ -384,37 +352,7 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun handleCanvasTap(offset: Offset) {
-        val notes = _uiState.value.notes
-        val ropes = _uiState.value.ropes
-        val result = engine.onTap(offset, notes, ropes)
-
-        if (result != null) {
-            if (result.selectedNoteId != null) {
-                val note = notes.first { it.noteId == result.selectedNoteId }
-                val position = Offset(note.posX + (note.size.width * 0.5f), note.posY)
-                _uiState.update {
-                    it.copy(
-                        dialogState = BoardDialogState.NotePopup(position, note)
-                    )
-                }
-            }
-
-            if (result.selectedRopeId != null) {
-                val rope = ropes.first { it.ropeId == result.selectedRopeId }
-                val camera = _uiState.value.camera
-                _uiState.update {
-                    it.copy(
-                        dialogState = BoardDialogState.RopePopup(
-                            camera.worldToScreen(rope.middlePoint()),
-                            rope
-                        ),
-                        selectedRopeId = result.selectedRopeId
-                    )
-                }
-            }
-        } else {
-            _uiState.update { it.copy(selectedRopeId = null) }
-        }
+        _uiState.value = engine.onTap(offset, _uiState.value)
     }
 
     private fun deleteRope(ropeId: String) {
@@ -430,9 +368,7 @@ class BoardEditorViewModel @Inject constructor(
         }
         _uiState.update {
             it.copy(
-                dialogState = BoardDialogState.None,
-                ropes = ropes,
-                selectedRopeId = null
+                dialogState = BoardDialogState.None, ropes = ropes, selectedRopeId = null
             )
         }
     }

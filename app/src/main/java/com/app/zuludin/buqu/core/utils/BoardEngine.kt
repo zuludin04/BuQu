@@ -3,13 +3,22 @@ package com.app.zuludin.buqu.core.utils
 import androidx.compose.ui.geometry.Offset
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
+import com.app.zuludin.buqu.ui.board.editor.BoardDialogState
+import com.app.zuludin.buqu.ui.board.editor.BoardEditorState
+import java.util.UUID
 import kotlin.math.max
 import kotlin.math.sqrt
 
 class BoardEngine {
     fun drag(
-        note: NoteCard, notes: List<NoteCard>, ropes: List<Rope>, worldPos: Offset
-    ): BoardEngineResult {
+        note: NoteCard,
+        worldPos: Offset,
+        boardId: String,
+        state: BoardEditorState
+    ): BoardEditorState {
+        val notes = state.notes.filter { it.status == "active" }
+        val ropes = state.ropes.filter { it.status == "active" }
+
         val ns = notes.map { n ->
             if (n.noteId == note.noteId) {
                 n.copy(posX = n.posX + worldPos.x, posY = n.posY + worldPos.y)
@@ -21,8 +30,15 @@ class BoardEngine {
         val position = Offset(n.posX, n.posY)
         val rs = updateRopePosition(note.noteId, ropes, position)
         val nearest = highlightNearestNode(position, ns, rs, note)
+        val sourceNote = ns.first { it.noteId == note.noteId }
+        val previewRope = createPreviewRope(sourceNote, nearest, boardId)
 
-        return BoardEngineResult(notes = ns, ropes = rs, nearestNote = nearest)
+        return state.copy(
+            notes = ns,
+            ropes = rs,
+            noteHighlightId = nearest?.noteId,
+            previewRope = previewRope
+        )
     }
 
     private fun updateRopePosition(
@@ -90,10 +106,13 @@ class BoardEngine {
         return if (minDistance < threshold) nearest else null
     }
 
-    fun tidyUpNotes(
-        notes: List<NoteCard>, ropes: List<Rope>, boardWidth: Float, boardHeight: Float
-    ): BoardEngineResult {
-        if (notes.isEmpty()) return BoardEngineResult()
+    fun tidyUpNotes(state: BoardEditorState): BoardEditorState {
+        val notes = state.notes
+        val ropes = state.ropes
+        val boardWidth = state.boardSize.width
+        val boardHeight = state.boardSize.height
+
+        if (notes.isEmpty()) return state
 
         val columnCount = 3
         val padding = 32f
@@ -147,21 +166,37 @@ class BoardEngine {
             )
         }
 
-        return BoardEngineResult(notes = tidiedNotes, ropes = tidiedRopes)
+        return state.copy(
+            notes = tidiedNotes,
+            ropes = tidiedRopes,
+            dialogState = BoardDialogState.None
+        )
     }
 
-    fun onTap(position: Offset, notes: List<NoteCard>, ropes: List<Rope>): BoardEngineResult? {
-        val note = findNote(position, notes)
+    fun onTap(tapOffset: Offset, state: BoardEditorState): BoardEditorState {
+        val notes = state.notes
+        val ropes = state.ropes
+        val camera = state.camera
+
+        val note = findNote(tapOffset, notes)
         if (note != null) {
-            return BoardEngineResult(selectedNoteId = note.noteId)
+            val note = notes.first { it.noteId == note.noteId }
+            val position = Offset(note.posX + (note.size.width * 0.5f), note.posY)
+            return state.copy(dialogState = BoardDialogState.NotePopup(position, note))
         }
 
-        val rope = findRope(position, ropes)
+        val rope = findRope(tapOffset, ropes)
         if (rope != null) {
-            return BoardEngineResult(selectedRopeId = rope.ropeId)
+            return state.copy(
+                dialogState = BoardDialogState.RopePopup(
+                    camera.worldToScreen(rope.middlePoint()),
+                    rope
+                ),
+                selectedRopeId = rope.ropeId
+            )
         }
 
-        return null
+        return state.copy(dialogState = BoardDialogState.None, selectedRopeId = null)
     }
 
     private fun findNote(tap: Offset, notes: List<NoteCard>): NoteCard? {
@@ -214,12 +249,23 @@ class BoardEngine {
 
         return (point - nearest).getDistance()
     }
-}
 
-data class BoardEngineResult(
-    val notes: List<NoteCard> = emptyList(),
-    val ropes: List<Rope> = emptyList(),
-    val nearestNote: NoteCard? = null,
-    val selectedNoteId: String? = null,
-    val selectedRopeId: String? = null
-)
+    private fun createPreviewRope(source: NoteCard, target: NoteCard?, boardId: String): Rope? {
+        if (target != null) {
+            return Rope(
+                ropeId = UUID.randomUUID().toString(),
+                sourceNoteId = source.noteId,
+                targetNoteId = target.noteId,
+                boardId = boardId,
+                sourceX = source.posX,
+                sourceY = source.posY,
+                targetX = target.posX,
+                targetY = target.posY,
+                targetSize = target.size,
+                sourceSize = source.size
+            )
+        } else {
+            return null
+        }
+    }
+}
