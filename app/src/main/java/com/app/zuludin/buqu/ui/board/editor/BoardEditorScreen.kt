@@ -268,7 +268,7 @@ fun BoardEditorScreen(
 
         is UpdateRope -> UpdateRopeDialog(
             ropeId = dialog.rope.ropeId,
-            title = "",
+            title = dialog.rope.caption,
             color = dialog.rope.color,
             onDismiss = { viewModel.onAction(OnOpenDialog(None)) },
             onConfirm = { ropeId, title, color ->

@@ -103,6 +103,7 @@ class BoardEditorViewModel @Inject constructor(
             is BoardEditorAction.OnDeleteRope -> deleteRope(action.ropeId)
             is BoardEditorAction.OnUpdateRope -> updateRope(
                 action.ropeId,
+                action.text,
                 action.color
             )
         }
@@ -423,9 +424,9 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(ropes = ropes, dialogState = BoardDialogState.None) }
     }
 
-    private fun updateRope(ropeId: String, color: String) {
+    private fun updateRope(ropeId: String, caption: String, color: String) {
         val ropes = _uiState.value.ropes.map {
-            if (it.ropeId == ropeId) it.copy(color = color) else it
+            if (it.ropeId == ropeId) it.copy(color = color, caption = caption) else it
         }
         _uiState.update {
             it.copy(
