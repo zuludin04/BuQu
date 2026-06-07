@@ -37,5 +37,11 @@ data class ConnectedRopeEntity(
     var targetWidth: Int,
 
     @ColumnInfo("targetHeight")
-    var targetHeight: Int
+    var targetHeight: Int,
+
+    @ColumnInfo("color")
+    var color: String,
+
+    @ColumnInfo("caption")
+    var caption: String
 )

@@ -17,7 +17,7 @@ import com.app.zuludin.buqu.data.datasources.database.entities.RopeEntity
 
 @Database(
     entities = [QuoteEntity::class, CategoryEntity::class, BoardEntity::class, NoteCardEntity::class, RopeEntity::class, BookEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class BuQuDatabase : RoomDatabase() {

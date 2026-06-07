@@ -17,5 +17,11 @@ data class RopeEntity(
     var targetNoteId: String,
 
     @ColumnInfo("boardId")
-    var boardId: String
+    var boardId: String,
+
+    @ColumnInfo("color")
+    var color: String,
+
+    @ColumnInfo("caption")
+    var caption: String
 )

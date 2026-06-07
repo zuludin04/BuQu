@@ -111,6 +111,8 @@ fun Rope.toLocal() = RopeEntity(
     sourceNoteId = sourceNoteId,
     targetNoteId = targetNoteId,
     boardId = boardId,
+    color = color,
+    caption = caption
 )
 
 @JvmName("externalToLocalRopes")
@@ -126,7 +128,9 @@ fun ConnectedRopeEntity.toExternal() = Rope(
     targetX = targetX,
     targetY = targetY,
     sourceSize = IntSize(sourceWidth, sourceHeight),
-    targetSize = IntSize(targetWidth, targetHeight)
+    targetSize = IntSize(targetWidth, targetHeight),
+    color = color,
+    caption = caption
 )
 
 fun Book.toLocal() = BookEntity(
