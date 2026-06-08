@@ -181,7 +181,8 @@ class BoardEngine {
         val note = findNote(tapOffset, notes)
         if (note != null) {
             val note = notes.first { it.noteId == note.noteId }
-            val position = Offset(note.posX + (note.size.width * 0.5f), note.posY)
+            val position =
+                camera.worldToScreen(Offset(note.posX + (note.size.width * 0.5f), note.posY))
             return state.copy(dialogState = BoardDialogState.NotePopup(position, note))
         }
 
