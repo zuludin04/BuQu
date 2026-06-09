@@ -23,6 +23,7 @@ data class BoardEditorState(
     val noteHighlightId: String? = null,
     val selectedRopeId: String? = null,
     val previewRope: Rope? = null,
+    val initializedCamera: Boolean = false,
 )
 
 sealed interface BoardDialogState {

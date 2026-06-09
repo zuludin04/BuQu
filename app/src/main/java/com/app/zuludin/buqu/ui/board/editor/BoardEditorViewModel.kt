@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.zuludin.buqu.core.utils.BoardEngine
 import com.app.zuludin.buqu.domain.models.Board
 import com.app.zuludin.buqu.domain.models.Book
+import com.app.zuludin.buqu.domain.models.Camera
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.NoteType
 import com.app.zuludin.buqu.domain.models.Quote
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.math.min
 import kotlin.random.Random
 
 @HiltViewModel
@@ -84,6 +86,7 @@ class BoardEditorViewModel @Inject constructor(
 
             is BoardEditorAction.OnGetBoardSize -> {
                 _uiState.update { it.copy(boardSize = action.size) }
+                zoomToFit()
             }
 
             is BoardEditorAction.OnGetNoteSize -> getCardSize(action.size, action.index)
@@ -371,5 +374,38 @@ class BoardEditorViewModel @Inject constructor(
                 dialogState = BoardDialogState.None, ropes = ropes, selectedRopeId = null
             )
         }
+    }
+
+    private fun zoomToFit() {
+        if (_uiState.value.initializedCamera) return
+
+        val notes = _uiState.value.notes
+        if (notes.isEmpty()) return
+
+        if (_uiState.value.boardSize == IntSize.Zero) return
+
+        val size = _uiState.value.boardSize
+
+        val minX = notes.minOfOrNull { it.posX } ?: 0f
+        val minY = notes.minOfOrNull { it.posY } ?: 0f
+        val maxX = notes.maxOfOrNull { it.posX + it.size.width } ?: 0f
+        val maxY = notes.maxOfOrNull { it.posY + it.size.height } ?: 0f
+
+        val boardWidth = maxX - minX
+        val boardHeight = maxY - minY
+
+        val zoomX = size.width / boardWidth
+        val zoomY = size.height / boardHeight
+
+        val zoom = min(zoomX, zoomY)
+
+        val centerX = (minX + maxX) / 2f
+        val centerY = (minY + maxY) / 2f
+
+        val offsetX = size.width / 2f - centerX * zoom
+        val offsetY = size.height / 2f - centerY * zoom
+
+        val fitCamera = Camera(zoom, Offset(offsetX, offsetY))
+        _uiState.update { it.copy(camera = fitCamera, initializedCamera = true) }
     }
 }
