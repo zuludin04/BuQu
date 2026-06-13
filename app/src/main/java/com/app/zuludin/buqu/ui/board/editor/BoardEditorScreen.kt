@@ -50,6 +50,7 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnResetSelectedNot
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnTidyUpNotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnToggleGrid
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.TransformCamera
+import com.app.zuludin.buqu.ui.board.editor.component.ArrowDragHandler
 import com.app.zuludin.buqu.ui.board.editor.component.BackgroundType
 import com.app.zuludin.buqu.ui.board.editor.component.BoardInfiniteCanvas
 import com.app.zuludin.buqu.ui.board.editor.component.BottomBarEditor
@@ -312,9 +313,13 @@ private fun BoardEditorContent(
         }
 
         if (uiState.selectedNoteIds.isNotEmpty()) {
-            val position = uiState.selectedIndicator.position
-            val size = uiState.selectedIndicator.size
-            NoteSelectIndicator(position, size, uiState.selectedNoteIds.size == 1)
+            NoteSelectIndicator(uiState.selectedIndicator)
+
+            if (uiState.selectedNoteIds.size == 1) {
+                uiState.selectedIndicator.handlers.forEach {
+                    ArrowDragHandler(it.position, it.rotation)
+                }
+            }
         }
     }
 }

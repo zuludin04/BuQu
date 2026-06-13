@@ -47,4 +47,10 @@ sealed interface BoardDialogState {
     data class UpdateRope(val rope: Rope) : BoardDialogState
 }
 
-data class SelectedIndicator(val position: Offset = Offset.Zero, val size: IntSize = IntSize.Zero)
+data class SelectedIndicator(
+    val position: Offset = Offset.Zero,
+    val size: IntSize = IntSize.Zero,
+    val handlers: List<DragHandler> = emptyList()
+)
+
+data class DragHandler(val position: Offset, val rotation: Float)

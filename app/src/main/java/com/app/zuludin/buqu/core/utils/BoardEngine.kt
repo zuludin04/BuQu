@@ -6,6 +6,7 @@ import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorState
+import com.app.zuludin.buqu.ui.board.editor.DragHandler
 import com.app.zuludin.buqu.ui.board.editor.SelectedIndicator
 import java.util.UUID
 import kotlin.math.max
@@ -298,6 +299,17 @@ class BoardEngine {
         val position = Offset(minX, minY)
         val size = IntSize(indicatorWidth.toInt(), indicatorHeight.toInt())
 
-        return SelectedIndicator(position, size)
+        val leftIndicator = Offset(minX, minY + (size.height / 2f))
+        val topIndicator = Offset(minX + (size.width / 2f), minY)
+        val rightIndicator = Offset(maxX, minY + (size.height / 2f))
+        val bottomIndicator = Offset(minX + (size.width / 2f), maxY)
+        val handlers = listOf(
+            DragHandler(leftIndicator, 0f),
+            DragHandler(topIndicator, 90f),
+            DragHandler(rightIndicator, 180f),
+            DragHandler(bottomIndicator, 270f)
+        )
+
+        return SelectedIndicator(position, size, handlers)
     }
 }
