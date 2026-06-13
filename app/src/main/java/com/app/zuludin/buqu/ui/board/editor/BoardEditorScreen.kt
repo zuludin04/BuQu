@@ -55,6 +55,7 @@ import com.app.zuludin.buqu.ui.board.editor.component.BackgroundType
 import com.app.zuludin.buqu.ui.board.editor.component.BoardInfiniteCanvas
 import com.app.zuludin.buqu.ui.board.editor.component.BottomBarEditor
 import com.app.zuludin.buqu.ui.board.editor.component.NoteCardComponent
+import com.app.zuludin.buqu.ui.board.editor.component.NoteSelectIndicator
 import com.app.zuludin.buqu.ui.board.editor.component.RopeComponent
 import com.app.zuludin.buqu.ui.board.editor.dialog.BoardSettingDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.BookImportDialog
@@ -312,6 +313,12 @@ private fun BoardEditorContent(
                 onDragEnd = { onAction(OnDragEnd) },
                 isHighlighted = uiState.noteHighlightId == n.noteId,
             )
+        }
+
+        if (uiState.selectedNoteIds.isNotEmpty()) {
+            val position = uiState.selectedIndicator.position
+            val size = uiState.selectedIndicator.size
+            NoteSelectIndicator(position, size)
         }
     }
 }

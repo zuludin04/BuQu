@@ -1,10 +1,12 @@
 package com.app.zuludin.buqu.core.utils
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntSize
 import com.app.zuludin.buqu.domain.models.NoteCard
 import com.app.zuludin.buqu.domain.models.Rope
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorState
+import com.app.zuludin.buqu.ui.board.editor.SelectedIndicator
 import java.util.UUID
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -181,9 +183,14 @@ class BoardEngine {
         val note = findNote(tapOffset, notes)
         if (note != null) {
             val note = notes.first { it.noteId == note.noteId }
+            val noteIds = state.selectedNoteIds + note.noteId
             val position =
                 camera.worldToScreen(Offset(note.posX + (note.size.width * 0.5f), note.posY))
-            return state.copy(dialogState = BoardDialogState.NotePopup(position, note))
+            return state.copy(
+                dialogState = BoardDialogState.NotePopup(position, note),
+                selectedNoteIds = noteIds,
+                selectedIndicator = generateSelectedIndicator(notes.filter { it.noteId in noteIds })
+            )
         }
 
         val rope = findRope(tapOffset, ropes)
@@ -197,7 +204,11 @@ class BoardEngine {
             )
         }
 
-        return state.copy(dialogState = BoardDialogState.None, selectedRopeId = null)
+        return state.copy(
+            dialogState = BoardDialogState.None,
+            selectedRopeId = null,
+            selectedNoteIds = emptyList()
+        )
     }
 
     private fun findNote(tap: Offset, notes: List<NoteCard>): NoteCard? {
@@ -268,5 +279,20 @@ class BoardEngine {
         } else {
             return null
         }
+    }
+
+    private fun generateSelectedIndicator(notes: List<NoteCard>): SelectedIndicator {
+        val minX = notes.minOfOrNull { it.posX } ?: 0f
+        val minY = notes.minOfOrNull { it.posY } ?: 0f
+        val maxX = notes.maxOfOrNull { it.posX + it.size.width } ?: 0f
+        val maxY = notes.maxOfOrNull { it.posY + it.size.height } ?: 0f
+
+        val indicatorWidth = maxX - minX
+        val indicatorHeight = maxY - minY
+
+        val position = Offset(minX, minY)
+        val size = IntSize(indicatorWidth.toInt(), indicatorHeight.toInt())
+
+        return SelectedIndicator(position, size)
     }
 }

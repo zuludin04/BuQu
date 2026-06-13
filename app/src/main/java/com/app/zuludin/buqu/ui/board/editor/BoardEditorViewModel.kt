@@ -406,6 +406,6 @@ class BoardEditorViewModel @Inject constructor(
         val offsetY = size.height / 2f - centerY * zoom
 
         val fitCamera = Camera(zoom, Offset(offsetX, offsetY))
-        _uiState.update { it.copy(camera = fitCamera, initializedCamera = true) }
+        _uiState.update { it.copy(initializedCamera = true) }
     }
 }

@@ -24,6 +24,7 @@ data class BoardEditorState(
     val selectedRopeId: String? = null,
     val previewRope: Rope? = null,
     val initializedCamera: Boolean = false,
+    val selectedIndicator: SelectedIndicator = SelectedIndicator(),
 )
 
 sealed interface BoardDialogState {
@@ -45,3 +46,5 @@ sealed interface BoardDialogState {
     data class RopePopup(val popupPosition: Offset, val rope: Rope) : BoardDialogState
     data class UpdateRope(val rope: Rope) : BoardDialogState
 }
+
+data class SelectedIndicator(val position: Offset = Offset.Zero, val size: IntSize = IntSize.Zero)
