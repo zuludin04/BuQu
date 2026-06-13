@@ -20,8 +20,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.zuludin.buqu.core.compose.BuQuToolbar
 import com.app.zuludin.buqu.core.icons.PhosphorArrowLeft
 import com.app.zuludin.buqu.core.icons.PhosphorCheck
-import com.app.zuludin.buqu.core.icons.PhosphorTrash
-import com.app.zuludin.buqu.core.icons.PhosphorX
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.BoardSettings
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ConnectNoteDialog
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportBooks
@@ -42,11 +40,9 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnCanvasTap
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnCheckBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnConfirmConnectNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDeleteRope
-import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDeleteSelectedNotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetBoardSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetNoteSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenDialog
-import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnResetSelectedNotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnTidyUpNotes
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnToggleGrid
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.TransformCamera
@@ -118,37 +114,18 @@ fun BoardEditorScreen(
         backgroundColor = MaterialTheme.colorScheme.background,
         topBar = {
             BuQuToolbar(
-                title = if (uiState.selectedNoteIds.isNotEmpty()) "${uiState.selectedNoteIds.size} Selected" else (uiState.board?.name
-                    ?: topAppBarTitle),
+                title = uiState.board?.name ?: topAppBarTitle,
                 backButton = {
                     IconButton(
-                        onClick = {
-                            if (uiState.selectedNoteIds.isNotEmpty()) {
-                                viewModel.onAction(OnResetSelectedNotes)
-                            } else {
-                                onBack()
-                            }
-                        },
-                        content = {
-                            Icon(
-                                if (uiState.selectedNoteIds.isNotEmpty()) PhosphorX else PhosphorArrowLeft,
-                                null
-                            )
-                        },
+                        onClick = { onBack() },
+                        content = { Icon(PhosphorArrowLeft, null) },
                     )
                 },
                 actions = {
-                    if (uiState.selectedNoteIds.isNotEmpty()) {
-                        IconButton(
-                            onClick = { viewModel.onAction(OnDeleteSelectedNotes) },
-                            content = { Icon(PhosphorTrash, null) },
-                        )
-                    } else {
-                        IconButton(
-                            onClick = { viewModel.onAction(OnCheckBoard) },
-                            content = { Icon(PhosphorCheck, null) },
-                        )
-                    }
+                    IconButton(
+                        onClick = { viewModel.onAction(OnCheckBoard) },
+                        content = { Icon(PhosphorCheck, null) },
+                    )
                 },
             )
         },
