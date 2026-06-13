@@ -64,7 +64,7 @@ class BoardEditorViewModel @Inject constructor(
             )
 
             is BoardEditorAction.TransformCamera -> updateCamera(action.offset, action.zoom)
-            is BoardEditorAction.DragNote -> dragNoteCard(action.noteCard, action.offset)
+            is BoardEditorAction.DragNote -> dragNoteCard(action.position, action.drag)
             is BoardEditorAction.OnSelectNote -> changeNoteSelectionStatus(action.noteId)
             BoardEditorAction.DeleteBoard -> deleteBoard()
             BoardEditorAction.OnDeleteSelectedNotes -> deleteSelectedNotes()
@@ -187,8 +187,8 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(camera = new) }
     }
 
-    private fun dragNoteCard(note: NoteCard, current: Offset) {
-        val result = engine.drag(note, current, boardId ?: currentBoardId, _uiState.value)
+    private fun dragNoteCard(current: Offset, drag: Offset) {
+        val result = engine.drag(current, drag, boardId ?: currentBoardId, _uiState.value)
         _uiState.value = result
     }
 

@@ -16,7 +16,7 @@ sealed interface BoardEditorAction {
     ) : BoardEditorAction
 
     data class TransformCamera(val offset: Offset, val zoom: Float) : BoardEditorAction
-    data class DragNote(val noteCard: NoteCard, val offset: Offset) : BoardEditorAction
+    data class DragNote(val position: Offset, val drag: Offset) : BoardEditorAction
     data class OnSelectNote(val noteId: String) : BoardEditorAction
     object OnResetSelectedNotes : BoardEditorAction
     object DeleteBoard : BoardEditorAction

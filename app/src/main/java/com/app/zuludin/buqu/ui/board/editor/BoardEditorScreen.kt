@@ -43,7 +43,6 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnCheckBoard
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnConfirmConnectNote
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDeleteRope
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDeleteSelectedNotes
-import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnDragEnd
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetBoardSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnGetNoteSize
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.OnOpenDialog
@@ -291,6 +290,7 @@ private fun BoardEditorContent(
         onGetBoardSize = { onAction(OnGetBoardSize(it)) },
         openDialog = { onAction(OnOpenDialog(it)) },
         onCanvasTap = { onAction(OnCanvasTap(it)) },
+        onPositionChanged = { position, drag -> onAction(DragNote(position, drag)) },
         showGrid = uiState.showGrid,
     ) {
         uiState.ropes.filter { r -> r.status == "active" }.forEach { rope ->
@@ -306,11 +306,7 @@ private fun BoardEditorContent(
         uiState.notes.filter { note -> note.status == "active" }.forEachIndexed { index, n ->
             NoteCardComponent(
                 note = n,
-                onPositionChanged = { pos ->
-                    onAction(DragNote(n, pos))
-                },
                 onGetSize = { size -> onAction(OnGetNoteSize(size, index)) },
-                onDragEnd = { onAction(OnDragEnd) },
                 isHighlighted = uiState.noteHighlightId == n.noteId,
             )
         }
@@ -318,7 +314,7 @@ private fun BoardEditorContent(
         if (uiState.selectedNoteIds.isNotEmpty()) {
             val position = uiState.selectedIndicator.position
             val size = uiState.selectedIndicator.size
-            NoteSelectIndicator(position, size)
+            NoteSelectIndicator(position, size, uiState.selectedNoteIds.size == 1)
         }
     }
 }

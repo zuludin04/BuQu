@@ -13,34 +13,39 @@ import kotlin.math.sqrt
 
 class BoardEngine {
     fun drag(
-        note: NoteCard,
         worldPos: Offset,
+        drag: Offset,
         boardId: String,
         state: BoardEditorState
     ): BoardEditorState {
         val notes = state.notes.filter { it.status == "active" }
         val ropes = state.ropes.filter { it.status == "active" }
+        val note = findNote(worldPos, notes)
 
-        val ns = notes.map { n ->
-            if (n.noteId == note.noteId) {
-                n.copy(posX = n.posX + worldPos.x, posY = n.posY + worldPos.y)
-            } else {
-                n
+        if (note != null) {
+            val ns = notes.map { n ->
+                if (n.noteId == note.noteId) {
+                    n.copy(posX = n.posX + drag.x, posY = n.posY + drag.y)
+                } else {
+                    n
+                }
             }
-        }
-        val n = ns.first { it.noteId == note.noteId }
-        val position = Offset(n.posX, n.posY)
-        val rs = updateRopePosition(note.noteId, ropes, position)
-        val nearest = highlightNearestNode(position, ns, rs, note)
-        val sourceNote = ns.first { it.noteId == note.noteId }
-        val previewRope = createPreviewRope(sourceNote, nearest, boardId)
+            val n = ns.first { it.noteId == note.noteId }
+            val position = Offset(n.posX, n.posY)
+            val rs = updateRopePosition(note.noteId, ropes, position)
+            val nearest = highlightNearestNode(position, ns, rs, note)
+            val sourceNote = ns.first { it.noteId == note.noteId }
+            val previewRope = createPreviewRope(sourceNote, nearest, boardId)
 
-        return state.copy(
-            notes = ns,
-            ropes = rs,
-            noteHighlightId = nearest?.noteId,
-            previewRope = previewRope
-        )
+            return state.copy(
+                notes = ns,
+                ropes = rs,
+                noteHighlightId = nearest?.noteId,
+                previewRope = previewRope
+            )
+        } else {
+            return state
+        }
     }
 
     private fun updateRopePosition(
