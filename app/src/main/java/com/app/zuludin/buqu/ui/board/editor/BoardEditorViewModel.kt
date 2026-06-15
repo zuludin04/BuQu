@@ -411,7 +411,9 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun handleCanvasTap(offset: Offset) {
-        _uiState.value = engine.onTap(offset, _uiState.value)
+        val camera = _uiState.value.camera
+        val worldTap = camera.screenToWorld(offset)
+        _uiState.value = engine.onTap(worldTap, _uiState.value)
     }
 
     private fun deleteRope(ropeId: String) {

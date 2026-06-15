@@ -44,6 +44,11 @@ fun BoardInfiniteCanvas(
             .fillMaxSize()
             .onSizeChanged { onGetBoardSize(it) }
             .transformable(state)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    onCanvasTap(it)
+                })
+            }
     ) {
         if (showGrid) BoardBackground(backgroundType, camera)
 
@@ -57,11 +62,6 @@ fun BoardInfiniteCanvas(
                     translationY = camera.offset.y,
                     transformOrigin = TransformOrigin(0f, 0f)
                 )
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        onCanvasTap(it)
-                    })
-                }
         ) {
             content(camera)
         }
