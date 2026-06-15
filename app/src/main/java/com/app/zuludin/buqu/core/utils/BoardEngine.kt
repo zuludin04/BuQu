@@ -14,39 +14,34 @@ import kotlin.math.sqrt
 
 class BoardEngine {
     fun drag(
+        note: NoteCard,
         worldPos: Offset,
-        drag: Offset,
         boardId: String,
         state: BoardEditorState
     ): BoardEditorState {
         val notes = state.notes.filter { it.status == "active" }
         val ropes = state.ropes.filter { it.status == "active" }
-        val note = findNote(worldPos, notes)
 
-        if (note != null) {
-            val ns = notes.map { n ->
-                if (n.noteId == note.noteId) {
-                    n.copy(posX = n.posX + drag.x, posY = n.posY + drag.y)
-                } else {
-                    n
-                }
+        val ns = notes.map { n ->
+            if (n.noteId == note.noteId) {
+                n.copy(posX = n.posX + worldPos.x, posY = n.posY + worldPos.y)
+            } else {
+                n
             }
-            val n = ns.first { it.noteId == note.noteId }
-            val position = Offset(n.posX, n.posY)
-            val rs = updateRopePosition(note.noteId, ropes, position)
-            val nearest = highlightNearestNode(position, ns, rs, note)
-            val sourceNote = ns.first { it.noteId == note.noteId }
-            val previewRope = createPreviewRope(sourceNote, nearest, boardId)
-
-            return state.copy(
-                notes = ns,
-                ropes = rs,
-                noteHighlightId = nearest?.noteId,
-                previewRope = previewRope
-            )
-        } else {
-            return state
         }
+        val n = ns.first { it.noteId == note.noteId }
+        val position = Offset(n.posX, n.posY)
+        val rs = updateRopePosition(note.noteId, ropes, position)
+        val nearest = highlightNearestNode(position, ns, rs, note)
+        val sourceNote = ns.first { it.noteId == note.noteId }
+        val previewRope = createPreviewRope(sourceNote, nearest, boardId)
+
+        return state.copy(
+            notes = ns,
+            ropes = rs,
+            noteHighlightId = nearest?.noteId,
+            previewRope = previewRope
+        )
     }
 
     private fun updateRopePosition(
@@ -195,7 +190,10 @@ class BoardEngine {
             return state.copy(
                 dialogState = BoardDialogState.NotePopup(position, note),
                 selectedNoteIds = noteIds,
-                selectedIndicator = generateSelectedIndicator(notes.filter { it.noteId in noteIds })
+                selectedIndicator = generateSelectedIndicator(
+                    notes.filter { it.noteId in noteIds },
+                    note.noteId
+                )
             )
         }
 
@@ -213,11 +211,12 @@ class BoardEngine {
         return state.copy(
             dialogState = BoardDialogState.None,
             selectedRopeId = null,
-            selectedNoteIds = emptyList()
+            selectedNoteIds = emptyList(),
+            previewRope = null,
         )
     }
 
-    private fun findNote(tap: Offset, notes: List<NoteCard>): NoteCard? {
+    fun findNote(tap: Offset, notes: List<NoteCard>): NoteCard? {
         return notes.asReversed().firstOrNull { note ->
             val left = note.posX
             val top = note.posY
@@ -244,6 +243,21 @@ class BoardEngine {
             val touchRadius = max(8f * 2f, 24f / 1)
             val distance = distancePointToSegment(tap, start, end)
             distance < touchRadius
+        }
+    }
+
+    private fun findRopeHandler(tap: Offset, handlers: List<DragHandler>): DragHandler? {
+        return handlers.asReversed().firstOrNull { handler ->
+            val center = Offset(
+                handler.position.x + 53 / 2f,
+                handler.position.y + 53 / 2f
+            )
+            val radius = 53 / 2f
+            val dx = tap.x - center.x
+            val dy = tap.y - center.y
+
+
+            dx * dx + dy * dy <= radius * radius
         }
     }
 
@@ -287,7 +301,10 @@ class BoardEngine {
         }
     }
 
-    private fun generateSelectedIndicator(notes: List<NoteCard>): SelectedIndicator {
+    private fun generateSelectedIndicator(
+        notes: List<NoteCard>,
+        noteId: String
+    ): SelectedIndicator {
         val minX = notes.minOfOrNull { it.posX } ?: 0f
         val minY = notes.minOfOrNull { it.posY } ?: 0f
         val maxX = notes.maxOfOrNull { it.posX + it.size.width } ?: 0f
@@ -299,15 +316,15 @@ class BoardEngine {
         val position = Offset(minX, minY)
         val size = IntSize(indicatorWidth.toInt(), indicatorHeight.toInt())
 
-        val leftIndicator = Offset(minX, minY + (size.height / 2f))
-        val topIndicator = Offset(minX + (size.width / 2f), minY)
-        val rightIndicator = Offset(maxX, minY + (size.height / 2f))
-        val bottomIndicator = Offset(minX + (size.width / 2f), maxY)
+        val leftIndicator = Offset(minX - 71, minY + (size.height / 2f) - (53 / 2))
+        val topIndicator = Offset(minX + (size.width / 2f) - (53 / 2), minY - 71)
+        val rightIndicator = Offset(maxX + 18, minY + (size.height / 2f) - (53 / 2))
+        val bottomIndicator = Offset(minX + (size.width / 2f) - (53 / 2), maxY + 18)
         val handlers = listOf(
-            DragHandler(leftIndicator, 0f),
-            DragHandler(topIndicator, 90f),
-            DragHandler(rightIndicator, 180f),
-            DragHandler(bottomIndicator, 270f)
+            DragHandler(leftIndicator, 0f, noteId),
+            DragHandler(topIndicator, 90f, noteId),
+            DragHandler(rightIndicator, 180f, noteId),
+            DragHandler(bottomIndicator, 270f, noteId)
         )
 
         return SelectedIndicator(position, size, handlers)

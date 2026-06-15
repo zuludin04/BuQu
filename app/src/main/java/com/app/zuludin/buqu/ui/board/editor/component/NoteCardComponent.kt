@@ -2,6 +2,7 @@ package com.app.zuludin.buqu.ui.board.editor.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,11 +22,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontFamily
@@ -48,8 +54,11 @@ import kotlin.math.roundToInt
 fun NoteCardComponent(
     note: NoteCard,
     isHighlighted: Boolean,
+    onPositionChanged: (Offset) -> Unit,
     onGetSize: (IntSize) -> Unit,
+    onDragEnd: () -> Unit,
 ) {
+    var isDragging by remember { mutableStateOf(false) }
     val notePosition by rememberUpdatedState(Offset(note.posX, note.posY))
 
     val backgroundColor = Color("#${note.color}".toColorInt()).darken(
@@ -64,6 +73,24 @@ fun NoteCardComponent(
         modifier = Modifier
             .offset { IntOffset(notePosition.x.roundToInt(), notePosition.y.roundToInt()) }
             .onSizeChanged { onGetSize(it) }
+            .graphicsLayer {
+                val scaleValue = if (isDragging || note.isSelected) 1.03f else 1f
+                scaleX = scaleValue
+                scaleY = scaleValue
+            }
+            .pointerInput(note.noteId) {
+                detectDragGestures(
+                    onDragStart = { isDragging = true },
+                    onDragEnd = {
+                        isDragging = false
+                        onDragEnd()
+                    },
+                    onDragCancel = { isDragging = false },
+                    onDrag = { _, dragAmount ->
+                        onPositionChanged(dragAmount)
+                    },
+                )
+            },
     ) {
         when (note.type) {
             NoteType.Text -> TextNote(note, backgroundColor)

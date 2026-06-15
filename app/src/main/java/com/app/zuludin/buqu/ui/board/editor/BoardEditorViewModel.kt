@@ -64,7 +64,7 @@ class BoardEditorViewModel @Inject constructor(
             )
 
             is BoardEditorAction.TransformCamera -> updateCamera(action.offset, action.zoom)
-            is BoardEditorAction.DragNote -> dragNoteCard(action.position, action.drag)
+            is BoardEditorAction.DragNote -> dragNoteCard(action.noteCard, action.offset)
             is BoardEditorAction.OnSelectNote -> changeNoteSelectionStatus(action.noteId)
             BoardEditorAction.DeleteBoard -> deleteBoard()
             BoardEditorAction.OnDeleteSelectedNotes -> deleteSelectedNotes()
@@ -102,6 +102,62 @@ class BoardEditorViewModel @Inject constructor(
             is BoardEditorAction.OnUpdateRope -> updateRope(
                 action.ropeId, action.text, action.color
             )
+
+            is BoardEditorAction.OnCreatePreviewRope -> {
+                val note = _uiState.value.notes.first { it.noteId == action.handler.noteId }
+                val previewRope = _uiState.value.previewRope
+                if (previewRope == null) {
+                    val rope = Rope(
+                        ropeId = UUID.randomUUID().toString(),
+                        sourceNoteId = note.noteId,
+                        targetNoteId = "",
+                        boardId = boardId ?: currentBoardId,
+                        sourceX = note.posX,
+                        sourceY = note.posY,
+                        targetX = action.handler.position.x,
+                        targetY = action.handler.position.y,
+                        targetSize = IntSize.Zero,
+                        sourceSize = note.size
+                    )
+                    _uiState.update {
+                        it.copy(
+                            previewRope = rope,
+                            dialogState = BoardDialogState.None,
+                            selectedRopeId = null,
+                        )
+                    }
+                } else {
+                    val targetX = previewRope.targetX + action.dragAmount.x
+                    val targetY = previewRope.targetY + action.dragAmount.y
+
+                    val targetNote = engine.findNote(Offset(targetX, targetY), _uiState.value.notes)
+
+                    _uiState.update {
+                        it.copy(
+                            previewRope = previewRope.copy(
+                                targetX = targetNote?.posX ?: targetX,
+                                targetY = targetNote?.posY ?: targetY,
+                                targetNoteId = targetNote?.noteId ?: "",
+                                targetSize = targetNote?.size ?: IntSize.Zero
+                            )
+                        )
+                    }
+                }
+            }
+
+            BoardEditorAction.OnDragArrowEnd -> {
+                val previewRope = _uiState.value.previewRope
+                if (previewRope != null && previewRope.targetNoteId != "") {
+                    val connectedRopes =
+                        _uiState.value.ropes.filter { (previewRope.sourceNoteId == it.sourceNoteId || previewRope.sourceNoteId == it.targetNoteId) && (previewRope.targetNoteId == it.sourceNoteId || previewRope.targetNoteId == it.targetNoteId) }
+                    if (connectedRopes.isNotEmpty()) {
+                        viewModelScope.launch { _eventChannel.send(BoardEditorEvent.NoteAlreadyConnected) }
+                    } else {
+                        createConnectedRope(previewRope)
+                    }
+                }
+                _uiState.update { it.copy(previewRope = null, selectedNoteIds = emptyList()) }
+            }
         }
     }
 
@@ -187,8 +243,8 @@ class BoardEditorViewModel @Inject constructor(
         _uiState.update { it.copy(camera = new) }
     }
 
-    private fun dragNoteCard(current: Offset, drag: Offset) {
-        val result = engine.drag(current, drag, boardId ?: currentBoardId, _uiState.value)
+    private fun dragNoteCard(note: NoteCard, current: Offset) {
+        val result = engine.drag(note, current, boardId ?: currentBoardId, _uiState.value)
         _uiState.value = result
     }
 

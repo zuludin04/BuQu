@@ -53,4 +53,4 @@ data class SelectedIndicator(
     val handlers: List<DragHandler> = emptyList()
 )
 
-data class DragHandler(val position: Offset, val rotation: Float)
+data class DragHandler(val position: Offset, val rotation: Float, val noteId: String = "")

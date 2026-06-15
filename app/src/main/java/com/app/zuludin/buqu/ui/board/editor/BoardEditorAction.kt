@@ -16,7 +16,7 @@ sealed interface BoardEditorAction {
     ) : BoardEditorAction
 
     data class TransformCamera(val offset: Offset, val zoom: Float) : BoardEditorAction
-    data class DragNote(val position: Offset, val drag: Offset) : BoardEditorAction
+    data class DragNote(val noteCard: NoteCard, val offset: Offset) : BoardEditorAction
     data class OnSelectNote(val noteId: String) : BoardEditorAction
     object OnResetSelectedNotes : BoardEditorAction
     object DeleteBoard : BoardEditorAction
@@ -35,4 +35,9 @@ sealed interface BoardEditorAction {
     data class OnDeleteRope(val ropeId: String) : BoardEditorAction
     data class OnUpdateRope(val ropeId: String, val text: String, val color: String) :
         BoardEditorAction
+
+    data class OnCreatePreviewRope(val handler: DragHandler, val dragAmount: Offset) :
+        BoardEditorAction
+
+    object OnDragArrowEnd : BoardEditorAction
 }

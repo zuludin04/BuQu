@@ -268,7 +268,6 @@ private fun BoardEditorContent(
         onGetBoardSize = { onAction(OnGetBoardSize(it)) },
         openDialog = { onAction(OnOpenDialog(it)) },
         onCanvasTap = { onAction(OnCanvasTap(it)) },
-        onPositionChanged = { position, drag -> onAction(DragNote(position, drag)) },
         showGrid = uiState.showGrid,
     ) {
         uiState.ropes.filter { r -> r.status == "active" }.forEach { rope ->
@@ -284,7 +283,11 @@ private fun BoardEditorContent(
         uiState.notes.filter { note -> note.status == "active" }.forEachIndexed { index, n ->
             NoteCardComponent(
                 note = n,
+                onPositionChanged = { pos ->
+                    onAction(DragNote(n, pos))
+                },
                 onGetSize = { size -> onAction(OnGetNoteSize(size, index)) },
+                onDragEnd = { onAction(BoardEditorAction.OnDragEnd) },
                 isHighlighted = uiState.noteHighlightId == n.noteId,
             )
         }
@@ -293,8 +296,15 @@ private fun BoardEditorContent(
             NoteSelectIndicator(uiState.selectedIndicator)
 
             if (uiState.selectedNoteIds.size == 1) {
-                uiState.selectedIndicator.handlers.forEach {
-                    ArrowDragHandler(it.position, it.rotation)
+                uiState.selectedIndicator.handlers.forEach { handler ->
+                    ArrowDragHandler(
+                        position = handler.position,
+                        rotation = handler.rotation,
+                        onCreateRope = {
+                            onAction(BoardEditorAction.OnCreatePreviewRope(handler, it))
+                        },
+                        onDragRopeEnd = { onAction(BoardEditorAction.OnDragArrowEnd) }
+                    )
                 }
             }
         }

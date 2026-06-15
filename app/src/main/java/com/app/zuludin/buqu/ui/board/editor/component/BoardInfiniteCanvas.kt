@@ -1,6 +1,5 @@
 package com.app.zuludin.buqu.ui.board.editor.component
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -31,7 +30,6 @@ fun BoardInfiniteCanvas(
     onGetBoardSize: (IntSize) -> Unit,
     openDialog: (BoardDialogState) -> Unit,
     onCanvasTap: (Offset) -> Unit,
-    onPositionChanged: (Offset, Offset) -> Unit,
     backgroundType: BackgroundType,
     content: @Composable BoxScope.(Camera) -> Unit
 ) {
@@ -63,16 +61,6 @@ fun BoardInfiniteCanvas(
                     detectTapGestures(onTap = {
                         onCanvasTap(it)
                     })
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { },
-                        onDragEnd = { },
-                        onDragCancel = { },
-                        onDrag = { pointer, dragAmount ->
-                            onPositionChanged(pointer.position, dragAmount)
-                        },
-                    )
                 }
         ) {
             content(camera)
