@@ -9,6 +9,7 @@ import com.app.zuludin.buqu.ui.board.editor.BoardEditorState
 import com.app.zuludin.buqu.ui.board.editor.DragHandler
 import com.app.zuludin.buqu.ui.board.editor.SelectedIndicator
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -136,9 +137,9 @@ class BoardEngine {
             if (nearest != null) {
                 val sourceNote = notes.first { it.noteId == note.noteId }
                 val connectedRopes =
-                    ropes.filter { (sourceNote.noteId == it.sourceNoteId || sourceNote.noteId == it.targetNoteId) && (nearest.noteId == it.sourceNoteId || nearest.noteId == it.targetNoteId) }
+                    ropes.filter { (sourceNote.noteId == it.sourceNoteId || sourceNote.noteId == it.targetNoteId) && (nearest.second?.noteId == it.sourceNoteId || nearest.second?.noteId == it.targetNoteId) }
                 if (connectedRopes.isEmpty()) {
-                    previewRope = createPreviewRope(sourceNote, nearest, boardId)
+                    previewRope = createPreviewRope(sourceNote, nearest.second, boardId)
                     highlightNote = true
                 }
             }
@@ -148,9 +149,10 @@ class BoardEngine {
                 selectedNoteIds = noteIds,
                 selectedIndicator = generateSelectedIndicator(
                     notes.filter { it.noteId in noteIds },
-                    note.noteId
+                    note.noteId,
+                    nearest?.first ?: "",
                 ),
-                noteHighlightId = if (highlightNote) nearest?.noteId else null,
+                noteHighlightId = if (highlightNote) nearest?.second?.noteId else null,
                 previewRope = previewRope
             )
         }
@@ -275,7 +277,8 @@ class BoardEngine {
 
     private fun generateSelectedIndicator(
         notes: List<NoteCard>,
-        noteId: String
+        noteId: String,
+        handlerPosition: String,
     ): SelectedIndicator {
         val minX = notes.minOfOrNull { it.posX } ?: 0f
         val minY = notes.minOfOrNull { it.posY } ?: 0f
@@ -292,17 +295,41 @@ class BoardEngine {
         val topIndicator = Offset(minX + (size.width / 2f) - (53 / 2), minY - 71)
         val rightIndicator = Offset(maxX + 18, minY + (size.height / 2f) - (53 / 2))
         val bottomIndicator = Offset(minX + (size.width / 2f) - (53 / 2), maxY + 18)
-        val handlers = listOf(
-            DragHandler(leftIndicator, 0f, noteId),
-            DragHandler(topIndicator, 90f, noteId),
-            DragHandler(rightIndicator, 180f, noteId),
-            DragHandler(bottomIndicator, 270f, noteId)
-        )
+
+        val handlers = mutableListOf<DragHandler>()
+
+        when (handlerPosition) {
+            "left" -> {
+                handlers.add(DragHandler(leftIndicator, 0f, noteId))
+            }
+
+            "top" -> {
+                handlers.add(DragHandler(topIndicator, 90f, noteId))
+            }
+
+            "right" -> {
+                handlers.add(DragHandler(rightIndicator, 180f, noteId))
+            }
+
+            "bottom" -> {
+                handlers.add(DragHandler(bottomIndicator, 270f, noteId))
+            }
+
+            else -> {
+                handlers.add(DragHandler(leftIndicator, 0f, noteId))
+                handlers.add(DragHandler(topIndicator, 90f, noteId))
+                handlers.add(DragHandler(rightIndicator, 180f, noteId))
+                handlers.add(DragHandler(bottomIndicator, 270f, noteId))
+            }
+        }
 
         return SelectedIndicator(position, size, handlers)
     }
 
-    private fun findNearestNote(sourceNoteId: String, notes: List<NoteCard>): NoteCard? {
+    private fun findNearestNote(
+        sourceNoteId: String,
+        notes: List<NoteCard>
+    ): Pair<String, NoteCard?>? {
         val source = notes.first { it.noteId == sourceNoteId }
         val sourceLeft = source.posX
         val sourceTop = source.posY
@@ -311,6 +338,7 @@ class BoardEngine {
 
         var minDistance = Float.MAX_VALUE
         var nearest: NoteCard? = null
+        var handlerPosition = ""
 
         for (n in notes) {
             if (n.noteId == sourceNoteId) continue
@@ -331,7 +359,26 @@ class BoardEngine {
             }
         }
 
+        if (nearest != null) {
+            val dx = nearest.centerX - source.centerX
+            val dy = nearest.centerY - source.centerY
+
+            handlerPosition = if (abs(dx) > abs(dy)) {
+                if (dx > 0) {
+                    "right"
+                } else {
+                    "left"
+                }
+            } else {
+                if (dy > 0) {
+                    "bottom"
+                } else {
+                    "top"
+                }
+            }
+        }
+
         val threshold = 150f
-        return if (minDistance < threshold) nearest else null
+        return if (minDistance < threshold) Pair(handlerPosition, nearest) else null
     }
 }

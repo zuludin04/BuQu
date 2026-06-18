@@ -16,7 +16,10 @@ data class NoteCard(
     val isConnected: Boolean = false,
     val status: String = "active",
     val type: NoteType = NoteType.Text
-)
+) {
+    val centerX get() = posX + size.width / 2
+    val centerY get() = posY + size.height / 2
+}
 
 enum class NoteType {
     Text,
