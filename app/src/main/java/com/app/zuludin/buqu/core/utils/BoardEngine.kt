@@ -16,7 +16,6 @@ class BoardEngine {
     fun drag(
         note: NoteCard,
         worldPos: Offset,
-        boardId: String,
         state: BoardEditorState
     ): BoardEditorState {
         val notes = state.notes.filter { it.status == "active" }
@@ -32,20 +31,14 @@ class BoardEngine {
         val n = ns.first { it.noteId == note.noteId }
         val position = Offset(n.posX, n.posY)
         val rs = updateRopePosition(note.noteId, ropes, position)
-        val nearest = highlightNearestNode(position, ns, rs, note)
-        val sourceNote = ns.first { it.noteId == note.noteId }
-        val previewRope = createPreviewRope(sourceNote, nearest, boardId)
 
-        return state.copy(
-            notes = ns,
-            ropes = rs,
-            noteHighlightId = nearest?.noteId,
-            previewRope = previewRope
-        )
+        return state.copy(notes = ns, ropes = rs)
     }
 
     private fun updateRopePosition(
-        noteId: String, ropes: List<Rope>, position: Offset
+        noteId: String,
+        ropes: List<Rope>,
+        position: Offset
     ): List<Rope> {
         return ropes.map { r ->
             if (r.sourceNoteId == noteId) {
@@ -56,57 +49,6 @@ class BoardEngine {
                 r
             }
         }
-    }
-
-    private fun highlightNearestNode(
-        current: Offset, notes: List<NoteCard>, ropes: List<Rope>, note: NoteCard
-    ): NoteCard? {
-        val offset = Offset(
-            x = current.x + note.size.width / 2f, y = current.y + note.size.height / 2f
-        )
-        val nearest = findNearestNode(offset, notes, note.noteId)
-
-        return if (nearest != null) {
-            val connectedRope =
-                ropes.firstOrNull { (it.sourceNoteId == note.noteId && it.targetNoteId == nearest.noteId) || (it.sourceNoteId == nearest.noteId && it.targetNoteId == note.noteId) }
-            if (connectedRope == null) {
-                nearest
-            } else {
-                null
-            }
-        } else {
-            null
-        }
-    }
-
-    private fun findNearestNode(
-        current: Offset,
-        nodes: List<NoteCard>,
-        excludeId: String? = null,
-    ): NoteCard? {
-
-        var minDistance = Float.MAX_VALUE
-        var nearest: NoteCard? = null
-
-        nodes.forEach { node ->
-            if (node.noteId == excludeId) return@forEach
-
-            val nodeCenter = Offset(
-                node.posX + node.size.width / 2f, node.posY + node.size.height / 2f
-            )
-
-            val dx = nodeCenter.x - current.x
-            val dy = nodeCenter.y - current.y
-            val distance = sqrt(dx * dx + dy * dy)
-
-            if (distance < minDistance) {
-                minDistance = distance
-                nearest = node
-            }
-        }
-
-        val threshold = 600f
-        return if (minDistance < threshold) nearest else null
     }
 
     fun tidyUpNotes(state: BoardEditorState): BoardEditorState {
@@ -176,24 +118,40 @@ class BoardEngine {
         )
     }
 
-    fun onTap(tapOffset: Offset, state: BoardEditorState): BoardEditorState {
+    fun onTap(tapOffset: Offset, boardId: String, state: BoardEditorState): BoardEditorState {
         val notes = state.notes
         val ropes = state.ropes
         val camera = state.camera
 
         val note = findNote(tapOffset, notes)
+        var previewRope: Rope? = null
+        var highlightNote = false
         if (note != null) {
             val note = notes.first { it.noteId == note.noteId }
             val noteIds = state.selectedNoteIds + note.noteId
             val position =
                 camera.worldToScreen(Offset(note.posX + (note.size.width * 0.5f), note.posY))
+
+            val nearest = findNearestNote(note.noteId, notes)
+            if (nearest != null) {
+                val sourceNote = notes.first { it.noteId == note.noteId }
+                val connectedRopes =
+                    ropes.filter { (sourceNote.noteId == it.sourceNoteId || sourceNote.noteId == it.targetNoteId) && (nearest.noteId == it.sourceNoteId || nearest.noteId == it.targetNoteId) }
+                if (connectedRopes.isEmpty()) {
+                    previewRope = createPreviewRope(sourceNote, nearest, boardId)
+                    highlightNote = true
+                }
+            }
+
             return state.copy(
                 dialogState = BoardDialogState.NotePopup(position, note),
                 selectedNoteIds = noteIds,
                 selectedIndicator = generateSelectedIndicator(
                     notes.filter { it.noteId in noteIds },
                     note.noteId
-                )
+                ),
+                noteHighlightId = if (highlightNote) nearest?.noteId else null,
+                previewRope = previewRope
             )
         }
 
@@ -208,11 +166,25 @@ class BoardEngine {
             )
         }
 
+        val ropeHandler = findRopeHandler(tapOffset, state.selectedIndicator.handlers)
+        if (ropeHandler != null && state.previewRope != null) {
+            val rope = state.previewRope
+            return state.copy(
+                dialogState = BoardDialogState.None,
+                selectedRopeId = null,
+                selectedNoteIds = emptyList(),
+                previewRope = null,
+                noteHighlightId = null,
+                ropes = state.ropes + rope
+            )
+        }
+
         return state.copy(
             dialogState = BoardDialogState.None,
             selectedRopeId = null,
             selectedNoteIds = emptyList(),
             previewRope = null,
+            noteHighlightId = null,
         )
     }
 
@@ -328,5 +300,38 @@ class BoardEngine {
         )
 
         return SelectedIndicator(position, size, handlers)
+    }
+
+    private fun findNearestNote(sourceNoteId: String, notes: List<NoteCard>): NoteCard? {
+        val source = notes.first { it.noteId == sourceNoteId }
+        val sourceLeft = source.posX
+        val sourceTop = source.posY
+        val sourceRight = sourceLeft + source.size.width
+        val sourceBottom = sourceTop + source.size.height
+
+        var minDistance = Float.MAX_VALUE
+        var nearest: NoteCard? = null
+
+        for (n in notes) {
+            if (n.noteId == sourceNoteId) continue
+
+            val left = n.posX
+            val top = n.posY
+            val right = left + n.size.width
+            val bottom = top + n.size.height
+
+            val horizontalGap = max(0f, max(left - sourceRight, sourceLeft - right))
+            val verticalGap = max(0f, max(top - sourceBottom, sourceTop - bottom))
+
+            val distance = sqrt(horizontalGap * horizontalGap + verticalGap * verticalGap)
+
+            if (distance < minDistance) {
+                minDistance = distance
+                nearest = n
+            }
+        }
+
+        val threshold = 150f
+        return if (minDistance < threshold) nearest else null
     }
 }

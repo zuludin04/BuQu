@@ -244,7 +244,7 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun dragNoteCard(note: NoteCard, current: Offset) {
-        val result = engine.drag(note, current, boardId ?: currentBoardId, _uiState.value)
+        val result = engine.drag(note, current, _uiState.value)
         _uiState.value = result
     }
 
@@ -413,7 +413,7 @@ class BoardEditorViewModel @Inject constructor(
     private fun handleCanvasTap(offset: Offset) {
         val camera = _uiState.value.camera
         val worldTap = camera.screenToWorld(offset)
-        _uiState.value = engine.onTap(worldTap, _uiState.value)
+        _uiState.value = engine.onTap(worldTap, boardId ?: currentBoardId, _uiState.value)
     }
 
     private fun deleteRope(ropeId: String) {
