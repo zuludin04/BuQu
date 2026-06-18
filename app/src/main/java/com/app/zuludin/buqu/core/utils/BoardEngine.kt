@@ -33,7 +33,7 @@ class BoardEngine {
         val position = Offset(n.posX, n.posY)
         val rs = updateRopePosition(note.noteId, ropes, position)
 
-        return state.copy(notes = ns, ropes = rs)
+        return state.copy(notes = ns, ropes = rs, previewRope = null, selectedNoteIds = emptyList())
     }
 
     private fun updateRopePosition(
