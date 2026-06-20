@@ -1,5 +1,12 @@
 package com.app.zuludin.buqu.ui.board.editor.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -22,11 +29,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.app.zuludin.buqu.core.icons.PhosphorBookOpen
+import com.app.zuludin.buqu.core.icons.PhosphorCornersOut
 import com.app.zuludin.buqu.core.icons.PhosphorLightbulb
+import com.app.zuludin.buqu.core.icons.PhosphorLinkSimple
 import com.app.zuludin.buqu.core.icons.PhosphorMinus
+import com.app.zuludin.buqu.core.icons.PhosphorPencil
 import com.app.zuludin.buqu.core.icons.PhosphorPlus
+import com.app.zuludin.buqu.core.icons.PhosphorTrash
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BoardTools(
     modifier: Modifier = Modifier,
@@ -34,8 +46,15 @@ fun BoardTools(
     onZoomOut: () -> Unit,
     onResetZoom: () -> Unit,
     scale: Float,
+    selectedNotesCount: Int,
+    isSelectedRope: Boolean,
     onImportQuotes: () -> Unit,
     onImportBooks: () -> Unit,
+    onEditNote: () -> Unit,
+    onDeleteNotes: () -> Unit,
+    onAlignNotes: () -> Unit = {},
+    onDeleteRope: () -> Unit,
+    onUpdateRope: () -> Unit,
 ) {
     Surface(
         modifier = modifier,
@@ -65,16 +84,54 @@ fun BoardTools(
                     .padding(vertical = 8.dp)
             )
 
-            ButtonTool(
-                imageVector = PhosphorLightbulb,
-                onClick = { onImportQuotes() }
-            )
-            ButtonTool(
-                imageVector = PhosphorBookOpen,
-                onClick = { onImportBooks() }
-            )
+            val toolState = when {
+                selectedNotesCount == 1 -> ToolState.SingleNote
+                selectedNotesCount > 1 -> ToolState.MultiNote
+                isSelectedRope -> ToolState.Rope
+                else -> ToolState.None
+            }
+
+            AnimatedContent(
+                targetState = toolState,
+                transitionSpec = {
+                    if (targetState != ToolState.None) {
+                        (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it } + fadeOut())
+                    } else {
+                        (slideInHorizontally { -it } + fadeIn()).togetherWith(slideOutHorizontally { it } + fadeOut())
+                    }
+                },
+                label = "ToolAnimation"
+            ) { state ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    when (state) {
+                        ToolState.SingleNote -> {
+                            ButtonTool(imageVector = PhosphorPencil, onClick = onEditNote)
+                            ButtonTool(imageVector = PhosphorTrash, onClick = onDeleteNotes)
+                        }
+
+                        ToolState.MultiNote -> {
+                            ButtonTool(imageVector = PhosphorCornersOut, onClick = onAlignNotes)
+                            ButtonTool(imageVector = PhosphorTrash, onClick = onDeleteNotes)
+                        }
+
+                        ToolState.Rope -> {
+                            ButtonTool(imageVector = PhosphorLinkSimple, onClick = onUpdateRope)
+                            ButtonTool(imageVector = PhosphorTrash, onClick = onDeleteRope)
+                        }
+
+                        ToolState.None -> {
+                            ButtonTool(imageVector = PhosphorLightbulb, onClick = onImportQuotes)
+                            ButtonTool(imageVector = PhosphorBookOpen, onClick = onImportBooks)
+                        }
+                    }
+                }
+            }
         }
     }
+}
+
+private enum class ToolState {
+    None, SingleNote, MultiNote, Rope
 }
 
 @Composable

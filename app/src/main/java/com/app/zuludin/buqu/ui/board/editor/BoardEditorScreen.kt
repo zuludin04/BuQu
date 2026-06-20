@@ -26,8 +26,6 @@ import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportBooks
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.ImportQuotes
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.InputNoteDialog
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.None
-import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.NotePopup
-import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.RopePopup
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.UpdateRope
 import com.app.zuludin.buqu.ui.board.editor.BoardDialogState.UpsertBoardDialog
 import com.app.zuludin.buqu.ui.board.editor.BoardEditorAction.ConfirmImportBooks
@@ -55,11 +53,9 @@ import com.app.zuludin.buqu.ui.board.editor.component.NoteSelectIndicator
 import com.app.zuludin.buqu.ui.board.editor.component.RopeComponent
 import com.app.zuludin.buqu.ui.board.editor.dialog.BoardSettingDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.BookImportDialog
-import com.app.zuludin.buqu.ui.board.editor.dialog.NoteActionDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteConnectDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.NoteInputDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.QuoteImportDialog
-import com.app.zuludin.buqu.ui.board.editor.dialog.RopeActionDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.SaveBoardDialog
 import com.app.zuludin.buqu.ui.board.editor.dialog.UpdateRopeDialog
 import kotlinx.coroutines.flow.collectLatest
@@ -216,34 +212,6 @@ fun BoardEditorScreen(
             },
         )
 
-        is NotePopup -> NoteActionDialog(
-            popupPosition = dialog.popupPosition,
-            onDismiss = { viewModel.onAction(OnOpenDialog(None)) },
-            onEditNote = {
-                viewModel.onAction(
-                    OnOpenDialog(
-                        InputNoteDialog(
-                            dialog.note.noteId,
-                            dialog.note.title,
-                            dialog.note.color
-                        )
-                    )
-                )
-            },
-            onConnectNote = {
-                viewModel.onAction(
-                    OnOpenDialog(ConnectNoteDialog(dialog.note))
-                )
-            },
-        )
-
-        is RopePopup -> RopeActionDialog(
-            popupPosition = dialog.popupPosition,
-            onDismiss = { viewModel.onAction(OnOpenDialog(None)) },
-            onDeleteRope = { viewModel.onAction(OnDeleteRope(dialog.rope.ropeId)) },
-            onUpdateRope = { viewModel.onAction(OnOpenDialog(UpdateRope(dialog.rope))) }
-        )
-
         is UpdateRope -> UpdateRopeDialog(
             ropeId = dialog.rope.ropeId,
             title = dialog.rope.caption,
@@ -268,7 +236,27 @@ private fun BoardEditorContent(
         onGetBoardSize = { onAction(OnGetBoardSize(it)) },
         openDialog = { onAction(OnOpenDialog(it)) },
         onCanvasTap = { onAction(OnCanvasTap(it)) },
+        onEditNote = {
+            val note = uiState.notes.first { n -> n.noteId == uiState.selectedNoteIds.first() }
+            onAction(
+                OnOpenDialog(
+                    InputNoteDialog(
+                        note.noteId,
+                        note.title,
+                        note.color
+                    )
+                )
+            )
+        },
+        onDeleteNotes = { onAction(BoardEditorAction.OnDeleteSelectedNotes) },
         showGrid = uiState.showGrid,
+        noteCount = uiState.selectedNoteIds.size,
+        isSelectedRope = uiState.selectedRopeId != null,
+        onDeleteRope = { onAction(OnDeleteRope(uiState.selectedRopeId!!)) },
+        onUpdateRope = {
+            val rope = uiState.ropes.first { it.ropeId == uiState.selectedRopeId }
+            onAction(OnOpenDialog(UpdateRope(rope)))
+        }
     ) {
         uiState.ropes.filter { r -> r.status == "active" }.forEach { rope ->
             RopeComponent(rope, false, rope.ropeId == uiState.selectedRopeId)

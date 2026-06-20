@@ -286,7 +286,7 @@ class BoardEditorViewModel @Inject constructor(
         }
 
         _uiState.update {
-            it.copy(notes = notes, ropes = ropes, selectedNoteIds = emptyList())
+            it.copy(notes = notes, ropes = ropes, selectedNoteIds = emptyList(), previewRope = null)
         }
     }
 

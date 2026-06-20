@@ -30,7 +30,13 @@ fun BoardInfiniteCanvas(
     onGetBoardSize: (IntSize) -> Unit,
     openDialog: (BoardDialogState) -> Unit,
     onCanvasTap: (Offset) -> Unit,
+    onEditNote: () -> Unit,
+    onDeleteNotes: () -> Unit,
+    onDeleteRope: () -> Unit,
+    onUpdateRope: () -> Unit,
     backgroundType: BackgroundType,
+    noteCount: Int,
+    isSelectedRope: Boolean,
     content: @Composable BoxScope.(Camera) -> Unit
 ) {
     val state = rememberTransformableState { zoomChange, panChange, _ ->
@@ -83,6 +89,12 @@ fun BoardInfiniteCanvas(
             scale = camera.zoom,
             onImportQuotes = { openDialog(BoardDialogState.ImportQuotes) },
             onImportBooks = { openDialog(BoardDialogState.ImportBooks) },
+            selectedNotesCount = noteCount,
+            isSelectedRope = isSelectedRope,
+            onEditNote = onEditNote,
+            onDeleteNotes = onDeleteNotes,
+            onDeleteRope = onDeleteRope,
+            onUpdateRope = onUpdateRope
         )
     }
 }

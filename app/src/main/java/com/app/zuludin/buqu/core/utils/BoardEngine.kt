@@ -120,9 +120,8 @@ class BoardEngine {
     }
 
     fun onTap(tapOffset: Offset, boardId: String, state: BoardEditorState): BoardEditorState {
-        val notes = state.notes
-        val ropes = state.ropes
-        val camera = state.camera
+        val notes = state.notes.filter { it.status == "active" }
+        val ropes = state.ropes.filter { it.status == "active" }
 
         val note = findNote(tapOffset, notes)
         var previewRope: Rope? = null
@@ -130,8 +129,6 @@ class BoardEngine {
         if (note != null) {
             val note = notes.first { it.noteId == note.noteId }
             val noteIds = state.selectedNoteIds + note.noteId
-            val position =
-                camera.worldToScreen(Offset(note.posX + (note.size.width * 0.5f), note.posY))
 
             val nearest = findNearestNote(note.noteId, notes)
             if (nearest != null) {
@@ -145,7 +142,6 @@ class BoardEngine {
             }
 
             return state.copy(
-                dialogState = BoardDialogState.NotePopup(position, note),
                 selectedNoteIds = noteIds,
                 selectedIndicator = generateSelectedIndicator(
                     notes.filter { it.noteId in noteIds },
@@ -153,18 +149,18 @@ class BoardEngine {
                     nearest?.first ?: "",
                 ),
                 noteHighlightId = if (highlightNote) nearest?.second?.noteId else null,
-                previewRope = previewRope
+                previewRope = previewRope,
+                selectedRopeId = null,
             )
         }
 
         val rope = findRope(tapOffset, ropes)
         if (rope != null) {
             return state.copy(
-                dialogState = BoardDialogState.RopePopup(
-                    camera.worldToScreen(rope.middlePoint()),
-                    rope
-                ),
-                selectedRopeId = rope.ropeId
+                selectedRopeId = rope.ropeId,
+                selectedNoteIds = emptyList(),
+                selectedIndicator = SelectedIndicator(),
+                previewRope = null,
             )
         }
 
