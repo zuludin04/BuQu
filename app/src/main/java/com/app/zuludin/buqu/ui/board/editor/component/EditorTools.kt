@@ -52,7 +52,7 @@ fun BoardTools(
     onImportBooks: () -> Unit,
     onEditNote: () -> Unit,
     onDeleteNotes: () -> Unit,
-    onAlignNotes: () -> Unit = {},
+    onAlignNotes: () -> Unit,
     onDeleteRope: () -> Unit,
     onUpdateRope: () -> Unit,
 ) {

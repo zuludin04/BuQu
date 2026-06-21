@@ -256,7 +256,8 @@ private fun BoardEditorContent(
         onUpdateRope = {
             val rope = uiState.ropes.first { it.ropeId == uiState.selectedRopeId }
             onAction(OnOpenDialog(UpdateRope(rope)))
-        }
+        },
+        onAutoAlign = { onAction(OnTidyUpNotes) }
     ) {
         uiState.ropes.filter { r -> r.status == "active" }.forEach { rope ->
             RopeComponent(rope, false, rope.ropeId == uiState.selectedRopeId)

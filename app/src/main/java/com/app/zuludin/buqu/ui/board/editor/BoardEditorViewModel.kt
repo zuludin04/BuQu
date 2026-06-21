@@ -300,7 +300,11 @@ class BoardEditorViewModel @Inject constructor(
     }
 
     private fun tidyUpNotes() {
-        _uiState.value = engine.tidyUpNotes(_uiState.value)
+        if (_uiState.value.selectedNoteIds.isEmpty()) {
+            _uiState.value = engine.tidyUpNotes(_uiState.value)
+        } else {
+            _uiState.value = engine.alignSelectedNotes(_uiState.value)
+        }
     }
 
     private fun toggleGrid() {

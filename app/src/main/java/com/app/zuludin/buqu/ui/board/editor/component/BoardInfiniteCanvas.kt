@@ -34,6 +34,7 @@ fun BoardInfiniteCanvas(
     onDeleteNotes: () -> Unit,
     onDeleteRope: () -> Unit,
     onUpdateRope: () -> Unit,
+    onAutoAlign: () -> Unit,
     backgroundType: BackgroundType,
     noteCount: Int,
     isSelectedRope: Boolean,
@@ -94,7 +95,8 @@ fun BoardInfiniteCanvas(
             onEditNote = onEditNote,
             onDeleteNotes = onDeleteNotes,
             onDeleteRope = onDeleteRope,
-            onUpdateRope = onUpdateRope
+            onUpdateRope = onUpdateRope,
+            onAlignNotes = onAutoAlign,
         )
     }
 }

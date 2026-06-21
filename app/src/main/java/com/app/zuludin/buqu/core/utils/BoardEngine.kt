@@ -33,7 +33,13 @@ class BoardEngine {
         val position = Offset(n.posX, n.posY)
         val rs = updateRopePosition(note.noteId, ropes, position)
 
-        return state.copy(notes = ns, ropes = rs, previewRope = null, selectedNoteIds = emptyList())
+        return state.copy(
+            notes = ns,
+            ropes = rs,
+            previewRope = null,
+            selectedNoteIds = emptyList(),
+            noteHighlightId = null,
+        )
     }
 
     private fun updateRopePosition(
@@ -119,6 +125,70 @@ class BoardEngine {
         )
     }
 
+    fun alignSelectedNotes(state: BoardEditorState): BoardEditorState {
+        val selectedNoteIds = state.selectedNoteIds
+        if (selectedNoteIds.isEmpty()) return state
+
+        val notes = state.notes
+        val selectedNotes = notes.filter { it.noteId in selectedNoteIds }
+
+        val startX = selectedNotes.minOfOrNull { it.posX } ?: 0f
+        val startY = selectedNotes.minOfOrNull { it.posY } ?: 0f
+
+        val columnCount = 3
+        val padding = 32f
+
+        val columnWidths = FloatArray(columnCount)
+        selectedNotes.forEachIndexed { index, note ->
+            val column = index % columnCount
+            val width = if (note.size.width > 0) note.size.width.toFloat() else 300f
+            columnWidths[column] = maxOf(columnWidths[column], width)
+        }
+
+        val columnXOffsets = FloatArray(columnCount)
+        columnXOffsets[0] = startX
+        for (i in 1 until columnCount) {
+            columnXOffsets[i] = columnXOffsets[i - 1] + columnWidths[i - 1] + padding
+        }
+
+        val columnHeights = FloatArray(columnCount) { startY }
+
+        val updatedNotesMap = selectedNotes.mapIndexed { index, note ->
+            val column = index % columnCount
+            val x = columnXOffsets[column]
+            val y = columnHeights[column]
+
+            val height = if (note.size.height > 0) note.size.height.toFloat() else 250f
+            columnHeights[column] += height + padding
+
+            note.noteId to note.copy(posX = x, posY = y)
+        }.toMap()
+
+        val tidiedNotes = notes.map { note ->
+            updatedNotesMap[note.noteId] ?: note
+        }
+
+        val tidiedRopes = state.ropes.map { rope ->
+            val sourceNote = tidiedNotes.find { it.noteId == rope.sourceNoteId }
+            val targetNote = tidiedNotes.find { it.noteId == rope.targetNoteId }
+            rope.copy(
+                sourceX = sourceNote?.posX ?: rope.sourceX,
+                sourceY = sourceNote?.posY ?: rope.sourceY,
+                targetX = targetNote?.posX ?: rope.targetX,
+                targetY = targetNote?.posY ?: rope.targetY
+            )
+        }
+
+        return state.copy(
+            notes = tidiedNotes,
+            ropes = tidiedRopes,
+            dialogState = BoardDialogState.None,
+            previewRope = null,
+            selectedNoteIds = emptyList(),
+            noteHighlightId = null,
+        )
+    }
+
     fun onTap(tapOffset: Offset, boardId: String, state: BoardEditorState): BoardEditorState {
         val notes = state.notes.filter { it.status == "active" }
         val ropes = state.ropes.filter { it.status == "active" }
@@ -148,8 +218,8 @@ class BoardEngine {
                     note.noteId,
                     nearest?.first ?: "",
                 ),
-                noteHighlightId = if (highlightNote) nearest?.second?.noteId else null,
-                previewRope = previewRope,
+                noteHighlightId = if (highlightNote && state.selectedNoteIds.isEmpty()) nearest?.second?.noteId else null,
+                previewRope = if (state.selectedNoteIds.isEmpty()) previewRope else null,
                 selectedRopeId = null,
             )
         }
