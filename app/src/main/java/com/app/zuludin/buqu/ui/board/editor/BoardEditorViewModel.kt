@@ -149,7 +149,7 @@ class BoardEditorViewModel @Inject constructor(
                 val previewRope = _uiState.value.previewRope
                 if (previewRope != null && previewRope.targetNoteId != "") {
                     val connectedRopes =
-                        _uiState.value.ropes.filter { (previewRope.sourceNoteId == it.sourceNoteId || previewRope.sourceNoteId == it.targetNoteId) && (previewRope.targetNoteId == it.sourceNoteId || previewRope.targetNoteId == it.targetNoteId) }
+                        _uiState.value.ropes.filter { it.status == "active" }.filter { (previewRope.sourceNoteId == it.sourceNoteId || previewRope.sourceNoteId == it.targetNoteId) && (previewRope.targetNoteId == it.sourceNoteId || previewRope.targetNoteId == it.targetNoteId) }
                     if (connectedRopes.isNotEmpty()) {
                         viewModelScope.launch { _eventChannel.send(BoardEditorEvent.NoteAlreadyConnected) }
                     } else {
