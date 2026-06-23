@@ -424,7 +424,13 @@ class BoardEditorViewModel @Inject constructor(
         val ropes = _uiState.value.ropes.map {
             if (it.ropeId == ropeId) it.copy(status = "deleted") else it
         }
-        _uiState.update { it.copy(ropes = ropes, dialogState = BoardDialogState.None) }
+        _uiState.update {
+            it.copy(
+                ropes = ropes,
+                dialogState = BoardDialogState.None,
+                selectedRopeId = null
+            )
+        }
     }
 
     private fun updateRope(ropeId: String, caption: String, color: String) {
