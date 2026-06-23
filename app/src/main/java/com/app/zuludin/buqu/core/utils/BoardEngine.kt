@@ -196,7 +196,7 @@ class BoardEngine {
         val note = findNote(tapOffset, notes)
         var previewRope: Rope? = null
         var highlightNote = false
-        if (note != null) {
+        if (note != null && !state.selectedNoteIds.contains(note.noteId)) {
             val note = notes.first { it.noteId == note.noteId }
             val noteIds = state.selectedNoteIds + note.noteId
 

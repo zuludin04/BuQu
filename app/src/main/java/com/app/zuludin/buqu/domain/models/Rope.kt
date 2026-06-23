@@ -17,6 +17,8 @@ data class Rope(
     val color: String = "7D5260",
     val status: String = "active",
     val caption: String = "",
+    val sourceAnchor: Offset = Offset.Zero,
+    val targetAnchor: Offset = Offset.Zero,
 ) {
     fun middlePoint(): Offset {
         val sourceSize = sourceSize
